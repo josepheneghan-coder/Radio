@@ -1,0 +1,6 @@
+{
+  "name": "KONTROLL // SUB-FREQ INDIE RADIO",
+  "description": "Independent underground online radio station broadcasting live DJ sets, curated shows, subcultural archives and street culture.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
