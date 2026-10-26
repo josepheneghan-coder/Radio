@@ -33,7 +33,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-[#000000] text-white border-b border-[#1f1f1f] px-3 sm:px-6 md:px-8 py-2.5 sm:py-3 flex items-center justify-between gap-2 sm:gap-4 transition-colors overflow-x-hidden">
+      <header className="sticky top-0 z-50 bg-[#000000] text-white border-b border-[#1f1f1f] px-3 sm:px-6 md:px-8 py-2 sm:py-2.5 flex items-center justify-between gap-2 sm:gap-4 transition-colors overflow-x-hidden">
         {/* Zone 1: Brand Wordmark + Static Status Indicator (No Blinking, No Pulse) */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <button

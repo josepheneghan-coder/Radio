@@ -104,7 +104,7 @@ export const UndergroundReactor: React.FC<UndergroundReactorProps> = ({
       const rect = containerRef.current.getBoundingClientRect();
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const displayWidth = Math.floor(rect.width);
-      const displayHeight = expandedView ? 340 : 220;
+      const displayHeight = expandedView ? 240 : 135;
 
       if (canvas.width !== displayWidth * dpr || canvas.height !== displayHeight * dpr) {
         canvas.width = displayWidth * dpr;
@@ -294,19 +294,19 @@ export const UndergroundReactor: React.FC<UndergroundReactorProps> = ({
   return (
     <section
       id="reactor"
-      className={`w-full bg-[#050507] text-white border-y border-neutral-800 py-8 px-3 sm:px-6 md:px-8 transition-all ${className}`}
+      className={`w-full bg-[#050507] text-white border-b border-neutral-800 py-2 sm:py-2.5 px-3 sm:px-6 md:px-8 transition-all ${className}`}
     >
       <div className="max-w-7xl mx-auto">
         {/* Hardware Control Top Bar */}
-        <div className="bg-[#0b0b0e] border border-neutral-800 p-3 sm:p-4 mb-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="bg-[#0b0b0e] border border-neutral-800 p-2 sm:p-2.5 mb-2 flex flex-col md:flex-row md:items-center justify-between gap-2">
           {/* Rack Title & Status Indicator */}
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 bg-neutral-900 border border-neutral-700 flex items-center justify-center shrink-0">
-              <Activity size={18} className={isLive ? 'text-red-500 animate-pulse' : 'text-neutral-500'} />
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 bg-neutral-900 border border-neutral-700 flex items-center justify-center shrink-0">
+              <Activity size={16} className={isLive ? 'text-red-500 animate-pulse' : 'text-neutral-500'} />
             </div>
 
             <div className="min-w-0">
-              <div className="flex items-center gap-2 font-mono text-[10px] tracking-wider text-neutral-400">
+              <div className="flex items-center gap-2 font-mono text-[9px] sm:text-[10px] tracking-wider text-neutral-400">
                 <span className="uppercase text-white font-bold">RACK 01 · MASTER DSP</span>
                 <span>·</span>
                 {/* Live Analysis Mode Indicator */}
@@ -328,36 +328,36 @@ export const UndergroundReactor: React.FC<UndergroundReactorProps> = ({
                 )}
               </div>
 
-              <h2 className="font-display font-black text-lg sm:text-xl tracking-tight uppercase truncate">
+              <h2 className="font-display font-black text-sm sm:text-base tracking-tight uppercase truncate">
                 UNDERGROUND AUDIO REACTOR
               </h2>
             </div>
           </div>
 
           {/* Interactive Hardware Switches (RAVE PRESSURE, Bands, View) */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             {/* RAVE PRESSURE Mode Toggle — Core Requirement */}
             <button
               onClick={handleToggleRave}
               title="RAVE PRESSURE: Escalates visual dynamic range, transient attack and red clip saturation. (Audio volume remains strictly unchanged at 0dB)."
-              className={`min-h-[36px] sm:min-h-[38px] px-3.5 py-1.5 font-mono text-xs font-bold flex items-center gap-2 border transition-all cursor-pointer ${
+              className={`min-h-[28px] sm:min-h-[30px] px-2.5 sm:px-3 py-1 font-mono text-[11px] font-bold flex items-center gap-1.5 border transition-all cursor-pointer ${
                 ravePressure
-                  ? 'bg-red-600 border-red-500 text-white shadow-[0_0_14px_rgba(255,0,51,0.5)]'
+                  ? 'bg-red-600 border-red-500 text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
                   : 'bg-neutral-900 border-neutral-700 text-neutral-300 hover:text-white hover:border-neutral-500'
               }`}
             >
-              <Flame size={14} className={ravePressure ? 'animate-bounce' : 'text-red-500'} />
+              <Flame size={13} className={ravePressure ? 'animate-bounce' : 'text-red-500'} />
               <span>RAVE PRESSURE:</span>
-              <span className={`px-1.5 py-0.2 rounded text-[10px] ${ravePressure ? 'bg-black text-red-400' : 'bg-neutral-800 text-neutral-400'}`}>
+              <span className={`px-1 py-0.2 rounded text-[9px] ${ravePressure ? 'bg-black text-red-400' : 'bg-neutral-800 text-neutral-400'}`}>
                 {ravePressure ? 'ACTIVE' : 'OFF'}
               </span>
             </button>
 
             {/* Band Resolution Toggle (64 vs 32) */}
-            <div className="hidden sm:flex items-center bg-neutral-900 border border-neutral-800 p-0.5 font-mono text-[11px]">
+            <div className="hidden sm:flex items-center bg-neutral-900 border border-neutral-800 p-0.5 font-mono text-[10px]">
               <button
                 onClick={() => setBandResolution(64)}
-                className={`px-2.5 py-1 font-bold cursor-pointer transition-colors ${
+                className={`px-2 py-0.5 font-bold cursor-pointer transition-colors ${
                   bandResolution === 64 ? 'bg-white text-black' : 'text-neutral-400 hover:text-white'
                 }`}
               >
@@ -365,7 +365,7 @@ export const UndergroundReactor: React.FC<UndergroundReactorProps> = ({
               </button>
               <button
                 onClick={() => setBandResolution(32)}
-                className={`px-2.5 py-1 font-bold cursor-pointer transition-colors ${
+                className={`px-2 py-0.5 font-bold cursor-pointer transition-colors ${
                   bandResolution === 32 ? 'bg-white text-black' : 'text-neutral-400 hover:text-white'
                 }`}
               >
@@ -377,34 +377,34 @@ export const UndergroundReactor: React.FC<UndergroundReactorProps> = ({
             <button
               onClick={() => setShowTechInfo(!showTechInfo)}
               title="Toggle DSP technical routing notes"
-              className={`w-9 h-9 sm:w-9 sm:h-9 flex items-center justify-center border font-mono text-xs transition-colors cursor-pointer ${
+              className={`w-7 h-7 sm:w-7.5 sm:h-7.5 flex items-center justify-center border font-mono text-xs transition-colors cursor-pointer ${
                 showTechInfo
                   ? 'bg-white text-black border-white'
                   : 'bg-neutral-900 text-neutral-400 hover:text-white border-neutral-700'
               }`}
             >
-              <Info size={14} />
+              <Info size={13} />
             </button>
 
             {/* Expand / Minimize View Toggle */}
             <button
               onClick={() => setExpandedView(!expandedView)}
               title={expandedView ? 'Compress reactor height' : 'Expand reactor viewport'}
-              className="w-9 h-9 sm:w-9 sm:h-9 flex items-center justify-center border border-neutral-700 bg-neutral-900 hover:text-white text-neutral-400 transition-colors cursor-pointer"
+              className="w-7 h-7 sm:w-7.5 sm:h-7.5 flex items-center justify-center border border-neutral-700 bg-neutral-900 hover:text-white text-neutral-400 transition-colors cursor-pointer"
             >
-              {expandedView ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+              {expandedView ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
             </button>
 
             {/* Tune in / Stop Quick Button */}
             <button
               onClick={onTogglePlay}
-              className={`min-h-[36px] sm:min-h-[38px] px-3.5 py-1.5 font-ui font-bold text-xs uppercase flex items-center gap-1.5 transition-colors cursor-pointer ${
+              className={`min-h-[28px] sm:min-h-[30px] px-2.5 sm:px-3 py-1 font-ui font-bold text-[11px] uppercase flex items-center gap-1 transition-colors cursor-pointer ${
                 isPlaying
                   ? 'bg-yellow-400 text-black hover:bg-yellow-300'
                   : 'bg-white text-black hover:bg-neutral-200'
               }`}
             >
-              {isPlaying ? <Pause size={13} className="fill-current" /> : <Play size={13} className="fill-current" />}
+              {isPlaying ? <Pause size={12} className="fill-current" /> : <Play size={12} className="fill-current" />}
               <span>{isPlaying ? 'PAUSE' : 'REACT'}</span>
             </button>
           </div>
@@ -468,30 +468,30 @@ export const UndergroundReactor: React.FC<UndergroundReactorProps> = ({
         </div>
 
         {/* Realtime Telemetry Strip Below Reactor */}
-        <div className="bg-[#0b0b0e] border-x border-b border-neutral-800 px-3 sm:px-4 py-2 flex flex-wrap items-center justify-between gap-3 font-mono text-[10px] sm:text-[11px] text-neutral-400">
-          <div className="flex flex-wrap items-center gap-3 sm:gap-5">
-            <div className="flex items-center gap-1.5">
-              <span className="text-neutral-500">SUB (30-120Hz):</span>
+        <div className="bg-[#0b0b0e] border-x border-b border-neutral-800 px-3 py-1 sm:py-1.5 flex flex-wrap items-center justify-between gap-2 font-mono text-[9px] sm:text-[10px] text-neutral-400">
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-4">
+            <div className="flex items-center gap-1">
+              <span className="text-neutral-500">SUB:</span>
               <span className={`font-bold tabular-nums ${metrics.subDb > -12 ? 'text-white' : 'text-neutral-400'}`}>
                 {metrics.subDb > -48 ? `${metrics.subDb} dB` : '-INF'}
               </span>
             </div>
 
-            <div className="flex items-center gap-1.5">
-              <span className="text-neutral-500">MIDS (250-2kHz):</span>
+            <div className="flex items-center gap-1">
+              <span className="text-neutral-500">MIDS:</span>
               <span className={`font-bold tabular-nums ${metrics.midDb > -18 ? 'text-white' : 'text-neutral-400'}`}>
                 {metrics.midDb > -48 ? `${metrics.midDb} dB` : '-INF'}
               </span>
             </div>
 
-            <div className="flex items-center gap-1.5">
-              <span className="text-neutral-500">HIGHS (4-16kHz):</span>
+            <div className="flex items-center gap-1">
+              <span className="text-neutral-500">HIGHS:</span>
               <span className={`font-bold tabular-nums ${metrics.highDb > -24 ? 'text-white' : 'text-neutral-400'}`}>
                 {metrics.highDb > -48 ? `${metrics.highDb} dB` : '-INF'}
               </span>
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1">
               <span className="text-neutral-500">PEAK:</span>
               <span
                 className={`font-bold tabular-nums ${
@@ -503,10 +503,10 @@ export const UndergroundReactor: React.FC<UndergroundReactorProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-3 text-neutral-500 text-[10px]">
+          <div className="flex items-center gap-2 text-neutral-500 text-[9px] sm:text-[10px]">
             <span>TEMPO: <strong className="text-white tabular-nums">{metrics.bpm.toFixed(1)} BPM</strong></span>
             <span>·</span>
-            <span>PROFILE: <strong className="text-white">BERLIN INDUSTRIAL TECHNO</strong></span>
+            <span className="hidden xs:inline">PROFILE: <strong className="text-white">BERLIN INDUSTRIAL TECHNO</strong></span>
           </div>
         </div>
       </div>
