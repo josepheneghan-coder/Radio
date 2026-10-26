@@ -76,18 +76,18 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Zone 2: Interface Navigation Links — Refined Editorial Navigation */}
         <nav className="hidden lg:flex items-center gap-6 xl:gap-8 font-ui font-semibold text-xs tracking-wider uppercase text-neutral-400">
           <button
-            onClick={() => handleNavClick('reactor')}
-            className="hover:text-white transition-colors cursor-pointer whitespace-nowrap py-1 relative group"
-          >
-            <span>Audio Reactor</span>
-            <span className="absolute bottom-0 left-0 w-0 h-[1.5px] bg-red-500 group-hover:w-full transition-all duration-200" />
-          </button>
-          <button
             onClick={() => handleNavClick('booth')}
             className="hover:text-white transition-colors cursor-pointer whitespace-nowrap py-1 relative group"
           >
             <span>Live Booth</span>
             <span className="absolute bottom-0 left-0 w-0 h-[1.5px] bg-white group-hover:w-full transition-all duration-200" />
+          </button>
+          <button
+            onClick={() => handleNavClick('reactor')}
+            className="hover:text-white transition-colors cursor-pointer whitespace-nowrap py-1 relative group"
+          >
+            <span>Audio Reactor</span>
+            <span className="absolute bottom-0 left-0 w-0 h-[1.5px] bg-red-500 group-hover:w-full transition-all duration-200" />
           </button>
           <button
             onClick={() => handleNavClick('shows')}
@@ -161,6 +161,13 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="lg:hidden bg-black/95 border-b border-neutral-800 px-4 py-5 font-ui font-semibold text-sm uppercase tracking-wider space-y-3 z-40 fixed top-[54px] sm:top-[57px] left-0 right-0 backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-150">
           <div className="flex flex-col space-y-1">
             <button
+              onClick={() => handleNavClick('booth')}
+              className="text-left py-3 px-3 hover:bg-neutral-900 text-neutral-300 hover:text-white transition-colors flex items-center justify-between"
+            >
+              <span>Live Booth · CCTV</span>
+              <span className="font-mono text-xs text-neutral-500">01</span>
+            </button>
+            <button
               onClick={() => handleNavClick('reactor')}
               className="text-left py-3 px-3 hover:bg-neutral-900 text-neutral-300 hover:text-white transition-colors flex items-center justify-between"
             >
@@ -169,13 +176,6 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>Audio Reactor · Spectrum</span>
               </span>
               <span className="font-mono text-xs text-red-500 font-bold">DSP</span>
-            </button>
-            <button
-              onClick={() => handleNavClick('booth')}
-              className="text-left py-3 px-3 hover:bg-neutral-900 text-neutral-300 hover:text-white transition-colors flex items-center justify-between"
-            >
-              <span>Live Booth · CCTV</span>
-              <span className="font-mono text-xs text-neutral-500">01</span>
             </button>
             <button
               onClick={() => handleNavClick('shows')}

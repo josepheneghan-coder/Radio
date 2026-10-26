@@ -108,13 +108,6 @@ export default function App() {
 
       {/* Main Content Sections */}
       <main className="flex-1 overflow-x-hidden">
-        {/* Underground Audio Reactor (64-Band Berlin Club Equalizer & Telemetry) */}
-        <UndergroundReactor
-          isPlaying={isPlaying}
-          streamStatus={streamStatus}
-          onTogglePlay={handleTogglePlay}
-        />
-
         {/* Live DJ Booth Surveillance Stream & Shoutbox */}
         <LiveBoothStream
           channel={activeChannel}
@@ -122,6 +115,13 @@ export default function App() {
           streamStatus={streamStatus}
           onTogglePlay={handleTogglePlay}
           onOpenTracklistModal={() => setSelectedShowForModal(SHOWS_DATA[0])}
+        />
+
+        {/* Underground Audio Reactor (64-Band Berlin Club Equalizer & Telemetry) */}
+        <UndergroundReactor
+          isPlaying={isPlaying}
+          streamStatus={streamStatus}
+          onTogglePlay={handleTogglePlay}
         />
 
         {/* Shows & Radio Picks Archive Grid */}
