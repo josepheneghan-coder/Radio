@@ -144,7 +144,7 @@ export const HeroCollage: React.FC<HeroCollageProps> = ({ onTuneIn, isPlaying })
         <div className="absolute inset-0 overflow-hidden pointer-events-none select-none bg-black">
           {bgStyle === 'cinematic' ? (
             <img
-              src="/src/assets/images/banner_ibiza.jpg"
+              src="/images/banner_ibiza.jpg"
               alt="Ibiza / Berlin Cinematic Club Volumetric Lasers"
               className="w-full h-full object-cover object-[center_35%] sm:object-center scale-100 transition-opacity duration-500"
               style={{ opacity: bgOpacity / 100 }}
@@ -155,7 +155,7 @@ export const HeroCollage: React.FC<HeroCollageProps> = ({ onTuneIn, isPlaying })
             />
           ) : (
             <img
-              src="/src/assets/images/hero_custom_bg.jpg"
+              src="/images/hero_custom_bg.jpg"
               alt="Underground Radio Authentic Sticker Collage Background"
               className="w-full h-full object-cover object-center scale-100 transition-opacity duration-500"
               style={{ opacity: bgOpacity / 100 }}

@@ -154,7 +154,7 @@ export const LiveBoothStream: React.FC<LiveBoothStreamProps> = ({
                   }`}
                 >
                   <img
-                    src="/src/assets/images/dj_booth_live_stream_1792936491764.jpg"
+                    src="/images/dj_booth_live_stream_1792936491764.jpg"
                     alt="Underground Radio DJ Booth Live Studio"
                     className="w-full h-full object-cover"
                     referrerPolicy="no-referrer"
