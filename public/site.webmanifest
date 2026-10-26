@@ -1,0 +1,17 @@
+{
+  "name": "KONTROLL RADIO",
+  "short_name": "KONTROLL",
+  "description": "Independent underground electronic radio station broadcasting 24/7 club soundscapes, live DJ sets and satellite feeds.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0c0c0c",
+  "theme_color": "#0c0c0c",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

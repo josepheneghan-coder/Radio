@@ -2,6 +2,19 @@ import { Channel, MerchItem, ScheduleItem, Show, StickerItem } from '../types/ra
 
 export const CHANNELS: Channel[] = [
   {
+    id: 'live-relay',
+    name: 'MAIN RELAY: IBIZA GLOBAL SATELLITE',
+    frequency: '100.8 FM',
+    currentShow: 'LIVE SATELLITE FEED // BALEARIC UNDERGROUND',
+    dj: 'IBIZA GLOBAL SELECTORS',
+    genre: 'Deep House · Minimal Tech · Underground',
+    location: 'Ibiza / Baleares',
+    bitrate: '320 kbps Live Stream',
+    sourceType: 'stream',
+    streamUrl: 'https://cdn-peer012.streaming-pro.com:8025/ibizaglobalradio.mp3',
+    relayAttribution: 'Live stream courtesy of Ibiza Global Radio',
+  },
+  {
     id: 'ch1',
     name: 'BOOTH 01: BERLIN KIOSK',
     frequency: '104.5 FM',
@@ -10,6 +23,7 @@ export const CHANNELS: Channel[] = [
     genre: 'Minimal Synth · Coldwave · Electro',
     location: 'Berlin (Holzmarktstr)',
     bitrate: '320 kbps MP3',
+    sourceType: 'synth',
   },
   {
     id: 'ch2',
@@ -20,6 +34,7 @@ export const CHANNELS: Channel[] = [
     genre: 'Dark Dub Techno · Industrial Ambient',
     location: 'Brooklyn (Greenpoint)',
     bitrate: '320 kbps Opus',
+    sourceType: 'synth',
   },
   {
     id: 'ch3',
@@ -30,6 +45,7 @@ export const CHANNELS: Channel[] = [
     genre: 'Acid 303 · Deconstructed Club · Breakcore',
     location: 'London (Hackney Wick)',
     bitrate: '320 kbps AAC',
+    sourceType: 'synth',
   },
 ];
 

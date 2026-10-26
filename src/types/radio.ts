@@ -1,3 +1,5 @@
+export type StreamStatus = 'idle' | 'buffering' | 'live' | 'error';
+
 export interface Show {
   id: string;
   title: string;
@@ -15,7 +17,7 @@ export interface Show {
     label?: string;
     timestamp: string;
   }[];
-  audioPreset: 'synth' | 'dub' | 'acid' | 'ambient';
+  audioPreset: 'stream' | 'synth' | 'dub' | 'acid' | 'ambient';
 }
 
 export interface ScheduleItem {
@@ -51,7 +53,7 @@ export interface MerchItem {
   specs: string;
 }
 
-export type ChannelId = 'ch1' | 'ch2' | 'ch3';
+export type ChannelId = 'live-relay' | 'ch1' | 'ch2' | 'ch3';
 
 export interface Channel {
   id: ChannelId;
@@ -62,4 +64,7 @@ export interface Channel {
   genre: string;
   location: string;
   bitrate: string;
+  sourceType: 'stream' | 'synth';
+  streamUrl?: string;
+  relayAttribution?: string;
 }

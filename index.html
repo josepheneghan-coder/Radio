@@ -3,19 +3,73 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>KONTROLL // SUB-FREQ INDIE RADIO</title>
-    <meta name="description" content="Independent underground online radio station broadcasting live DJ sets, curated shows, subcultural archives and street culture." />
-    <meta property="og:title" content="KONTROLL // SUB-FREQ INDIE RADIO" />
-    <meta property="og:description" content="Independent underground online radio station broadcasting live DJ sets, curated shows, subcultural archives and street culture." />
+    <title>KONTROLL RADIO — Independent Underground Electronic Broadcast</title>
+    <meta
+      name="description"
+      content="Independent electronic radio station broadcasting 24/7 underground club soundscapes, live DJ sets, tape archives, and satellite feeds from Berlin, Ibiza & London."
+    />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#0c0c0c" />
+
+    <!-- Favicon & Mobile Web App Manifest -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- OpenGraph Metadata (WhatsApp, Telegram, LinkedIn, Facebook) -->
+    <meta property="og:site_name" content="KONTROLL RADIO" />
+    <meta property="og:title" content="KONTROLL RADIO — Independent Underground Electronic Broadcast" />
+    <meta
+      property="og:description"
+      content="24/7 live electronic underground radio, satellite streams, vinyl sets, and DJ booth surveillance from Berlin, Ibiza, London & Brooklyn."
+    />
     <meta property="og:type" content="website" />
+    <meta property="og:image" content="/og-image.jpg" />
+    <meta property="og:image:secure_url" content="/og-image.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="KONTROLL RADIO Club Lasers and Sound System" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter / X Card Metadata -->
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="twitter:title" content="KONTROLL RADIO — Independent Underground Electronic Broadcast" />
+    <meta
+      name="twitter:description"
+      content="24/7 live electronic underground radio, satellite streams, vinyl sets, and DJ booth surveillance."
+    />
+    <meta name="twitter:image" content="/og-image.jpg" />
+
+    <!-- Fonts: Archivo (Extended Display), Space Grotesk (Interface), IBM Plex Mono (Broadcast Metadata) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Schema.org JSON-LD Structured Data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "RadioStation",
+        "name": "KONTROLL RADIO",
+        "alternateName": "KONTROLL // SUB-FREQ INDIE RADIO",
+        "logo": "/favicon.svg",
+        "image": "/og-image.jpg",
+        "description": "Independent underground electronic radio station broadcasting 24/7 live DJ sets, curated shows, subcultural archives, and satellite feeds.",
+        "genre": ["Electronic", "Techno", "Minimal Synth", "Dub Techno", "Acid House"],
+        "broadcaster": {
+          "@type": "Organization",
+          "name": "KONTROLL Radio Collective",
+          "url": "/"
+        }
+      }
+    </script>
   </head>
   <body class="bg-[#0c0c0c] text-white selection:bg-yellow-400 selection:text-black">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

@@ -1,22 +1,83 @@
 /**
- * Underground Radio Web Audio Synthesizer & Soundboard Engine
- * Provides persistent, zero-latency, procedural analog soundscapes
- * (Minimal Synth, Dub Techno, Acid Bassline) and vinyl/DJ sound effects.
+ * KONTROLL RADIO Audio Engine
+ * Hybrid streaming & synthesis system:
+ * - Real live stream relay (HTML5 Audio for MP3/AAC/Opus feeds)
+ * - Procedural Web Audio API analog synth presets (Minimal Synth, Dub Techno, Acid 303, Ambient Drones)
+ * - DJ Soundboard FX (Scratch, Airhorn, Turntable Rewind, 808 Sub Drop, Station ID)
  */
 
+import { StreamStatus } from '../types/radio';
+
+export type EngineMode = 'stream' | 'synth';
+
+type StateListener = (isPlaying: boolean, status: StreamStatus, mode: EngineMode) => void;
+
 class AudioEngine {
+  // Web Audio Context for Synth & Soundboard FX
   private ctx: AudioContext | null = null;
   private analyser: AnalyserNode | null = null;
   private masterGain: GainNode | null = null;
   private tapeFilter: BiquadFilterNode | null = null;
+
+  // Real HTML5 Live Stream Audio Element
+  private streamAudio: HTMLAudioElement | null = null;
+  private currentStreamUrl: string = 'https://cdn-peer012.streaming-pro.com:8025/ibizaglobalradio.mp3';
+
+  // State
   private isRunning: boolean = false;
+  private mode: EngineMode = 'stream';
+  private streamStatus: StreamStatus = 'idle';
   private currentPreset: 'synth' | 'dub' | 'acid' | 'ambient' = 'synth';
   private timerId: number | null = null;
   private step: number = 0;
-  private volume: number = 0.8;
+  private volume: number = 0.85;
   private isMuted: boolean = false;
   private tapeSaturationActive: boolean = false;
-  private listeners: Set<(isPlaying: boolean) => void> = new Set();
+  private listeners: Set<StateListener> = new Set();
+
+  constructor() {
+    if (typeof window !== 'undefined') {
+      this.initStreamAudio();
+    }
+  }
+
+  private initStreamAudio() {
+    if (this.streamAudio) return;
+
+    this.streamAudio = new Audio();
+    this.streamAudio.preload = 'none';
+    this.streamAudio.src = this.currentStreamUrl;
+    this.streamAudio.volume = this.volume;
+
+    this.streamAudio.addEventListener('loadstart', () => {
+      this.streamStatus = 'buffering';
+      this.notify();
+    });
+
+    this.streamAudio.addEventListener('waiting', () => {
+      this.streamStatus = 'buffering';
+      this.notify();
+    });
+
+    this.streamAudio.addEventListener('playing', () => {
+      this.streamStatus = 'live';
+      this.isRunning = true;
+      this.notify();
+    });
+
+    this.streamAudio.addEventListener('pause', () => {
+      if (this.mode === 'stream') {
+        this.isRunning = false;
+        this.streamStatus = 'idle';
+        this.notify();
+      }
+    });
+
+    this.streamAudio.addEventListener('error', () => {
+      this.streamStatus = 'error';
+      this.notify();
+    });
+  }
 
   private initContext() {
     if (!this.ctx) {
@@ -46,16 +107,28 @@ class AudioEngine {
     }
   }
 
-  public subscribe(listener: (isPlaying: boolean) => void): () => void {
+  public subscribe(listener: StateListener): () => void {
     this.listeners.add(listener);
-    listener(this.isRunning);
+    listener(this.isRunning, this.streamStatus, this.mode);
     return () => {
       this.listeners.delete(listener);
     };
   }
 
   private notify() {
-    this.listeners.forEach((l) => l(this.isRunning));
+    this.listeners.forEach((l) => l(this.isRunning, this.streamStatus, this.mode));
+  }
+
+  public getIsPlaying(): boolean {
+    return this.isRunning;
+  }
+
+  public getStreamStatus(): StreamStatus {
+    return this.streamStatus;
+  }
+
+  public getMode(): EngineMode {
+    return this.mode;
   }
 
   public togglePlay(): boolean {
@@ -63,14 +136,64 @@ class AudioEngine {
       this.stop();
       return false;
     } else {
-      this.start();
+      if (this.mode === 'stream') {
+        this.startStream();
+      } else {
+        this.startSynth();
+      }
       return true;
     }
   }
 
-  public start(preset: 'synth' | 'dub' | 'acid' | 'ambient' = this.currentPreset) {
-    this.initContext();
+  // --- Real Live Stream Mode ---
+
+  public startStream(url: string = this.currentStreamUrl) {
+    this.mode = 'stream';
+    this.currentStreamUrl = url;
+    this.stopSynth();
+
+    this.initStreamAudio();
+    if (!this.streamAudio) return;
+
+    if (this.streamAudio.src !== url) {
+      this.streamAudio.src = url;
+    }
+
+    this.streamAudio.volume = this.isMuted ? 0 : this.volume;
+    this.streamStatus = 'buffering';
+    this.isRunning = true;
+    this.notify();
+
+    const playPromise = this.streamAudio.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          this.streamStatus = 'live';
+          this.isRunning = true;
+          this.notify();
+        })
+        .catch(() => {
+          this.streamStatus = 'error';
+          this.notify();
+        });
+    }
+  }
+
+  public stopStream() {
+    if (this.streamAudio) {
+      this.streamAudio.pause();
+    }
+    this.streamStatus = 'idle';
+  }
+
+  // --- Web Audio Synth Mode ---
+
+  public startSynth(preset: 'synth' | 'dub' | 'acid' | 'ambient' = this.currentPreset) {
+    this.mode = 'synth';
     this.currentPreset = preset;
+    this.stopStream();
+
+    this.initContext();
     this.isRunning = true;
     this.notify();
 
@@ -87,32 +210,25 @@ class AudioEngine {
     }, interval);
   }
 
-  public stop() {
-    this.isRunning = false;
+  private stopSynth() {
     if (this.timerId) {
       window.clearInterval(this.timerId);
       this.timerId = null;
     }
+  }
+
+  public stop() {
+    this.isRunning = false;
+    this.stopStream();
+    this.stopSynth();
     this.notify();
-  }
-
-  public getIsPlaying(): boolean {
-    return this.isRunning;
-  }
-
-  public setPreset(preset: 'synth' | 'dub' | 'acid' | 'ambient') {
-    this.currentPreset = preset;
-    if (this.isRunning) {
-      this.start(preset);
-    }
-  }
-
-  public getPreset() {
-    return this.currentPreset;
   }
 
   public setVolume(val: number) {
     this.volume = Math.max(0, Math.min(1, val));
+    if (this.streamAudio) {
+      this.streamAudio.volume = this.isMuted ? 0 : this.volume;
+    }
     if (this.masterGain && this.ctx) {
       this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : this.volume, this.ctx.currentTime);
     }
@@ -124,6 +240,9 @@ class AudioEngine {
 
   public toggleMute(): boolean {
     this.isMuted = !this.isMuted;
+    if (this.streamAudio) {
+      this.streamAudio.volume = this.isMuted ? 0 : this.volume;
+    }
     if (this.masterGain && this.ctx) {
       this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : this.volume, this.ctx.currentTime);
     }
@@ -148,52 +267,61 @@ class AudioEngine {
   }
 
   public getAnalyserData(): Uint8Array {
-    if (!this.analyser) {
-      return new Uint8Array(32);
+    if (this.mode === 'synth' && this.analyser) {
+      const data = new Uint8Array(this.analyser.frequencyBinCount);
+      this.analyser.getByteFrequencyData(data);
+      return data;
     }
-    const data = new Uint8Array(this.analyser.frequencyBinCount);
-    this.analyser.getByteFrequencyData(data);
-    return data;
+
+    // Dynamic procedural frequency response during real stream playback
+    const fakeData = new Uint8Array(32);
+    const now = Date.now() / 150;
+    for (let i = 0; i < 32; i++) {
+      if (this.isRunning && this.streamStatus === 'live') {
+        const beat = Math.sin(now * 1.8 + i * 0.45);
+        const sub = Math.cos(now * 0.9 + i * 0.2);
+        const jitter = Math.sin(now * 4.2 + i * 1.2);
+        const amp = Math.max(0, Math.min(255, (beat * 0.5 + sub * 0.3 + jitter * 0.2 + 0.5) * 230));
+        fakeData[i] = amp;
+      } else {
+        fakeData[i] = 0;
+      }
+    }
+    return fakeData;
   }
 
+  // --- Procedural Synth Implementation ---
+
   private playStep() {
-    if (!this.ctx || !this.isRunning || !this.tapeFilter) return;
+    if (!this.ctx || !this.isRunning || !this.tapeFilter || this.mode !== 'synth') return;
 
     const t = this.ctx.currentTime;
     this.step = (this.step + 1) % 16;
 
     if (this.currentPreset === 'synth') {
-      // Minimal Synth / Coldwave Bassline & Rhythm
-      // Four-on-the-floor dark kick on 0, 4, 8, 12
       if (this.step % 4 === 0) {
         this.synthKick(t, 90, 0.28);
       }
-      // Snappy electro snare on 4, 12
       if (this.step === 4 || this.step === 12) {
         this.synthSnare(t);
       }
-      // Running 16th hats
       if (this.step % 2 === 0) {
         this.synthHat(t, this.step % 4 === 2 ? 0.08 : 0.04);
       }
-      // Melodic arpeggio bass note
       const bassNotes = [110, 110, 130.81, 110, 146.83, 130.81, 110, 98];
       const freq = bassNotes[this.step % bassNotes.length];
       this.synthBassNote(t, freq, 0.18, 'sawtooth');
     } else if (this.currentPreset === 'dub') {
-      // Deep Berlin Dub Techno Chord & Sub Kick
       if (this.step % 8 === 0) {
         this.synthKick(t, 55, 0.45);
       }
       if (this.step === 4 || this.step === 12) {
         this.synthHat(t, 0.05);
       }
-      // Filtered minor 9th dub chord stab on 2 and 10 with long reverb delay emulation
       if (this.step === 2 || this.step === 10) {
         this.dubChord(t, [130.81, 155.56, 196.0, 246.94]);
       }
     } else if (this.currentPreset === 'acid') {
-      // Acid 303 squelch & energetic break rhythm
       if (this.step % 4 === 0) {
         this.synthKick(t, 120, 0.2);
       }
@@ -205,14 +333,11 @@ class AudioEngine {
       const accent = this.step === 2 || this.step === 10;
       this.acid303Note(t, f, accent);
     } else if (this.currentPreset === 'ambient') {
-      // Warm textured drone & subtle noise
       const chord = [65.41, 98.0, 130.81, 164.81];
       const note = chord[this.step % chord.length];
       this.ambientDrone(t, note);
     }
   }
-
-  // --- Drum / Synth Oscillators ---
 
   private synthKick(t: number, startFreq: number, decay: number) {
     if (!this.ctx || !this.tapeFilter) return;
@@ -248,7 +373,6 @@ class AudioEngine {
     osc.start(t);
     osc.stop(t + 0.12);
 
-    // Noise component
     const node = this.ctx.createBufferSource();
     const buffer = this.ctx.createBuffer(1, this.ctx.sampleRate * 0.15, this.ctx.sampleRate);
     const data = buffer.getChannelData(0);
@@ -475,7 +599,6 @@ class AudioEngine {
         break;
       }
       case 'radio_drop': {
-        // Resonant voice-like synthetic chime "KONTROLL LIVE"
         const chords = [523.25, 659.25, 783.99, 1046.5];
         chords.forEach((note, idx) => {
           if (!this.ctx || !this.masterGain) return;
