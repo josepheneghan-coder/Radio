@@ -1,39 +1,60 @@
 /**
  * KONTROLL RADIO Audio Engine
- * Hybrid streaming & synthesis system:
- * - Real live stream relay (HTML5 Audio for MP3/AAC/Opus feeds)
- * - Procedural Web Audio API analog synth presets (Minimal Synth, Dub Techno, Acid 303, Ambient Drones)
- * - DJ Soundboard FX (Scratch, Airhorn, Turntable Rewind, 808 Sub Drop, Station ID)
+ * Dedicated radio transmission engine & Underground Audio Reactor:
+ * - HTML5 Audio stream receiver for custom live feed (Icecast/Shoutcast/HLS)
+ * - Safe Web Audio API Analyser tap with seamless CORS fallback
+ * - High-precision Berlin Underground Techno / Schranz / Acid acoustic synthesis model
+ * - Purely visual RAVE PRESSURE mode (zero volume alteration)
+ * - Hardware DJ Soundboard FX triggers (Tactile analog scratch, rewind, 808 sub drops)
  */
 
-import { StreamStatus } from '../types/radio';
+import { StreamStatus, AnalysisMode, ReactorMetrics } from '../types/radio';
+import { STREAM_CONFIG } from '../config/streamConfig';
 
-export type EngineMode = 'stream' | 'synth';
-
-type StateListener = (isPlaying: boolean, status: StreamStatus, mode: EngineMode) => void;
+type StateListener = (isPlaying: boolean, status: StreamStatus, message?: string) => void;
+type RaveListener = (isRave: boolean) => void;
 
 class AudioEngine {
-  // Web Audio Context for Synth & Soundboard FX
+  // Web Audio Context for Soundboard FX & Stream Analyser
   private ctx: AudioContext | null = null;
   private analyser: AnalyserNode | null = null;
+  private mediaSource: MediaElementAudioSourceNode | null = null;
   private masterGain: GainNode | null = null;
   private tapeFilter: BiquadFilterNode | null = null;
+  private analyserFftData: Uint8Array | null = null;
 
   // Real HTML5 Live Stream Audio Element
   private streamAudio: HTMLAudioElement | null = null;
-  private currentStreamUrl: string = 'https://cdn-peer012.streaming-pro.com:8025/ibizaglobalradio.mp3';
+  private currentStreamUrl: string = STREAM_CONFIG.STREAM_URL;
+
+  // Stream Health & Reconnect Tracking
+  private retryCount: number = 0;
+  private readonly maxRetries: number = 3;
+  private retryTimeout: number | null = null;
+  private isUserInitiatedStop: boolean = false;
 
   // State
   private isRunning: boolean = false;
-  private mode: EngineMode = 'stream';
-  private streamStatus: StreamStatus = 'idle';
-  private currentPreset: 'synth' | 'dub' | 'acid' | 'ambient' = 'synth';
-  private timerId: number | null = null;
-  private step: number = 0;
+  private streamStatus: StreamStatus = 'standby';
   private volume: number = 0.85;
   private isMuted: boolean = false;
   private tapeSaturationActive: boolean = false;
+  private statusMessage: string = 'STANDBY // SIGNAL READY';
+  private analysisMode: AnalysisMode = 'standby';
+  private ravePressureActive: boolean = false;
+
+  // Event Listeners
   private listeners: Set<StateListener> = new Set();
+  private raveListeners: Set<RaveListener> = new Set();
+
+  // Reactor Simulation & Peak Hold Cache
+  private lastTime: number = performance.now();
+  private reactorBands: Float32Array = new Float32Array(64);
+  private reactorPeaks: Float32Array = new Float32Array(64);
+  private peakHoldExpiry: Float64Array = new Float64Array(64);
+  private clipFlags: boolean[] = new Array(64).fill(false);
+  private bpm: number = 142.0; // Underground industrial techno tempo
+  private phrasePhase: number = 0; // 0 to 1 for long phrase filter sweeps
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -46,77 +67,138 @@ class AudioEngine {
 
     this.streamAudio = new Audio();
     this.streamAudio.preload = 'none';
-    this.streamAudio.src = this.currentStreamUrl;
-    this.streamAudio.volume = this.volume;
+    this.streamAudio.volume = this.isMuted ? 0 : this.volume;
 
     this.streamAudio.addEventListener('loadstart', () => {
-      this.streamStatus = 'buffering';
-      this.notify();
-    });
-
-    this.streamAudio.addEventListener('waiting', () => {
-      this.streamStatus = 'buffering';
-      this.notify();
-    });
-
-    this.streamAudio.addEventListener('playing', () => {
-      this.streamStatus = 'live';
-      this.isRunning = true;
-      this.notify();
-    });
-
-    this.streamAudio.addEventListener('pause', () => {
-      if (this.mode === 'stream') {
-        this.isRunning = false;
-        this.streamStatus = 'idle';
+      if (this.isRunning) {
+        this.streamStatus = 'buffering';
+        this.statusMessage = 'CONNECTING TO TRANSMITTER...';
         this.notify();
       }
     });
 
-    this.streamAudio.addEventListener('error', () => {
-      this.streamStatus = 'error';
-      this.notify();
+    this.streamAudio.addEventListener('waiting', () => {
+      if (this.isRunning) {
+        this.streamStatus = 'buffering';
+        this.statusMessage = 'BUFFERING FEED...';
+        this.notify();
+      }
     });
+
+    this.streamAudio.addEventListener('canplay', () => {
+      if (this.isRunning) {
+        this.streamStatus = 'live';
+        this.statusMessage = 'LIVE ON AIR // 104.5 FM';
+        this.retryCount = 0;
+        this.notify();
+      }
+    });
+
+    this.streamAudio.addEventListener('playing', () => {
+      if (this.isRunning) {
+        this.streamStatus = 'live';
+        this.statusMessage = 'LIVE ON AIR // 104.5 FM';
+        this.retryCount = 0;
+        this.notify();
+      }
+    });
+
+    this.streamAudio.addEventListener('pause', () => {
+      // Only transition to standby if user explicitly stopped
+      if (this.isUserInitiatedStop && !this.isRunning) {
+        this.streamStatus = 'standby';
+        this.statusMessage = 'STANDBY // SIGNAL READY';
+        this.notify();
+      }
+    });
+
+    this.streamAudio.addEventListener('error', (e) => {
+      // Ignore errors when src was cleared intentionally on stop
+      if (!this.streamAudio?.src || this.streamAudio.src === window.location.href) {
+        return;
+      }
+      console.warn('Audio stream connection event error:', e);
+      if (this.isRunning) {
+        this.handleStreamError();
+      }
+    });
+  }
+
+  private handleStreamError() {
+    if (!this.isRunning) return;
+
+    if (this.retryCount < this.maxRetries) {
+      this.retryCount++;
+      this.streamStatus = 'buffering';
+      this.statusMessage = `RECONNECTING FEED (ATTEMPT ${this.retryCount}/${this.maxRetries})...`;
+      this.notify();
+
+      if (this.retryTimeout !== null) {
+        window.clearTimeout(this.retryTimeout);
+      }
+      this.retryTimeout = window.setTimeout(() => {
+        if (this.isRunning) {
+          this.startStream(this.currentStreamUrl, true);
+        }
+      }, 1500);
+    } else {
+      this.streamStatus = 'offline';
+      this.isRunning = false;
+      this.analysisMode = 'standby';
+      this.statusMessage = 'SIGNAL OFFLINE // TRANSMISSION UNREACHABLE';
+      this.notify();
+    }
   }
 
   private initContext() {
     if (!this.ctx) {
-      const AudioContextClass =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      this.ctx = new AudioContextClass();
+      try {
+        const AudioContextClass =
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        this.ctx = new AudioContextClass();
 
-      this.masterGain = this.ctx.createGain();
-      this.masterGain.gain.setValueAtTime(this.volume, this.ctx.currentTime);
+        this.masterGain = this.ctx.createGain();
+        this.masterGain.gain.setValueAtTime(this.volume, this.ctx.currentTime);
 
-      this.tapeFilter = this.ctx.createBiquadFilter();
-      this.tapeFilter.type = 'lowpass';
-      this.tapeFilter.frequency.setValueAtTime(14000, this.ctx.currentTime);
+        this.tapeFilter = this.ctx.createBiquadFilter();
+        this.tapeFilter.type = 'lowpass';
+        this.tapeFilter.frequency.setValueAtTime(14000, this.ctx.currentTime);
 
-      this.analyser = this.ctx.createAnalyser();
-      this.analyser.fftSize = 64;
-
-      // Routing: Synth -> Tape Filter -> Master Gain -> Analyser -> Destination
-      this.tapeFilter.connect(this.masterGain);
-      this.masterGain.connect(this.analyser);
-      this.analyser.connect(this.ctx.destination);
+        this.tapeFilter.connect(this.masterGain);
+        this.masterGain.connect(this.ctx.destination);
+      } catch (err) {
+        console.warn('Web Audio initialization error:', err);
+      }
     }
 
-    if (this.ctx.state === 'suspended') {
-      this.ctx.resume();
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
     }
   }
 
   public subscribe(listener: StateListener): () => void {
     this.listeners.add(listener);
-    listener(this.isRunning, this.streamStatus, this.mode);
+    listener(this.isRunning, this.streamStatus, this.statusMessage);
     return () => {
       this.listeners.delete(listener);
     };
   }
 
+  public subscribeRave(listener: RaveListener): () => void {
+    this.raveListeners.add(listener);
+    listener(this.ravePressureActive);
+    return () => {
+      this.raveListeners.delete(listener);
+    };
+  }
+
   private notify() {
-    this.listeners.forEach((l) => l(this.isRunning, this.streamStatus, this.mode));
+    this.listeners.forEach((l) => l(this.isRunning, this.streamStatus, this.statusMessage));
+  }
+
+  private notifyRave() {
+    this.raveListeners.forEach((l) => l(this.ravePressureActive));
   }
 
   public getIsPlaying(): boolean {
@@ -127,100 +209,147 @@ class AudioEngine {
     return this.streamStatus;
   }
 
-  public getMode(): EngineMode {
-    return this.mode;
+  public getStatusMessage(): string {
+    return this.statusMessage;
   }
 
-  public togglePlay(): boolean {
+  public getAnalysisMode(): AnalysisMode {
+    if (!this.isRunning || this.streamStatus !== 'live') {
+      return 'standby';
+    }
+    return this.analysisMode === 'dsp' ? 'dsp' : 'modeled';
+  }
+
+  // --- RAVE PRESSURE (Visual Intensity Only - ZERO audio modification) ---
+
+  public toggleRavePressure(): boolean {
+    this.ravePressureActive = !this.ravePressureActive;
+    this.notifyRave();
+    return this.ravePressureActive;
+  }
+
+  public setRavePressure(active: boolean) {
+    this.ravePressureActive = active;
+    this.notifyRave();
+  }
+
+  public getRavePressure(): boolean {
+    return this.ravePressureActive;
+  }
+
+  // --- Transport Controls ---
+
+  public togglePlay(urlToUse?: string): { success: boolean; message: string } {
     if (this.isRunning) {
       this.stop();
-      return false;
-    } else {
-      if (this.mode === 'stream') {
-        this.startStream();
-      } else {
-        this.startSynth();
-      }
-      return true;
+      return { success: true, message: 'SIGNAL PAUSED' };
     }
+
+    const url = (urlToUse !== undefined ? urlToUse : this.currentStreamUrl || STREAM_CONFIG.STREAM_URL).trim();
+
+    if (!url) {
+      this.isRunning = false;
+      this.streamStatus = 'offline';
+      this.analysisMode = 'standby';
+      this.statusMessage = 'SIGNAL OFFLINE // TRANSMISSION NOT CONFIGURED';
+      this.notify();
+      return {
+        success: false,
+        message: 'SIGNAL OFFLINE // Custom stream URL not configured yet in streamConfig.ts',
+      };
+    }
+
+    this.startStream(url);
+    return { success: true, message: 'CONNECTING...' };
   }
 
-  // --- Real Live Stream Mode ---
+  public startStream(url: string, forceReconnect: boolean = false) {
+    const cleanUrl = url.trim();
+    if (!cleanUrl) {
+      this.streamStatus = 'offline';
+      this.isRunning = false;
+      this.analysisMode = 'standby';
+      this.statusMessage = 'SIGNAL OFFLINE // TRANSMISSION NOT CONFIGURED';
+      this.notify();
+      return;
+    }
 
-  public startStream(url: string = this.currentStreamUrl) {
-    this.mode = 'stream';
-    this.currentStreamUrl = url;
-    this.stopSynth();
+    // If stream is already actively playing the identical URL, do not cause audio dropout
+    if (
+      !forceReconnect &&
+      this.isRunning &&
+      this.streamStatus === 'live' &&
+      this.currentStreamUrl === cleanUrl &&
+      this.streamAudio &&
+      !this.streamAudio.paused
+    ) {
+      return;
+    }
 
+    this.currentStreamUrl = cleanUrl;
+    this.isUserInitiatedStop = false;
     this.initStreamAudio();
     if (!this.streamAudio) return;
 
-    if (this.streamAudio.src !== url) {
-      this.streamAudio.src = url;
+    if (this.retryTimeout !== null) {
+      window.clearTimeout(this.retryTimeout);
+      this.retryTimeout = null;
     }
 
-    this.streamAudio.volume = this.isMuted ? 0 : this.volume;
+    this.isRunning = true;
     this.streamStatus = 'buffering';
-    this.isRunning = true;
+    this.statusMessage = 'CONNECTING TO TRANSMITTER...';
+    this.analysisMode = 'modeled';
     this.notify();
 
-    const playPromise = this.streamAudio.play();
-    if (playPromise !== undefined) {
-      playPromise
-        .then(() => {
-          this.streamStatus = 'live';
-          this.isRunning = true;
-          this.notify();
-        })
-        .catch(() => {
-          this.streamStatus = 'error';
-          this.notify();
-        });
-    }
-  }
+    try {
+      this.streamAudio.src = cleanUrl;
+      this.streamAudio.volume = this.isMuted ? 0 : this.volume;
+      this.streamAudio.load();
 
-  public stopStream() {
-    if (this.streamAudio) {
-      this.streamAudio.pause();
-    }
-    this.streamStatus = 'idle';
-  }
-
-  // --- Web Audio Synth Mode ---
-
-  public startSynth(preset: 'synth' | 'dub' | 'acid' | 'ambient' = this.currentPreset) {
-    this.mode = 'synth';
-    this.currentPreset = preset;
-    this.stopStream();
-
-    this.initContext();
-    this.isRunning = true;
-    this.notify();
-
-    if (this.timerId) {
-      window.clearInterval(this.timerId);
-    }
-
-    const interval =
-      preset === 'dub' ? 460 : preset === 'acid' ? 220 : preset === 'ambient' ? 800 : 340;
-    this.step = 0;
-    this.playStep();
-    this.timerId = window.setInterval(() => {
-      this.playStep();
-    }, interval);
-  }
-
-  private stopSynth() {
-    if (this.timerId) {
-      window.clearInterval(this.timerId);
-      this.timerId = null;
+      const playPromise = this.streamAudio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            if (!this.isRunning) return;
+            this.streamStatus = 'live';
+            this.statusMessage = 'LIVE ON AIR // 104.5 FM';
+            this.retryCount = 0;
+            this.notify();
+          })
+          .catch((err) => {
+            if (err.name === 'AbortError') {
+              // Expected when pause() or channel switch occurred before playback started
+              return;
+            }
+            console.warn('Playback error or abort:', err);
+            if (!this.isRunning) return;
+            this.handleStreamError();
+          });
+      }
+    } catch (err) {
+      console.warn('Audio startStream exception:', err);
+      this.handleStreamError();
     }
   }
 
   public stop() {
+    this.isUserInitiatedStop = true;
     this.isRunning = false;
-    this.stopStream();
-    this.stopSynth();
+    this.retryCount = 0;
+    if (this.retryTimeout !== null) {
+      window.clearTimeout(this.retryTimeout);
+      this.retryTimeout = null;
+    }
+    if (this.streamAudio) {
+      this.streamAudio.pause();
+      // Cleanly teardown Icecast socket to avoid stale connection or hanging HTTP requests
+      this.streamAudio.removeAttribute('src');
+      this.streamAudio.load();
+    }
+    this.streamStatus = 'standby';
+    this.analysisMode = 'standby';
+    this.statusMessage = 'STANDBY // SIGNAL READY';
     this.notify();
   }
 
@@ -266,264 +395,250 @@ class AudioEngine {
     return this.tapeSaturationActive;
   }
 
+  // --- KONTROLL UNDERGROUND AUDIO REACTOR DATA PROVIDER ---
+
+  /**
+   * High performance spectrum telemetry provider for canvas equalizers.
+   * Computes 64 or 32 bands with asymmetric inertia, physical peak holds, and RAVE PRESSURE dynamics.
+   */
+  public getReactorData(numBands: number = 64): {
+    bands: Float32Array;
+    peaks: Float32Array;
+    clipFlags: boolean[];
+    metrics: ReactorMetrics;
+  } {
+    const now = performance.now();
+    const dt = Math.min(0.05, Math.max(0.001, (now - this.lastTime) / 1000));
+    this.lastTime = now;
+
+    // Resize internal buffers if band resolution changed
+    if (this.reactorBands.length !== numBands) {
+      this.reactorBands = new Float32Array(numBands);
+      this.reactorPeaks = new Float32Array(numBands);
+      this.peakHoldExpiry = new Float64Array(numBands);
+      this.clipFlags = new Array(numBands).fill(false);
+    }
+
+    const isLive = this.isRunning && this.streamStatus === 'live';
+
+    // Standby resting state
+    if (!isLive) {
+      for (let i = 0; i < numBands; i++) {
+        // Smoothly decay to zero resting floor
+        this.reactorBands[i] = Math.max(0, this.reactorBands[i] - dt * 2.0);
+        this.reactorPeaks[i] = Math.max(0, this.reactorPeaks[i] - dt * 1.5);
+        this.clipFlags[i] = false;
+      }
+      return {
+        bands: this.reactorBands,
+        peaks: this.reactorPeaks,
+        clipFlags: this.clipFlags,
+        metrics: {
+          bpm: this.bpm,
+          subDb: -48,
+          midDb: -48,
+          highDb: -48,
+          peakDb: -48,
+          ravePressure: this.ravePressureActive,
+          analysisMode: 'standby',
+          clipDetected: false,
+        },
+      };
+    }
+
+    this.analysisMode = 'modeled';
+
+    // Compute target spectrum targets
+    const targetBands = new Float32Array(numBands);
+    const raveMult = this.ravePressureActive ? 1.35 : 1.0;
+      // --- INDUSTRIAL TECHNO / HARD TECHNO / SCHRANZ ACOUSTIC SYNTHESIS MODEL ---
+      // 142 BPM = 2.3666 Hz beat frequency.
+      const beatInterval = 60 / this.bpm; // ~0.4225s
+      const timeSec = now / 1000;
+      const beatPos = (timeSec % beatInterval) / beatInterval; // 0.0 to 1.0 within beat
+      const bar16Pos = ((timeSec / beatInterval) % 16) / 16; // 16-bar phase for filter sweeps
+      this.phrasePhase = bar16Pos;
+
+      // 1. Kick Transient (30Hz - 80Hz): Heavy 4-on-the-floor sub slam
+      // Attack is instant, exponential decay over ~220ms
+      const kickEnvelope = Math.exp(-beatPos * 8.5);
+      const subRumble = Math.sin(timeSec * 45 * Math.PI) * 0.15 + Math.cos(timeSec * 28 * Math.PI) * 0.1;
+
+      // 2. Offbeat Hi-Hat (6kHz - 14kHz): hits at beatPos ~0.5
+      const offbeatPos = Math.abs(beatPos - 0.5);
+      const openHatEnvelope = Math.exp(-offbeatPos * 22.0) * 0.95;
+
+      // 3. 16th-note rolling Shaker / Industrial Clatter:
+      const sixteenthPos = (beatPos * 4) % 1.0;
+      const sixteenthHat = Math.exp(-sixteenthPos * 16.0) * 0.5;
+
+      // 4. Snare / Industrial Clap on beats 2 and 4 (beat index 1 and 3 in 4-beat measure)
+      const measureBeat = (timeSec / beatInterval) % 4;
+      const isClapBeat = measureBeat >= 1 && measureBeat < 2 || measureBeat >= 3 && measureBeat < 4;
+      const clapPos = isClapBeat ? (measureBeat % 1) : 1;
+      const clapEnvelope = Math.exp(-clapPos * 10.0) * 0.85;
+
+      // 5. Acid / Resonance Filter Sweep (moving resonant peak across mid bands 15 to 45)
+      const sweepCenter = 0.2 + Math.sin(timeSec * 0.35) * 0.4 + Math.sin(timeSec * 0.12) * 0.25;
+
+      // Populate frequency bands with club physics
+      for (let i = 0; i < numBands; i++) {
+        const normFreq = i / numBands; // 0.0 (sub) to 1.0 (ultra-high)
+
+        let energy = 0;
+
+        // Sub & Bass bands (first 25% of spectrum: 30Hz - 150Hz)
+        if (normFreq < 0.22) {
+          const bassWeight = 1.0 - (normFreq / 0.22) * 0.35;
+          const punch = kickEnvelope * (0.85 + 0.15 * Math.sin(i * 1.5));
+          const lowSub = Math.max(0, subRumble * 1.2 + 0.35);
+          energy = (punch * 0.75 + lowSub * 0.35) * bassWeight;
+        }
+        // Low Mids & Industrial Body (22% to 45%: 150Hz - 800Hz)
+        else if (normFreq < 0.45) {
+          const midDist = (normFreq - 0.22) / 0.23;
+          const acidSweep = Math.exp(-Math.pow(normFreq - sweepCenter, 2) * 35.0) * 0.75;
+          const clapPunch = clapEnvelope * (0.6 + 0.3 * Math.sin(i * 2.1));
+          const industrialNoise = (Math.sin(timeSec * (120 + i * 15)) * 0.5 + 0.5) * 0.25;
+          energy = (acidSweep * 0.45 + clapPunch * 0.35 + industrialNoise * 0.2) * (1.0 - midDist * 0.15);
+        }
+        // Upper Mids & Crisp Clangs (45% to 70%: 800Hz - 4kHz)
+        else if (normFreq < 0.70) {
+          const clapSnap = clapEnvelope * 0.7;
+          const hatEdge = openHatEnvelope * 0.5;
+          const acidEdge = Math.exp(-Math.pow(normFreq - sweepCenter, 2) * 40.0) * 0.5;
+          const harmonicDistortion = Math.sin(timeSec * 210 + i * 3.7) * 0.15 + 0.15;
+          energy = clapSnap * 0.35 + hatEdge * 0.3 + acidEdge * 0.2 + harmonicDistortion;
+        }
+        // Highs & Air (70% to 100%: 4kHz - 16kHz)
+        else {
+          const hatPeak = openHatEnvelope * 0.85;
+          const shaker = sixteenthHat * 0.65;
+          const cymbalWash = (Math.sin(timeSec * 450 + i * 7.1) * 0.5 + 0.5) * 0.22;
+          energy = hatPeak * 0.55 + shaker * 0.35 + cymbalWash * 0.2;
+        }
+
+        // Add subtle dynamic variance so adjacent bands don't lock perfectly
+        const bandNoise = (Math.sin(timeSec * 8.0 + i * 1.8) * 0.5 + 0.5) * 0.12;
+        energy = Math.max(0.02, Math.min(1.0, (energy + bandNoise) * raveMult));
+
+        // RAVE PRESSURE dynamic expansion (boost contrast and peak spikes)
+        if (this.ravePressureActive) {
+          energy = Math.pow(energy, 0.85) * 1.15;
+        }
+
+        targetBands[i] = Math.min(1.0, energy);
+      }
+
+    // Apply asymmetric physical inertia and peak holds
+    let subSum = 0;
+    let midSum = 0;
+    let highSum = 0;
+    let maxVal = 0;
+    let clipOccurred = false;
+
+    for (let i = 0; i < numBands; i++) {
+      const target = targetBands[i];
+      const normIndex = i / numBands;
+
+      // Asymmetric inertia:
+      // Bass (low normIndex): heavy inertia (slower decay ~0.91, heavy weight)
+      // Highs (high normIndex): razor-fast attack (0.95), snappy decay (0.78)
+      let attackSpeed: number;
+      let decaySpeed: number;
+
+      if (normIndex < 0.25) {
+        // Sub-bass heavy inertia
+        attackSpeed = this.ravePressureActive ? 0.88 : 0.80;
+        decaySpeed = this.ravePressureActive ? 0.88 : 0.85;
+      } else if (normIndex < 0.65) {
+        // Mids punchy response
+        attackSpeed = 0.86;
+        decaySpeed = 0.80;
+      } else {
+        // Highs agile sizzle
+        attackSpeed = 0.95;
+        decaySpeed = 0.72;
+      }
+
+      if (target > this.reactorBands[i]) {
+        this.reactorBands[i] += (target - this.reactorBands[i]) * attackSpeed;
+      } else {
+        this.reactorBands[i] += (target - this.reactorBands[i]) * (1.0 - decaySpeed);
+      }
+
+      const val = Math.max(0, Math.min(1.0, this.reactorBands[i]));
+      this.reactorBands[i] = val;
+
+      // Peak Hold Logic:
+      if (val >= this.reactorPeaks[i]) {
+        this.reactorPeaks[i] = val;
+        this.peakHoldExpiry[i] = now + (this.ravePressureActive ? 550 : 380); // hold for ~400ms
+      } else if (now > this.peakHoldExpiry[i]) {
+        // Smooth gravitational fall after hold expires
+        const gravity = (this.ravePressureActive ? 0.025 : 0.035) * (1.0 + normIndex * 0.5);
+        this.reactorPeaks[i] = Math.max(val, this.reactorPeaks[i] - gravity);
+      }
+
+      // Clip detection (top 8% threshold or RAVE overload)
+      const clipThreshold = this.ravePressureActive ? 0.86 : 0.94;
+      const isClipping = val >= clipThreshold;
+      this.clipFlags[i] = isClipping;
+      if (isClipping) clipOccurred = true;
+
+      // Accumulate metrics
+      if (normIndex < 0.25) subSum += val;
+      else if (normIndex < 0.65) midSum += val;
+      else highSum += val;
+
+      if (val > maxVal) maxVal = val;
+    }
+
+    // Convert normalized metrics to dB representation (-48dB to +3dB)
+    const normToDb = (norm: number) => {
+      if (norm <= 0.01) return -48;
+      return Math.round(20 * Math.log10(norm) * 1.2);
+    };
+
+    const subDb = normToDb(subSum / (numBands * 0.25));
+    const midDb = normToDb(midSum / (numBands * 0.40));
+    const highDb = normToDb(highSum / (numBands * 0.35));
+    const peakDb = normToDb(maxVal);
+
+    return {
+      bands: this.reactorBands,
+      peaks: this.reactorPeaks,
+      clipFlags: this.clipFlags,
+      metrics: {
+        bpm: this.bpm,
+        subDb,
+        midDb,
+        highDb,
+        peakDb,
+        ravePressure: this.ravePressureActive,
+        analysisMode: this.getAnalysisMode(),
+        clipDetected: clipOccurred,
+      },
+    };
+  }
+
+  /**
+   * Backward-compatible 24-band frequency provider for legacy visualizer components.
+   */
   public getAnalyserData(): Uint8Array {
-    if (this.mode === 'synth' && this.analyser) {
-      const data = new Uint8Array(this.analyser.frequencyBinCount);
-      this.analyser.getByteFrequencyData(data);
+    const data = new Uint8Array(24);
+    if (!this.isRunning || this.streamStatus !== 'live') {
       return data;
     }
 
-    // Dynamic procedural frequency response during real stream playback
-    const fakeData = new Uint8Array(32);
-    const now = Date.now() / 150;
-    for (let i = 0; i < 32; i++) {
-      if (this.isRunning && this.streamStatus === 'live') {
-        const beat = Math.sin(now * 1.8 + i * 0.45);
-        const sub = Math.cos(now * 0.9 + i * 0.2);
-        const jitter = Math.sin(now * 4.2 + i * 1.2);
-        const amp = Math.max(0, Math.min(255, (beat * 0.5 + sub * 0.3 + jitter * 0.2 + 0.5) * 230));
-        fakeData[i] = amp;
-      } else {
-        fakeData[i] = 0;
-      }
+    const reactor = this.getReactorData(24);
+    for (let i = 0; i < 24; i++) {
+      data[i] = Math.floor(reactor.bands[i] * 255);
     }
-    return fakeData;
+    return data;
   }
 
-  // --- Procedural Synth Implementation ---
-
-  private playStep() {
-    if (!this.ctx || !this.isRunning || !this.tapeFilter || this.mode !== 'synth') return;
-
-    const t = this.ctx.currentTime;
-    this.step = (this.step + 1) % 16;
-
-    if (this.currentPreset === 'synth') {
-      if (this.step % 4 === 0) {
-        this.synthKick(t, 90, 0.28);
-      }
-      if (this.step === 4 || this.step === 12) {
-        this.synthSnare(t);
-      }
-      if (this.step % 2 === 0) {
-        this.synthHat(t, this.step % 4 === 2 ? 0.08 : 0.04);
-      }
-      const bassNotes = [110, 110, 130.81, 110, 146.83, 130.81, 110, 98];
-      const freq = bassNotes[this.step % bassNotes.length];
-      this.synthBassNote(t, freq, 0.18, 'sawtooth');
-    } else if (this.currentPreset === 'dub') {
-      if (this.step % 8 === 0) {
-        this.synthKick(t, 55, 0.45);
-      }
-      if (this.step === 4 || this.step === 12) {
-        this.synthHat(t, 0.05);
-      }
-      if (this.step === 2 || this.step === 10) {
-        this.dubChord(t, [130.81, 155.56, 196.0, 246.94]);
-      }
-    } else if (this.currentPreset === 'acid') {
-      if (this.step % 4 === 0) {
-        this.synthKick(t, 120, 0.2);
-      }
-      if (this.step % 2 === 1) {
-        this.synthHat(t, 0.06);
-      }
-      const acidNotes = [65.41, 65.41, 130.81, 98.0, 116.54, 87.31, 130.81, 146.83];
-      const f = acidNotes[this.step % acidNotes.length];
-      const accent = this.step === 2 || this.step === 10;
-      this.acid303Note(t, f, accent);
-    } else if (this.currentPreset === 'ambient') {
-      const chord = [65.41, 98.0, 130.81, 164.81];
-      const note = chord[this.step % chord.length];
-      this.ambientDrone(t, note);
-    }
-  }
-
-  private synthKick(t: number, startFreq: number, decay: number) {
-    if (!this.ctx || !this.tapeFilter) return;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-
-    osc.frequency.setValueAtTime(startFreq, t);
-    osc.frequency.exponentialRampToValueAtTime(32, t + decay);
-
-    gain.gain.setValueAtTime(0.7, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + decay);
-
-    osc.connect(gain);
-    gain.connect(this.tapeFilter);
-
-    osc.start(t);
-    osc.stop(t + decay);
-  }
-
-  private synthSnare(t: number) {
-    if (!this.ctx || !this.tapeFilter) return;
-    const osc = this.ctx.createOscillator();
-    const oscGain = this.ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(180, t);
-    osc.frequency.exponentialRampToValueAtTime(60, t + 0.12);
-
-    oscGain.gain.setValueAtTime(0.4, t);
-    oscGain.gain.exponentialRampToValueAtTime(0.01, t + 0.12);
-
-    osc.connect(oscGain);
-    oscGain.connect(this.tapeFilter);
-    osc.start(t);
-    osc.stop(t + 0.12);
-
-    const node = this.ctx.createBufferSource();
-    const buffer = this.ctx.createBuffer(1, this.ctx.sampleRate * 0.15, this.ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < buffer.length; i++) {
-      data[i] = Math.random() * 2 - 1;
-    }
-    node.buffer = buffer;
-
-    const noiseFilter = this.ctx.createBiquadFilter();
-    noiseFilter.type = 'highpass';
-    noiseFilter.frequency.value = 1000;
-
-    const noiseGain = this.ctx.createGain();
-    noiseGain.gain.setValueAtTime(0.25, t);
-    noiseGain.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
-
-    node.connect(noiseFilter);
-    noiseFilter.connect(noiseGain);
-    noiseGain.connect(this.tapeFilter);
-
-    node.start(t);
-  }
-
-  private synthHat(t: number, vol: number) {
-    if (!this.ctx || !this.tapeFilter) return;
-    const buffer = this.ctx.createBuffer(1, this.ctx.sampleRate * 0.05, this.ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < buffer.length; i++) {
-      data[i] = Math.random() * 2 - 1;
-    }
-    const node = this.ctx.createBufferSource();
-    node.buffer = buffer;
-
-    const filter = this.ctx.createBiquadFilter();
-    filter.type = 'highpass';
-    filter.frequency.value = 7500;
-
-    const gain = this.ctx.createGain();
-    gain.gain.setValueAtTime(vol, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
-
-    node.connect(filter);
-    filter.connect(gain);
-    gain.connect(this.tapeFilter);
-
-    node.start(t);
-  }
-
-  private synthBassNote(t: number, freq: number, dur: number, type: OscillatorType) {
-    if (!this.ctx || !this.tapeFilter) return;
-    const osc = this.ctx.createOscillator();
-    const filter = this.ctx.createBiquadFilter();
-    const gain = this.ctx.createGain();
-
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, t);
-
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(800, t);
-    filter.frequency.exponentialRampToValueAtTime(250, t + dur);
-
-    gain.gain.setValueAtTime(0.35, t);
-    gain.gain.exponentialRampToValueAtTime(0.01, t + dur);
-
-    osc.connect(filter);
-    filter.connect(gain);
-    gain.connect(this.tapeFilter);
-
-    osc.start(t);
-    osc.stop(t + dur);
-  }
-
-  private dubChord(t: number, freqs: number[]) {
-    if (!this.ctx || !this.tapeFilter) return;
-    freqs.forEach((freq) => {
-      if (!this.ctx || !this.tapeFilter) return;
-      const osc = this.ctx.createOscillator();
-      const filter = this.ctx.createBiquadFilter();
-      const gain = this.ctx.createGain();
-
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(freq, t);
-
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(1400, t);
-      filter.frequency.exponentialRampToValueAtTime(280, t + 0.9);
-      filter.Q.value = 4;
-
-      gain.gain.setValueAtTime(0.12, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.9);
-
-      osc.connect(filter);
-      filter.connect(gain);
-      gain.connect(this.tapeFilter);
-
-      osc.start(t);
-      osc.stop(t + 0.9);
-    });
-  }
-
-  private acid303Note(t: number, freq: number, accent: boolean) {
-    if (!this.ctx || !this.tapeFilter) return;
-    const osc = this.ctx.createOscillator();
-    const filter = this.ctx.createBiquadFilter();
-    const gain = this.ctx.createGain();
-
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(freq, t);
-
-    filter.type = 'lowpass';
-    filter.Q.value = accent ? 18 : 10;
-    const startCutoff = accent ? 3800 : 1600;
-    filter.frequency.setValueAtTime(startCutoff, t);
-    filter.frequency.exponentialRampToValueAtTime(240, t + 0.18);
-
-    gain.gain.setValueAtTime(accent ? 0.35 : 0.22, t);
-    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.18);
-
-    osc.connect(filter);
-    filter.connect(gain);
-    gain.connect(this.tapeFilter);
-
-    osc.start(t);
-    osc.stop(t + 0.18);
-  }
-
-  private ambientDrone(t: number, freq: number) {
-    if (!this.ctx || !this.tapeFilter) return;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    const filter = this.ctx.createBiquadFilter();
-
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(freq, t);
-
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(450, t);
-
-    gain.gain.setValueAtTime(0.001, t);
-    gain.gain.linearRampToValueAtTime(0.15, t + 0.3);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
-
-    osc.connect(filter);
-    filter.connect(gain);
-    gain.connect(this.tapeFilter);
-
-    osc.start(t);
-    osc.stop(t + 1.2);
-  }
-
-  // --- DJ Soundboard FX ---
+  // --- DJ Soundboard FX (Tactile booth triggers) ---
 
   public playFX(type: 'scratch' | 'airhorn' | 'rewind' | 'radio_drop' | 'sub_drop') {
     this.initContext();
@@ -535,17 +650,17 @@ class AudioEngine {
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(400, t);
-        osc.frequency.linearRampToValueAtTime(1400, t + 0.08);
-        osc.frequency.linearRampToValueAtTime(200, t + 0.16);
+        osc.frequency.setValueAtTime(360, t);
+        osc.frequency.linearRampToValueAtTime(1200, t + 0.07);
+        osc.frequency.linearRampToValueAtTime(180, t + 0.15);
 
-        gain.gain.setValueAtTime(0.4, t);
-        gain.gain.exponentialRampToValueAtTime(0.01, t + 0.18);
+        gain.gain.setValueAtTime(0.35, t);
+        gain.gain.exponentialRampToValueAtTime(0.01, t + 0.16);
 
         osc.connect(gain);
         gain.connect(this.masterGain);
         osc.start(t);
-        osc.stop(t + 0.18);
+        osc.stop(t + 0.16);
         break;
       }
       case 'airhorn': {
@@ -556,13 +671,13 @@ class AudioEngine {
           const gain = this.ctx.createGain();
           osc.type = 'sawtooth';
           osc.frequency.setValueAtTime(f, t);
-          gain.gain.setValueAtTime(0.25, t);
-          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.35);
+          gain.gain.setValueAtTime(0.2, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.32);
 
           osc.connect(gain);
           gain.connect(this.masterGain);
           osc.start(t);
-          osc.stop(t + 0.35);
+          osc.stop(t + 0.32);
         });
         break;
       }
@@ -570,32 +685,32 @@ class AudioEngine {
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(900, t);
-        osc.frequency.exponentialRampToValueAtTime(50, t + 0.5);
+        osc.frequency.setValueAtTime(800, t);
+        osc.frequency.exponentialRampToValueAtTime(45, t + 0.45);
 
-        gain.gain.setValueAtTime(0.4, t);
-        gain.gain.exponentialRampToValueAtTime(0.01, t + 0.5);
+        gain.gain.setValueAtTime(0.35, t);
+        gain.gain.exponentialRampToValueAtTime(0.01, t + 0.45);
 
         osc.connect(gain);
         gain.connect(this.masterGain);
         osc.start(t);
-        osc.stop(t + 0.5);
+        osc.stop(t + 0.45);
         break;
       }
       case 'sub_drop': {
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(120, t);
-        osc.frequency.exponentialRampToValueAtTime(32, t + 0.7);
+        osc.frequency.setValueAtTime(110, t);
+        osc.frequency.exponentialRampToValueAtTime(30, t + 0.65);
 
-        gain.gain.setValueAtTime(0.7, t);
-        gain.gain.exponentialRampToValueAtTime(0.01, t + 0.7);
+        gain.gain.setValueAtTime(0.6, t);
+        gain.gain.exponentialRampToValueAtTime(0.01, t + 0.65);
 
         osc.connect(gain);
         gain.connect(this.masterGain);
         osc.start(t);
-        osc.stop(t + 0.7);
+        osc.stop(t + 0.65);
         break;
       }
       case 'radio_drop': {
@@ -605,14 +720,14 @@ class AudioEngine {
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
           osc.type = 'triangle';
-          osc.frequency.setValueAtTime(note, t + idx * 0.08);
-          gain.gain.setValueAtTime(0.2, t + idx * 0.08);
-          gain.gain.exponentialRampToValueAtTime(0.01, t + idx * 0.08 + 0.4);
+          osc.frequency.setValueAtTime(note, t + idx * 0.07);
+          gain.gain.setValueAtTime(0.18, t + idx * 0.07);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + idx * 0.07 + 0.35);
 
           osc.connect(gain);
           gain.connect(this.masterGain);
-          osc.start(t + idx * 0.08);
-          osc.stop(t + idx * 0.08 + 0.4);
+          osc.start(t + idx * 0.07);
+          osc.stop(t + idx * 0.07 + 0.35);
         });
         break;
       }

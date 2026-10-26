@@ -5,7 +5,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header';
-import { HeroCollage } from './components/HeroCollage';
 import { LiveBoothStream } from './components/LiveBoothStream';
 import { ShowsArchiveGrid } from './components/ShowsArchiveGrid';
 import { ScheduleTimetable } from './components/ScheduleTimetable';
@@ -13,6 +12,7 @@ import { MerchSection } from './components/MerchSection';
 import { AboutManifesto } from './components/AboutManifesto';
 import { Footer } from './components/Footer';
 import { PersistentAudioPlayer } from './components/PersistentAudioPlayer';
+import { UndergroundReactor } from './components/UndergroundReactor';
 import { TracklistModal } from './components/TracklistModal';
 import { CHANNELS, SHOWS_DATA } from './data/radioData';
 import { Channel, Show, StreamStatus } from './types/radio';
@@ -20,17 +20,18 @@ import { audioEngine } from './utils/audioEngine';
 
 export default function App() {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [streamStatus, setStreamStatus] = useState<StreamStatus>('idle');
+  const [streamStatus, setStreamStatus] = useState<StreamStatus>('standby');
+  const [statusMessage, setStatusMessage] = useState<string>('STANDBY // SIGNAL READY');
   const [activeChannel, setActiveChannel] = useState<Channel>(CHANNELS[0]);
-  const [activeShowId, setActiveShowId] = useState<string | null>(null);
   const [selectedShowForModal, setSelectedShowForModal] = useState<Show | null>(null);
   const [isMuted, setIsMuted] = useState<boolean>(false);
 
-  // Subscribe to audio engine state (both real stream & synth events)
+  // Subscribe to audio engine state
   useEffect(() => {
-    const unsubscribe = audioEngine.subscribe((playing, status) => {
+    const unsubscribe = audioEngine.subscribe((playing, status, msg) => {
       setIsPlaying(playing);
       setStreamStatus(status);
+      if (msg) setStatusMessage(msg);
     });
     return () => {
       unsubscribe();
@@ -57,17 +58,7 @@ export default function App() {
 
   // Handlers
   const handleTogglePlay = () => {
-    if (isPlaying) {
-      audioEngine.stop();
-    } else {
-      if (activeChannel.sourceType === 'stream' && activeChannel.streamUrl) {
-        audioEngine.startStream(activeChannel.streamUrl);
-      } else {
-        const preset =
-          activeChannel.id === 'ch2' ? 'dub' : activeChannel.id === 'ch3' ? 'acid' : 'synth';
-        audioEngine.startSynth(preset);
-      }
-    }
+    audioEngine.togglePlay(activeChannel.streamUrl);
   };
 
   const handleToggleMute = () => {
@@ -77,34 +68,21 @@ export default function App() {
 
   const handleSelectChannel = (channel: Channel) => {
     setActiveChannel(channel);
-    setActiveShowId(null);
-    if (channel.sourceType === 'stream' && channel.streamUrl) {
-      audioEngine.startStream(channel.streamUrl);
-    } else {
-      const preset = channel.id === 'ch2' ? 'dub' : channel.id === 'ch3' ? 'acid' : 'synth';
-      audioEngine.startSynth(preset);
+    if (isPlaying) {
+      if (channel.streamUrl) {
+        audioEngine.startStream(channel.streamUrl);
+      } else {
+        audioEngine.stop();
+      }
     }
   };
 
-  const handlePlayShow = (show: Show) => {
-    setActiveShowId(show.id);
-    const updatedChannel: Channel = {
-      id: 'ch1',
-      name: `ARCHIVE: ${show.title}`,
-      frequency: '104.5 FM',
-      currentShow: show.title,
-      dj: show.host,
-      genre: show.genres.join(' · '),
-      location: show.location,
-      bitrate: '320 kbps Master Tape',
-      sourceType: 'synth',
-    };
-    setActiveChannel(updatedChannel);
-    audioEngine.startSynth(show.audioPreset === 'stream' ? 'synth' : show.audioPreset);
+  const handleOpenShowDetail = (show: Show) => {
+    setSelectedShowForModal(show);
   };
 
   const handleNavigate = (sectionId: string) => {
-    if (sectionId === 'hero') {
+    if (sectionId === 'hero' || sectionId === 'top') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       const el = document.getElementById(sectionId);
@@ -115,7 +93,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col font-ui selection:bg-yellow-400 selection:text-black">
+    <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col font-ui selection:bg-yellow-400 selection:text-black overflow-x-hidden">
       {/* Fixed Top Header */}
       <Header
         isPlaying={isPlaying}
@@ -128,9 +106,14 @@ export default function App() {
         onNavigate={handleNavigate}
       />
 
-      {/* Hero Section with Brutalist Typo and Interactive Sticker Collage */}
-      <main className="flex-1">
-        <HeroCollage onTuneIn={handleTogglePlay} isPlaying={isPlaying} />
+      {/* Main Content Sections */}
+      <main className="flex-1 overflow-x-hidden">
+        {/* Underground Audio Reactor (64-Band Berlin Club Equalizer & Telemetry) */}
+        <UndergroundReactor
+          isPlaying={isPlaying}
+          streamStatus={streamStatus}
+          onTogglePlay={handleTogglePlay}
+        />
 
         {/* Live DJ Booth Surveillance Stream & Shoutbox */}
         <LiveBoothStream
@@ -143,10 +126,7 @@ export default function App() {
 
         {/* Shows & Radio Picks Archive Grid */}
         <ShowsArchiveGrid
-          onPlayShow={handlePlayShow}
-          activeShowId={activeShowId}
-          isPlaying={isPlaying}
-          onOpenShowDetail={(show) => setSelectedShowForModal(show)}
+          onOpenShowDetail={handleOpenShowDetail}
         />
 
         {/* Schedule & Daily Transmission Timetable */}
@@ -166,6 +146,7 @@ export default function App() {
       <PersistentAudioPlayer
         isPlaying={isPlaying}
         streamStatus={streamStatus}
+        statusMessage={statusMessage}
         onTogglePlay={handleTogglePlay}
         activeChannel={activeChannel}
         onChangeChannel={handleSelectChannel}
@@ -176,9 +157,6 @@ export default function App() {
         <TracklistModal
           show={selectedShowForModal}
           onClose={() => setSelectedShowForModal(null)}
-          onPlayShow={handlePlayShow}
-          isPlaying={isPlaying}
-          activeShowId={activeShowId}
         />
       )}
     </div>

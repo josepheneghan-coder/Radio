@@ -1,18 +1,24 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Play,
   Pause,
   Volume2,
   VolumeX,
   Zap,
+  Radio,
+  Sliders,
+  AlertCircle,
+  Flame,
 } from 'lucide-react';
 import { Channel, StreamStatus } from '../types/radio';
 import { CHANNELS } from '../data/radioData';
 import { audioEngine } from '../utils/audioEngine';
+import { EqualizerVisualizer } from './EqualizerVisualizer';
 
 interface PersistentAudioPlayerProps {
   isPlaying: boolean;
   streamStatus: StreamStatus;
+  statusMessage?: string;
   onTogglePlay: () => void;
   activeChannel: Channel;
   onChangeChannel: (ch: Channel) => void;
@@ -21,65 +27,29 @@ interface PersistentAudioPlayerProps {
 export const PersistentAudioPlayer: React.FC<PersistentAudioPlayerProps> = ({
   isPlaying,
   streamStatus,
+  statusMessage,
   onTogglePlay,
   activeChannel,
   onChangeChannel,
 }) => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [volume, setVolume] = useState<number>(0.85);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [tapeSaturation, setTapeSaturation] = useState<boolean>(false);
+  const [ravePressure, setRavePressure] = useState<boolean>(() => audioEngine.getRavePressure());
   const [showFXDrawer, setShowFXDrawer] = useState<boolean>(false);
+  const [offlineToast, setOfflineToast] = useState<string | null>(null);
 
-  // Live Canvas Audio Visualizer
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    const unsub = audioEngine.subscribeRave((isRave) => {
+      setRavePressure(isRave);
+    });
+    return () => unsub();
+  }, []);
 
-    let animId: number;
-
-    const render = () => {
-      animId = requestAnimationFrame(render);
-      const data = audioEngine.getAnalyserData();
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const barWidth = 3;
-      const gap = 2;
-      const count = Math.floor(canvas.width / (barWidth + gap));
-
-      for (let i = 0; i < count; i++) {
-        const val =
-          isPlaying && streamStatus !== 'buffering'
-            ? data[i % data.length] || (Math.sin(Date.now() / 250 + i * 0.5) * 60 + 120)
-            : streamStatus === 'buffering'
-            ? Math.sin(Date.now() / 150 + i * 0.3) * 30 + 40
-            : 6;
-
-        const percent = Math.min(1, Math.max(0.04, val / 255));
-        const barHeight = Math.max(2, percent * canvas.height);
-
-        // Styling: yellow / white frequency bars
-        ctx.fillStyle =
-          isPlaying && streamStatus === 'live'
-            ? i % 4 === 0
-              ? '#FFE500'
-              : '#FFFFFF'
-            : streamStatus === 'buffering'
-            ? '#FF9900'
-            : '#333333';
-
-        ctx.fillRect(i * (barWidth + gap), canvas.height - barHeight, barWidth, barHeight);
-      }
-    };
-
-    render();
-
-    return () => {
-      cancelAnimationFrame(animId);
-    };
-  }, [isPlaying, streamStatus]);
+  const handleToggleRave = () => {
+    const next = audioEngine.toggleRavePressure();
+    setRavePressure(next);
+  };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = parseFloat(e.target.value);
@@ -104,46 +74,70 @@ export const PersistentAudioPlayer: React.FC<PersistentAudioPlayerProps> = ({
     audioEngine.playFX(type);
   };
 
+  const handlePlayClick = () => {
+    if (!activeChannel.streamUrl && !isPlaying) {
+      setOfflineToast('SIGNAL OFFLINE // TRANSMISSION NOT CONFIGURED');
+      setTimeout(() => setOfflineToast(null), 4000);
+    }
+    onTogglePlay();
+  };
+
+  const isLive = isPlaying && streamStatus === 'live';
+
   return (
     <>
+      {/* Offline Toast Notification when URL is empty */}
+      {offlineToast && (
+        <div className="fixed bottom-24 sm:bottom-20 left-1/2 -translate-x-1/2 z-50 bg-black text-white border-2 border-red-600 px-4 py-2.5 font-mono text-xs flex items-center gap-2.5 shadow-2xl max-w-[90vw]">
+          <AlertCircle size={16} className="text-red-500 shrink-0" />
+          <span>{offlineToast}</span>
+          <button
+            onClick={() => setOfflineToast(null)}
+            className="text-neutral-400 hover:text-white text-[10px] uppercase ml-2"
+          >
+            [DISMISS]
+          </button>
+        </div>
+      )}
+
       {/* Persistent Bottom Audio Player Dock with Safe Area for Mobile */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#000000] text-white border-t-2 border-neutral-800 shadow-[0_-8px_24px_rgba(0,0,0,0.85)] pb-[env(safe-area-inset-bottom,0px)]">
+      <footer className="fixed bottom-0 left-0 right-0 z-50 bg-[#000000] text-white border-t border-neutral-800 shadow-[0_-8px_24px_rgba(0,0,0,0.85)] pb-[max(0.5rem,env(safe-area-inset-bottom,0px))]">
         {/* DJ Soundboard Drawer (Collapsible) */}
         {showFXDrawer && (
-          <div className="bg-[#0f0f0f] border-b border-neutral-800 px-3 md:px-8 py-2.5 flex flex-wrap items-center justify-between gap-3 font-mono text-xs animate-in slide-in-from-bottom-2">
-            <div className="flex items-center gap-2 text-yellow-400 font-bold uppercase text-[11px]">
-              <Zap size={13} />
+          <div className="bg-[#0c0c0c] border-b border-neutral-800 px-3 md:px-8 py-2.5 flex flex-wrap items-center justify-between gap-2.5 font-mono text-xs">
+            <div className="flex items-center gap-2 text-white font-bold uppercase text-[11px]">
+              <Zap size={13} className="text-yellow-400" />
               <span>BOOTH FX TRIGGER:</span>
             </div>
 
             <div className="flex flex-wrap items-center gap-1.5 font-ui font-bold text-[11px]">
               <button
                 onClick={() => triggerFX('scratch')}
-                className="px-2.5 py-1 bg-neutral-800 hover:bg-white hover:text-black border border-neutral-700 transition-colors cursor-pointer"
+                className="px-3 py-1 bg-neutral-900 hover:bg-white hover:text-black border border-neutral-700 transition-colors cursor-pointer"
               >
                 SCRATCH
               </button>
               <button
                 onClick={() => triggerFX('airhorn')}
-                className="px-2.5 py-1 bg-neutral-800 hover:bg-yellow-400 hover:text-black border border-neutral-700 transition-colors cursor-pointer"
+                className="px-3 py-1 bg-neutral-900 hover:bg-yellow-400 hover:text-black border border-neutral-700 transition-colors cursor-pointer"
               >
                 AIRHORN
               </button>
               <button
                 onClick={() => triggerFX('rewind')}
-                className="px-2.5 py-1 bg-neutral-800 hover:bg-red-500 hover:text-white border border-neutral-700 transition-colors cursor-pointer"
+                className="px-3 py-1 bg-neutral-900 hover:bg-red-600 hover:text-white border border-neutral-700 transition-colors cursor-pointer"
               >
                 REWIND
               </button>
               <button
                 onClick={() => triggerFX('sub_drop')}
-                className="px-2.5 py-1 bg-neutral-800 hover:bg-green-400 hover:text-black border border-neutral-700 transition-colors cursor-pointer"
+                className="px-3 py-1 bg-neutral-900 hover:bg-emerald-400 hover:text-black border border-neutral-700 transition-colors cursor-pointer"
               >
                 808 SUB
               </button>
               <button
                 onClick={() => triggerFX('radio_drop')}
-                className="px-2.5 py-1 bg-neutral-800 hover:bg-blue-400 hover:text-black border border-neutral-700 transition-colors cursor-pointer"
+                className="px-3 py-1 bg-neutral-900 hover:bg-white hover:text-black border border-neutral-700 transition-colors cursor-pointer"
               >
                 STATION ID
               </button>
@@ -158,114 +152,131 @@ export const PersistentAudioPlayer: React.FC<PersistentAudioPlayerProps> = ({
           </div>
         )}
 
-        <div className="max-w-7xl mx-auto px-3 md:px-8 py-2 md:py-3 flex items-center justify-between gap-3 md:gap-4">
-          {/* Left: Prominent Thumb-Friendly Play/Pause Button (min 48x48px) + Show Metadata */}
-          <div className="flex items-center gap-2.5 sm:gap-4 min-w-0 flex-1">
-            {/* Master Play Button — High-visibility, tactile, minimum 48px touch target */}
-            <button
-              onClick={onTogglePlay}
-              aria-label={isPlaying ? 'Pause stream' : 'Play stream'}
-              className={`w-12 h-12 sm:w-13 sm:h-13 rounded flex items-center justify-center shrink-0 border-2 font-ui font-black transition-all cursor-pointer ${
-                isPlaying
-                  ? 'bg-yellow-400 border-yellow-300 text-black hover:bg-yellow-300'
-                  : 'bg-white border-neutral-300 text-black hover:bg-neutral-200'
-              }`}
-            >
-              {isPlaying ? (
-                <Pause size={22} className="fill-current" />
-              ) : (
-                <Play size={22} className="fill-current ml-0.5" />
-              )}
-            </button>
-
-            {/* Track / Show Info & Live Status */}
-            <div className="flex flex-col min-w-0">
-              <div className="flex items-center gap-1.5 sm:gap-2 font-mono text-[10px] sm:text-[11px] leading-tight text-neutral-400 truncate">
-                {/* Live Status indicator */}
-                {isPlaying && streamStatus === 'live' ? (
-                  <span className="flex items-center gap-1 text-green-400 font-bold shrink-0">
-                    <span className="w-2 h-2 rounded-full bg-green-500 animate-ping" />
-                    <span>LIVE ON AIR</span>
-                  </span>
-                ) : isPlaying && streamStatus === 'buffering' ? (
-                  <span className="flex items-center gap-1 text-amber-400 font-bold shrink-0">
-                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                    <span>CONNECTING...</span>
-                  </span>
-                ) : isPlaying && streamStatus === 'error' ? (
-                  <span className="flex items-center gap-1 text-red-400 font-bold shrink-0">
-                    <span className="w-2 h-2 rounded-full bg-red-500" />
-                    <span>RETRYING...</span>
-                  </span>
+        <div className="max-w-7xl mx-auto px-3 md:px-8 py-2 sm:py-2.5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-4">
+          {/* Top Row on Mobile: Master Play Button + Channel/Show Info + Mute */}
+          <div className="flex items-center justify-between sm:justify-start gap-2.5 sm:gap-4 min-w-0 flex-1">
+            <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
+              {/* Master Play Button — Tactile hardware button */}
+              <button
+                onClick={handlePlayClick}
+                aria-label={isPlaying ? 'Pause stream' : 'Play stream'}
+                className={`w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center shrink-0 border font-ui font-black transition-all cursor-pointer ${
+                  isPlaying
+                    ? 'bg-yellow-400 border-yellow-300 text-black hover:bg-yellow-300'
+                    : 'bg-white border-white text-black hover:bg-neutral-200'
+                }`}
+              >
+                {isPlaying ? (
+                  <Pause size={18} className="fill-current" />
                 ) : (
-                  <span className="flex items-center gap-1 text-neutral-400 shrink-0">
-                    <span className="w-2 h-2 rounded-full bg-neutral-600" />
-                    <span>STANDBY</span>
-                  </span>
+                  <Play size={18} className="fill-current ml-0.5" />
                 )}
+              </button>
 
-                <span className="hidden sm:inline">·</span>
-                <span className="text-yellow-400 font-bold uppercase truncate hidden xs:inline">
-                  {activeChannel.frequency}
-                </span>
-                <span className="hidden md:inline">·</span>
-                <span className="text-neutral-400 hidden lg:inline">{activeChannel.bitrate}</span>
-              </div>
+              {/* Transmission Metadata & Static Status Indicator */}
+              <div className="flex flex-col min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 sm:gap-2 font-mono text-[10px] sm:text-[11px] leading-tight text-neutral-400 truncate">
+                  {/* Understated Static Status Indicator */}
+                  {isLive ? (
+                    <span className="flex items-center gap-1.5 text-emerald-400 font-bold shrink-0">
+                      <span className="w-1.5 h-1.5 bg-emerald-500" />
+                      <span>LIVE FEED</span>
+                    </span>
+                  ) : streamStatus === 'buffering' ? (
+                    <span className="flex items-center gap-1.5 text-amber-400 font-bold shrink-0">
+                      <span className="w-1.5 h-1.5 bg-amber-400" />
+                      <span>CONNECTING</span>
+                    </span>
+                  ) : streamStatus === 'offline' ? (
+                    <span className="flex items-center gap-1.5 text-neutral-400 font-bold shrink-0">
+                      <span className="w-1.5 h-1.5 bg-red-600" />
+                      <span>OFFLINE</span>
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1.5 text-neutral-400 shrink-0">
+                      <span className="w-1.5 h-1.5 bg-neutral-600" />
+                      <span>STANDBY</span>
+                    </span>
+                  )}
 
-              {/* Show Headline with Contemporary Extended Typography */}
-              <div className="font-display font-black text-xs sm:text-base text-white truncate uppercase tracking-tight leading-snug">
-                {activeChannel.currentShow}
-              </div>
-
-              {/* Host & Location Metadata */}
-              <div className="font-ui text-[10px] sm:text-[11px] text-neutral-300 truncate flex items-center gap-1">
-                <span>Selector: <strong className="text-white">{activeChannel.dj}</strong></span>
-                <span className="hidden sm:inline">·</span>
-                <span className="text-neutral-400 hidden sm:inline">{activeChannel.location}</span>
-                {activeChannel.relayAttribution && (
-                  <span className="hidden xl:inline text-yellow-400/90 ml-1">
-                    ({activeChannel.relayAttribution})
+                  <span>·</span>
+                  <span className="text-white font-bold uppercase truncate">
+                    {activeChannel.frequency}
                   </span>
-                )}
+                  <span className="hidden md:inline">·</span>
+                  <span className="text-neutral-400 hidden lg:inline">{activeChannel.bitrate}</span>
+                </div>
+
+                {/* Show Title */}
+                <div className="font-display font-black text-xs sm:text-sm text-white truncate uppercase tracking-tight leading-snug">
+                  {activeChannel.currentShow}
+                </div>
+
+                {/* DJ Selector & Location */}
+                <div className="font-ui text-[10px] sm:text-[11px] text-neutral-300 truncate">
+                  <span>Selector: <strong className="text-white">{activeChannel.dj}</strong></span>
+                  <span className="text-neutral-500 mx-1">·</span>
+                  <span className="text-neutral-400">{activeChannel.location}</span>
+                </div>
               </div>
+            </div>
+
+            {/* Quick Mute on Mobile */}
+            <div className="flex sm:hidden items-center shrink-0">
+              <button
+                onClick={handleToggleMute}
+                aria-label={isMuted ? 'Unmute' : 'Mute'}
+                className="w-10 h-10 flex items-center justify-center border border-neutral-800 rounded text-neutral-400 hover:text-white transition-colors cursor-pointer"
+              >
+                {isMuted || volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
+              </button>
             </div>
           </div>
 
-          {/* Center: Live Audio Waveform Canvas (Desktop & Tablets) */}
-          <div className="hidden md:flex items-center gap-3 w-44 lg:w-56 shrink-0">
-            <canvas
-              ref={canvasRef}
-              width={160}
-              height={32}
-              className="w-full h-8 bg-neutral-950 border border-neutral-800 rounded"
-            />
+          {/* Center: 24-Bar Equalizer Visualizer (Hidden on narrow mobile, visible >= md) */}
+          <div className="hidden md:flex items-center gap-3 w-44 lg:w-52 shrink-0">
+            <EqualizerVisualizer isPlaying={isPlaying} isLive={isLive} barCount={24} />
           </div>
 
-          {/* Right: Channel Switcher, Tape Mode, Soundboard & Volume */}
-          <div className="flex items-center justify-end gap-2 sm:gap-3 shrink-0 font-ui font-semibold text-xs">
-            {/* Channel Select Buttons */}
-            <div className="flex items-center bg-neutral-900 border border-neutral-800 rounded p-0.5">
+          {/* Right Controls: Channel Buttons, TAPE filter, FX, Desktop Volume */}
+          <div className="flex items-center justify-between sm:justify-end gap-1.5 sm:gap-2.5 shrink-0 font-ui font-semibold text-xs border-t border-neutral-900 sm:border-0 pt-1 sm:pt-0">
+            {/* Channel Selection Buttons — Hardware selector keys */}
+            <div className="flex items-center bg-neutral-900 border border-neutral-800 p-0.5">
               {CHANNELS.map((ch) => (
                 <button
                   key={ch.id}
                   onClick={() => onChangeChannel(ch)}
-                  className={`min-h-[36px] px-2 sm:px-2.5 py-1 text-[10px] sm:text-[11px] font-bold rounded transition-colors cursor-pointer ${
+                  className={`min-h-[32px] sm:min-h-[34px] px-2.5 sm:px-3 py-1 text-[10px] sm:text-[11px] font-bold transition-colors cursor-pointer ${
                     activeChannel.id === ch.id
                       ? 'bg-white text-black'
                       : 'text-neutral-400 hover:text-white'
                   }`}
                   title={`${ch.name} - ${ch.genre}`}
                 >
-                  {ch.id === 'live-relay' ? 'LIVE' : ch.id.toUpperCase()}
+                  {ch.id.toUpperCase()}
                 </button>
               ))}
             </div>
 
-            {/* Tape Saturation Toggle (Hidden on narrow mobile, available on desktop) */}
+            {/* RAVE Pressure Toggle (Visual dynamic transient booster) */}
+            <button
+              onClick={handleToggleRave}
+              title="Toggle RAVE PRESSURE visual dynamics (Audio 0dB output remains unchanged)"
+              className={`min-h-[32px] sm:min-h-[34px] px-2.5 sm:px-3 py-1 border text-[10px] sm:text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer ${
+                ravePressure
+                  ? 'border-red-500 bg-red-600 text-white shadow-[0_0_10px_rgba(255,0,51,0.5)]'
+                  : 'border-neutral-800 text-neutral-400 hover:text-white'
+              }`}
+            >
+              <Flame size={12} className={ravePressure ? 'text-white animate-pulse' : 'text-red-500'} />
+              <span>RAVE</span>
+            </button>
+
+            {/* Tape Filter Toggle */}
             <button
               onClick={handleToggleTape}
               title="Toggle analog tape filter (lowpass warm cut)"
-              className={`hidden sm:flex min-h-[36px] items-center px-2.5 py-1 border text-[11px] font-bold rounded transition-colors cursor-pointer ${
+              className={`hidden sm:flex min-h-[32px] sm:min-h-[34px] items-center px-2.5 sm:px-3 py-1 border text-[10px] sm:text-[11px] font-bold transition-colors cursor-pointer ${
                 tapeSaturation
                   ? 'border-yellow-400 bg-yellow-400/20 text-yellow-300'
                   : 'border-neutral-800 text-neutral-400 hover:text-white'
@@ -274,28 +285,28 @@ export const PersistentAudioPlayer: React.FC<PersistentAudioPlayerProps> = ({
               TAPE
             </button>
 
-            {/* Soundboard Button */}
+            {/* DJ FX Button */}
             <button
               onClick={() => setShowFXDrawer(!showFXDrawer)}
               aria-label="Toggle DJ soundboard"
-              className={`min-h-[36px] px-2.5 py-1 border text-[11px] font-bold rounded flex items-center gap-1 transition-colors cursor-pointer ${
+              className={`min-h-[32px] sm:min-h-[34px] px-2.5 sm:px-3 py-1 border text-[10px] sm:text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer ${
                 showFXDrawer
                   ? 'border-white bg-white text-black'
                   : 'border-neutral-800 text-neutral-400 hover:text-white'
               }`}
             >
-              <Zap size={12} />
-              <span className="hidden sm:inline">FX</span>
+              <Zap size={11} />
+              <span>FX</span>
             </button>
 
-            {/* Volume Control / Mute */}
-            <div className="flex items-center gap-1.5 sm:gap-2 pl-1.5 sm:pl-2 border-l border-neutral-800">
+            {/* Volume Control / Mute (Desktop) */}
+            <div className="hidden sm:flex items-center gap-1.5 pl-1.5 border-l border-neutral-800">
               <button
                 onClick={handleToggleMute}
                 aria-label={isMuted ? 'Unmute' : 'Mute'}
-                className="w-9 h-9 flex items-center justify-center text-neutral-400 hover:text-white transition-colors cursor-pointer"
+                className="w-8 h-8 flex items-center justify-center text-neutral-400 hover:text-white transition-colors cursor-pointer"
               >
-                {isMuted || volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
+                {isMuted || volume === 0 ? <VolumeX size={15} /> : <Volume2 size={15} />}
               </button>
               <input
                 type="range"
@@ -310,7 +321,7 @@ export const PersistentAudioPlayer: React.FC<PersistentAudioPlayerProps> = ({
             </div>
           </div>
         </div>
-      </div>
+      </footer>
     </>
   );
 };

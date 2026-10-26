@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, RefreshCw, Send, AlertTriangle, ListMusic, Radio } from 'lucide-react';
+import { Camera, RefreshCw, Send, AlertTriangle, ListMusic } from 'lucide-react';
 import { Channel, StreamStatus } from '../types/radio';
 import { audioEngine } from '../utils/audioEngine';
 
@@ -28,12 +28,11 @@ const CAM_ANGLES = [
 export const LiveBoothStream: React.FC<LiveBoothStreamProps> = ({
   channel,
   isPlaying,
-  streamStatus = 'idle',
-  onTogglePlay,
+  streamStatus = 'standby',
   onOpenTracklistModal,
 }) => {
   const [activeCam, setActiveCam] = useState<string>('cam1');
-  const [filterMode, setFilterMode] = useState<'normal' | 'vhs' | 'monochrome' | 'night'>('normal');
+  const [filterMode, setFilterMode] = useState<'normal' | 'monochrome' | 'night'>('normal');
   const [isVideoGlitching, setIsVideoGlitching] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<string>('');
   const [customMsg, setCustomMsg] = useState<string>('');
@@ -89,24 +88,26 @@ export const LiveBoothStream: React.FC<LiveBoothStreamProps> = ({
     audioEngine.playFX('scratch');
   };
 
+  const isLive = isPlaying && streamStatus === 'live';
+
   return (
-    <section id="booth" className="w-full bg-[#000000] text-white py-12 px-4 md:px-8 border-b border-neutral-800">
+    <section id="booth" className="w-full bg-[#000000] text-white py-12 px-3 sm:px-6 md:px-8 border-b border-neutral-800">
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 pb-4 border-b border-neutral-800">
           <div>
-            <div className="flex items-center gap-2 text-yellow-400 font-mono text-xs uppercase tracking-widest mb-1">
-              <Camera size={14} />
-              <span>LIVE DJ BOOTH CAM // 24/7 VIDEO FEED</span>
+            <div className="flex items-center gap-2 text-neutral-400 font-mono text-xs uppercase tracking-widest mb-1">
+              <Camera size={14} className="text-red-500" />
+              <span>STUDIO CAM · 24/7 DIRECT CCTV FEED</span>
             </div>
-            <h2 className="font-display font-black text-section-display uppercase">
+            <h2 className="font-display font-black text-section-display uppercase tracking-[-0.035em]">
               STUDIO SURVEILLANCE
             </h2>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            {/* Camera angle switcher */}
-            <div className="flex items-center bg-neutral-900 border border-neutral-800 rounded p-1 font-ui font-semibold text-xs">
+            {/* Camera angle switcher — Precision hardware tabs */}
+            <div className="flex items-center bg-neutral-900 border border-neutral-800 p-0.5 font-ui font-semibold text-xs">
               {CAM_ANGLES.map((cam) => (
                 <button
                   key={cam.id}
@@ -114,7 +115,7 @@ export const LiveBoothStream: React.FC<LiveBoothStreamProps> = ({
                     setActiveCam(cam.id);
                     audioEngine.playFX('scratch');
                   }}
-                  className={`min-h-[36px] px-3 py-1 rounded transition-colors cursor-pointer ${
+                  className={`min-h-[34px] sm:min-h-[36px] px-3 sm:px-3.5 py-1 transition-colors cursor-pointer ${
                     activeCam === cam.id
                       ? 'bg-white text-black font-bold'
                       : 'text-neutral-400 hover:text-white'
@@ -125,14 +126,14 @@ export const LiveBoothStream: React.FC<LiveBoothStreamProps> = ({
               ))}
             </div>
 
-            {/* Video Timeout Gimmick Button */}
+            {/* Video Signal Test Button */}
             <button
               onClick={triggerTimeoutGlitch}
               title="Test video signal glitch gimmick"
-              className="min-h-[36px] px-3 py-1.5 border border-neutral-700 bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white font-ui font-semibold text-xs flex items-center gap-1.5 rounded transition-colors cursor-pointer"
+              className="min-h-[34px] sm:min-h-[36px] px-3.5 py-1.5 border border-neutral-700 bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white font-ui font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <RefreshCw size={13} className={isVideoGlitching ? 'animate-spin' : ''} />
-              <span>TEST TIMEOUT</span>
+              <span>TEST SIGNAL</span>
             </button>
           </div>
         </div>
@@ -165,61 +166,57 @@ export const LiveBoothStream: React.FC<LiveBoothStreamProps> = ({
                     <div className="absolute inset-0 bg-black/30 backdrop-blur-[0.5px] pointer-events-none" />
                   )}
                   {activeCam === 'cam3' && (
-                    <div className="absolute inset-0 scale-110 transition-transform duration-700 pointer-events-none" />
+                    <div className="absolute inset-0 scale-105 transition-transform duration-700 pointer-events-none" />
                   )}
 
                   {/* Scanline CRT overlay */}
                   <div className="absolute inset-0 crt-overlay pointer-events-none" />
 
-                  {/* Retro CCTV HUD Elements */}
-                  <div className="absolute top-4 left-4 font-mono text-xs text-white/90 drop-shadow flex flex-col gap-1">
+                  {/* Retro CCTV HUD Elements — Architectural surveillance styling */}
+                  <div className="absolute top-3 left-3 sm:top-4 sm:left-4 font-mono text-[10px] sm:text-xs text-white/90 drop-shadow flex flex-col gap-0.5 sm:gap-1 pointer-events-none">
                     <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse" />
-                      <span className="font-bold tracking-wider">● REC [BERLIN CONTAINER]</span>
+                      <span className="w-2 h-2 bg-red-600 shrink-0" />
+                      <span className="font-bold tracking-wider">REC · BERLIN KREUZBERG CONTAINER</span>
                     </div>
-                    <div className="text-[11px] text-neutral-300">{currentTime}</div>
-                    <div className="text-[10px] text-yellow-400">
+                    <div className="text-[10px] sm:text-[11px] text-neutral-300 tabular-nums">{currentTime}</div>
+                    <div className="text-[9px] sm:text-[10px] text-neutral-400">
                       CAM: {activeCam.toUpperCase()} · BITRATE: 320 KBPS · 104.5 MHz
                     </div>
                   </div>
 
-                  <div className="absolute top-4 right-4 font-mono text-[11px] text-white/80 bg-black/70 px-2.5 py-1 border border-white/20 backdrop-blur flex items-center gap-1.5">
+                  {/* Static Audio Status Badge */}
+                  <div className="absolute top-3 right-3 sm:top-4 sm:right-4 font-mono text-[10px] sm:text-[11px] text-white/90 bg-black/85 px-2.5 py-1 border border-neutral-700/80 backdrop-blur flex items-center gap-2 pointer-events-none">
                     <span
-                      className={`w-2 h-2 rounded-full ${
-                        isPlaying && streamStatus === 'live'
-                          ? 'bg-green-500 animate-ping'
+                      className={`w-1.5 h-1.5 shrink-0 ${
+                        isLive
+                          ? 'bg-emerald-500'
                           : streamStatus === 'buffering'
-                          ? 'bg-amber-400 animate-pulse'
-                          : 'bg-neutral-500'
+                          ? 'bg-amber-400'
+                          : 'bg-neutral-600'
                       }`}
                     />
                     <span>
-                      {isPlaying
-                        ? streamStatus === 'live'
-                          ? 'AUDIO: STREAMING LIVE'
-                          : 'AUDIO: BUFFERING'
+                      {isLive
+                        ? 'AUDIO: LIVE'
+                        : streamStatus === 'buffering'
+                        ? 'AUDIO: BUFFERING'
                         : 'AUDIO: STANDBY'}
                     </span>
                   </div>
 
-                  {/* Active Track Overlay pill at bottom */}
-                  <div className="absolute bottom-4 left-4 right-4 bg-black/90 border border-neutral-700 p-3 backdrop-blur flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-2 h-2 rounded-full bg-green-500 animate-ping shrink-0" />
-                      <div className="font-mono text-xs truncate">
-                        <span className="text-neutral-400">NOW BROADCASTING: </span>
-                        <strong className="text-white">{channel.currentShow}</strong>
-                        <span className="text-neutral-400"> // {channel.dj}</span>
-                        {channel.relayAttribution && (
-                          <span className="text-yellow-400 text-[10px] block truncate">
-                            {channel.relayAttribution}
-                          </span>
-                        )}
+                  {/* Active Track Overlay at bottom */}
+                  <div className="absolute bottom-2 left-2 right-2 sm:bottom-4 sm:left-4 sm:right-4 bg-black/95 border border-neutral-700 p-2.5 sm:p-3.5 backdrop-blur flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3">
+                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                      <span className="w-1.5 h-1.5 bg-neutral-400 shrink-0" />
+                      <div className="font-mono text-[11px] sm:text-xs truncate">
+                        <span className="text-neutral-400 uppercase tracking-wider">TRANSMITTING: </span>
+                        <strong className="text-white font-bold">{channel.currentShow}</strong>
+                        <span className="text-neutral-400"> · Selector: {channel.dj}</span>
                       </div>
                     </div>
                     <button
                       onClick={onOpenTracklistModal}
-                      className="px-2.5 py-1 bg-neutral-800 hover:bg-neutral-700 text-xs font-mono text-white flex items-center gap-1.5 border border-neutral-600 rounded transition-colors shrink-0"
+                      className="self-end sm:self-auto px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-[11px] sm:text-xs font-mono text-white flex items-center gap-1.5 border border-neutral-600 transition-colors shrink-0 cursor-pointer"
                     >
                       <ListMusic size={13} />
                       <span>TRACKLIST & ID</span>
@@ -228,7 +225,7 @@ export const LiveBoothStream: React.FC<LiveBoothStreamProps> = ({
                 </div>
               ) : (
                 /* RETRO VIDEO LOAD TIMEOUT / SMPTE COLOR BARS GIMMICK */
-                <div className="w-full h-full flex flex-col items-center justify-center bg-black relative p-8 font-mono">
+                <div className="w-full h-full flex flex-col items-center justify-center bg-black relative p-6 font-mono">
                   {/* SMPTE Color Bars */}
                   <div className="absolute inset-0 grid grid-cols-7 opacity-85">
                     <div className="bg-[#c0c0c0]" />
@@ -240,21 +237,21 @@ export const LiveBoothStream: React.FC<LiveBoothStreamProps> = ({
                     <div className="bg-[#0000c0]" />
                   </div>
 
-                  <div className="relative z-10 bg-black/90 border-2 border-red-500 p-6 max-w-md text-center text-white sticker-shadow">
+                  <div className="relative z-10 bg-black/95 border-2 border-red-500 p-5 sm:p-6 max-w-md text-center text-white sticker-shadow">
                     <div className="flex items-center justify-center gap-2 text-red-500 font-bold text-sm mb-2">
                       <AlertTriangle size={18} />
                       <span>VIDEO SIGNAL INTERRUPTED</span>
                     </div>
-                    <p className="text-xs text-neutral-300 mb-3">
+                    <p className="text-xs text-neutral-300 mb-3 leading-relaxed">
                       [ERROR 408: VIDEO LOAD TIMEOUT]
                       <br />
-                      The container cam lost microwave handshake. Automatic telemetry re-syncing...
+                      The container cam lost microwave handshake. Telemetry reconnecting...
                     </p>
                     <div className="w-full bg-neutral-800 h-2 rounded overflow-hidden">
-                      <div className="bg-red-500 h-full w-2/3 animate-pulse" />
+                      <div className="bg-red-500 h-full w-2/3" />
                     </div>
                     <span className="text-[10px] text-neutral-500 mt-2 block">
-                      Audio carrier remains intact on 104.5 MHz.
+                      Transmission carrier standby on 104.5 MHz.
                     </span>
                   </div>
                 </div>
@@ -262,12 +259,12 @@ export const LiveBoothStream: React.FC<LiveBoothStreamProps> = ({
             </div>
 
             {/* Video Controls bar */}
-            <div className="border-t border-neutral-800 bg-neutral-950 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
-              <div className="flex items-center gap-2 text-neutral-400">
-                <span>CAMERA FILTERS:</span>
+            <div className="border-t border-neutral-800 bg-neutral-950 px-3 sm:px-4 py-2.5 flex flex-wrap items-center justify-between gap-2.5 font-mono text-xs">
+              <div className="flex items-center gap-1.5 sm:gap-2 text-neutral-400">
+                <span className="text-[11px]">FILTERS:</span>
                 <button
                   onClick={() => setFilterMode('normal')}
-                  className={`px-2 py-0.5 rounded ${
+                  className={`px-2 py-0.5 rounded text-[11px] cursor-pointer ${
                     filterMode === 'normal' ? 'bg-white text-black font-bold' : 'hover:text-white'
                   }`}
                 >
@@ -275,7 +272,7 @@ export const LiveBoothStream: React.FC<LiveBoothStreamProps> = ({
                 </button>
                 <button
                   onClick={() => setFilterMode('monochrome')}
-                  className={`px-2 py-0.5 rounded ${
+                  className={`px-2 py-0.5 rounded text-[11px] cursor-pointer ${
                     filterMode === 'monochrome' ? 'bg-white text-black font-bold' : 'hover:text-white'
                   }`}
                 >
@@ -283,8 +280,8 @@ export const LiveBoothStream: React.FC<LiveBoothStreamProps> = ({
                 </button>
                 <button
                   onClick={() => setFilterMode('night')}
-                  className={`px-2 py-0.5 rounded ${
-                    filterMode === 'night' ? 'bg-green-400 text-black font-bold' : 'hover:text-white'
+                  className={`px-2 py-0.5 rounded text-[11px] cursor-pointer ${
+                    filterMode === 'night' ? 'bg-emerald-400 text-black font-bold' : 'hover:text-white'
                   }`}
                 >
                   Night-Vision
@@ -298,25 +295,25 @@ export const LiveBoothStream: React.FC<LiveBoothStreamProps> = ({
           </div>
 
           {/* Live Studio Chat & Reaction Shoutbox (Col 4) */}
-          <div className="lg:col-span-4 bg-[#0d0d0d] border border-neutral-800 flex flex-col h-[460px] lg:h-[500px]">
+          <div className="lg:col-span-4 bg-[#0d0d0d] border border-neutral-800 flex flex-col h-[380px] sm:h-[440px] lg:h-[480px]">
             {/* Chat Header */}
-            <div className="border-b border-neutral-800 px-4 py-3 bg-neutral-900/60 flex items-center justify-between">
+            <div className="border-b border-neutral-800 px-4 py-2.5 sm:py-3 bg-neutral-900/60 flex items-center justify-between">
               <div className="flex items-center gap-2 font-mono text-xs">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="font-bold uppercase tracking-wider text-white">STUDIO SHOUTBOX</span>
+                <span className="w-1.5 h-1.5 bg-red-500" />
+                <span className="font-bold uppercase tracking-wider text-white">DISPATCH LOG · BOOTH</span>
               </div>
-              <span className="font-mono text-[10px] text-neutral-400">342 LISTENERS</span>
+              <span className="font-mono text-[10px] text-neutral-400 tabular-nums">342 LISTENERS</span>
             </div>
 
             {/* Reactions Stream */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 font-mono text-xs">
+            <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-2.5 font-mono text-xs">
               {reactions.map((r) => (
-                <div key={r.id} className="p-2.5 bg-neutral-900/80 border border-neutral-800/80 rounded">
+                <div key={r.id} className="p-2.5 bg-neutral-950 border border-neutral-800">
                   <div className="flex items-center justify-between text-[10px] text-neutral-400 mb-1">
-                    <span className="font-bold text-yellow-400">@{r.user}</span>
-                    <span>{r.timestamp}</span>
+                    <span className="font-bold text-white tracking-wide">{r.user}</span>
+                    <span className="tabular-nums text-neutral-500">{r.timestamp}</span>
                   </div>
-                  <p className="text-neutral-200 text-xs flex items-center gap-1.5">
+                  <p className="text-neutral-300 font-ui text-xs flex items-center gap-1.5 leading-normal">
                     <span>{r.text}</span>
                     <span className="text-sm">{r.emoji}</span>
                   </p>
@@ -325,17 +322,18 @@ export const LiveBoothStream: React.FC<LiveBoothStreamProps> = ({
             </div>
 
             {/* Send reaction form */}
-            <form onSubmit={handleSendReaction} className="p-3 border-t border-neutral-800 bg-neutral-950 flex gap-2">
+            <form onSubmit={handleSendReaction} className="p-2.5 sm:p-3 border-t border-neutral-800 bg-neutral-950 flex gap-2">
               <input
                 type="text"
                 value={customMsg}
                 onChange={(e) => setCustomMsg(e.target.value)}
-                placeholder="Send a shout to the booth..."
-                className="flex-1 bg-neutral-900 border border-neutral-700 px-3 py-1.5 text-xs font-mono text-white placeholder-neutral-500 focus:outline-none focus:border-white rounded"
+                placeholder="Send transmission to the booth..."
+                className="flex-1 bg-neutral-900 border border-neutral-700 px-3 py-1.5 text-xs font-mono text-white placeholder-neutral-500 focus:outline-none focus:border-white"
               />
               <button
                 type="submit"
-                className="px-3 py-1.5 bg-white text-black hover:bg-yellow-400 font-mono text-xs font-bold rounded transition-colors flex items-center gap-1"
+                aria-label="Send message"
+                className="px-3.5 py-1.5 bg-white text-black hover:bg-yellow-400 font-mono text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
               >
                 <Send size={12} />
               </button>

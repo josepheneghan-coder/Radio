@@ -8,24 +8,24 @@ export const AboutManifesto: React.FC = () => {
         <div className="mb-10 pb-4 border-b-2 border-black flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <div className="font-mono text-xs uppercase tracking-widest text-black/70 mb-1">
-              MANIFESTO // OPERATIONAL ARCHITECTURE
+              MANIFESTO · OPERATIONAL ARCHITECTURE
             </div>
-            <h2 className="font-display font-black text-section-display uppercase">
+            <h2 className="font-display font-black text-section-display uppercase tracking-[-0.035em]">
               NOT AN ALGORITHM.
             </h2>
           </div>
           <div className="font-ui text-xs md:text-sm text-neutral-800 max-w-sm font-medium leading-relaxed">
-            Founded in a repurposed steel shipping container in Berlin-Kreuzberg, expanded to Brooklyn & London.
+            Founded in a repurposed steel shipping container in Berlin-Kreuzberg, expanded to Brooklyn and London.
           </div>
         </div>
 
         {/* 3 Core Pillars */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="border-2 border-black bg-white p-6 sticker-shadow">
-            <div className="w-10 h-10 bg-black text-yellow-400 flex items-center justify-center font-display font-black text-xl mb-4">
+          <div className="border-2 border-black bg-white p-6 shadow-[3px_3px_0px_#000]">
+            <div className="w-10 h-10 bg-black text-white flex items-center justify-center font-display font-black text-lg mb-4">
               01
             </div>
-            <h3 className="font-display font-black text-xl uppercase mb-2">
+            <h3 className="font-display font-black text-xl uppercase mb-2 tracking-tight">
               RADICAL SELECTOR AUTONOMY
             </h3>
             <p className="font-ui text-xs sm:text-sm text-neutral-700 leading-relaxed font-normal">
@@ -33,11 +33,11 @@ export const AboutManifesto: React.FC = () => {
             </p>
           </div>
 
-          <div className="border-2 border-black bg-white p-6 sticker-shadow">
-            <div className="w-10 h-10 bg-black text-white flex items-center justify-center font-display font-black text-xl mb-4">
+          <div className="border-2 border-black bg-white p-6 shadow-[3px_3px_0px_#000]">
+            <div className="w-10 h-10 bg-black text-white flex items-center justify-center font-display font-black text-lg mb-4">
               02
             </div>
-            <h3 className="font-display font-black text-xl uppercase mb-2">
+            <h3 className="font-display font-black text-xl uppercase mb-2 tracking-tight">
               OPEN STREET ACCESS
             </h3>
             <p className="font-ui text-xs sm:text-sm text-neutral-700 leading-relaxed font-normal">
@@ -45,11 +45,11 @@ export const AboutManifesto: React.FC = () => {
             </p>
           </div>
 
-          <div className="border-2 border-black bg-white p-6 sticker-shadow">
-            <div className="w-10 h-10 bg-black text-white flex items-center justify-center font-display font-black text-xl mb-4">
+          <div className="border-2 border-black bg-white p-6 shadow-[3px_3px_0px_#000]">
+            <div className="w-10 h-10 bg-black text-white flex items-center justify-center font-display font-black text-lg mb-4">
               03
             </div>
-            <h3 className="font-display font-black text-xl uppercase mb-2">
+            <h3 className="font-display font-black text-xl uppercase mb-2 tracking-tight">
               COMMUNITY FUNDED ARCHIVE
             </h3>
             <p className="font-ui text-xs sm:text-sm text-neutral-700 leading-relaxed font-normal">

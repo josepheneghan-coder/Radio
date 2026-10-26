@@ -1,4 +1,17 @@
-export type StreamStatus = 'idle' | 'buffering' | 'live' | 'error';
+export type StreamStatus = 'idle' | 'buffering' | 'live' | 'error' | 'offline' | 'standby';
+
+export type AnalysisMode = 'dsp' | 'modeled' | 'standby';
+
+export interface ReactorMetrics {
+  bpm: number;
+  subDb: number;
+  midDb: number;
+  highDb: number;
+  peakDb: number;
+  ravePressure: boolean;
+  analysisMode: AnalysisMode;
+  clipDetected: boolean;
+}
 
 export interface Show {
   id: string;
@@ -17,7 +30,8 @@ export interface Show {
     label?: string;
     timestamp: string;
   }[];
-  audioPreset: 'stream' | 'synth' | 'dub' | 'acid' | 'ambient';
+  audioPreset?: 'stream' | 'synth' | 'dub' | 'acid' | 'ambient';
+  isArchivedTape?: boolean;
 }
 
 export interface ScheduleItem {
@@ -38,7 +52,7 @@ export interface StickerItem {
   textColor: string;
   borderColor?: string;
   rotation: number;
-  x: number; // percentage or px
+  x: number;
   y: number;
   scale?: number;
 }
@@ -53,7 +67,7 @@ export interface MerchItem {
   specs: string;
 }
 
-export type ChannelId = 'live-relay' | 'ch1' | 'ch2' | 'ch3';
+export type ChannelId = 'main' | 'ch1' | 'ch2' | 'ch3';
 
 export interface Channel {
   id: ChannelId;
@@ -64,7 +78,6 @@ export interface Channel {
   genre: string;
   location: string;
   bitrate: string;
-  sourceType: 'stream' | 'synth';
+  sourceType: 'stream' | 'standby';
   streamUrl?: string;
-  relayAttribution?: string;
 }

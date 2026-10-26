@@ -27,11 +27,11 @@ export const ScheduleTimetable: React.FC<ScheduleTimetableProps> = ({
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 pb-4 border-b border-neutral-800">
           <div>
-            <div className="flex items-center gap-2 text-yellow-400 font-mono text-xs uppercase tracking-widest mb-1">
-              <Calendar size={14} />
-              <span>TIMETABLE // TODAY'S LIVE BROADCASTS</span>
+            <div className="flex items-center gap-2 text-neutral-400 font-mono text-xs uppercase tracking-widest mb-1">
+              <Calendar size={14} className="text-yellow-400" />
+              <span>TIMETABLE · DAILY BROADCAST PROGRAM</span>
             </div>
-            <h2 className="font-display font-black text-section-display uppercase">
+            <h2 className="font-display font-black text-section-display uppercase tracking-[-0.035em]">
               TRANSMISSION SCHEDULE
             </h2>
           </div>
@@ -41,12 +41,12 @@ export const ScheduleTimetable: React.FC<ScheduleTimetableProps> = ({
             <span className="text-neutral-400 flex items-center gap-1 font-ui font-semibold">
               <Globe size={13} /> TIMEZONE:
             </span>
-            <div className="flex items-center bg-neutral-900 border border-neutral-800 rounded p-1 font-ui font-bold text-xs">
+            <div className="flex items-center bg-neutral-900 border border-neutral-800 p-0.5 font-ui font-bold text-xs">
               {(['CET', 'EST', 'GMT', 'JST'] as const).map((tz) => (
                 <button
                   key={tz}
                   onClick={() => setSelectedTz(tz)}
-                  className={`min-h-[34px] px-2.5 py-1 rounded transition-colors cursor-pointer ${
+                  className={`min-h-[34px] px-3 py-1 transition-colors cursor-pointer ${
                     selectedTz === tz
                       ? 'bg-white text-black font-bold'
                       : 'text-neutral-400 hover:text-white'
@@ -75,7 +75,7 @@ export const ScheduleTimetable: React.FC<ScheduleTimetableProps> = ({
                 <div className="flex items-center gap-4 min-w-[200px]">
                   {slot.isLiveNow ? (
                     <div className="flex items-center gap-1.5 px-2 py-0.5 bg-red-600 text-white font-mono text-[10px] font-bold tracking-widest uppercase">
-                      <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-white" />
                       <span>ON AIR</span>
                     </div>
                   ) : (

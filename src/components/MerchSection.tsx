@@ -26,21 +26,21 @@ export const MerchSection: React.FC = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 pb-4 border-b border-neutral-800">
           <div>
-            <div className="flex items-center gap-2 text-yellow-400 font-mono text-xs uppercase tracking-widest mb-1">
-              <ShoppingBag size={14} />
-              <span>STATION SUPPLY // SUPPORT INDEPENDENT RADIO</span>
+            <div className="flex items-center gap-2 text-neutral-400 font-mono text-xs uppercase tracking-widest mb-1">
+              <ShoppingBag size={14} className="text-yellow-400" />
+              <span>STATION SUPPLY · PHYSICAL EDITIONS</span>
             </div>
-            <h2 className="font-display font-black text-section-display uppercase">
+            <h2 className="font-display font-black text-section-display uppercase tracking-[-0.035em]">
               MERCH & PHYSICAL RELEASES
             </h2>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="font-mono text-xs text-neutral-400 hidden sm:block">
-              100% OF REVENUE FUNDS STUDIO GEAR & STREAM BANDWIDTH
+            <div className="font-mono text-xs text-neutral-400 hidden sm:block uppercase tracking-wider">
+              100% REVENUE FUNDS STUDIO TRANSMITTER & TAPE RESTORATION
             </div>
             {totalItems > 0 && (
-              <div className="px-3 py-1.5 bg-yellow-400 text-black font-ui font-bold text-xs rounded flex items-center gap-1.5">
+              <div className="px-3.5 py-1.5 bg-white text-black font-ui font-bold text-xs flex items-center gap-1.5 border border-white">
                 <ShoppingBag size={14} />
                 <span>BAG: {totalItems}</span>
               </div>
@@ -57,7 +57,7 @@ export const MerchSection: React.FC = () => {
             return (
               <div
                 key={item.id}
-                className="bg-[#121212] border border-neutral-800 hover:border-neutral-600 transition-colors flex flex-col justify-between"
+                className="bg-[#111111] border border-neutral-800 hover:border-neutral-600 transition-colors flex flex-col justify-between"
               >
                 {/* Image */}
                 <div className="relative aspect-square w-full overflow-hidden bg-neutral-900">
@@ -68,7 +68,7 @@ export const MerchSection: React.FC = () => {
                     referrerPolicy="no-referrer"
                   />
                   {item.badge && (
-                    <div className="absolute top-3 left-3 bg-black/90 px-2.5 py-1 text-[10px] font-mono font-bold tracking-widest uppercase text-yellow-400 border border-white/20">
+                    <div className="absolute top-3 left-3 bg-black/90 px-2.5 py-1 text-[10px] font-mono font-bold tracking-widest uppercase text-white border border-neutral-700">
                       {item.badge}
                     </div>
                   )}
@@ -84,7 +84,7 @@ export const MerchSection: React.FC = () => {
                     <h3 className="font-display font-black text-lg md:text-xl uppercase text-white leading-snug">
                       {item.title}
                     </h3>
-                    <p className="font-ui text-xs text-neutral-400 mt-2 leading-relaxed">
+                    <p className="font-ui text-xs text-neutral-400 mt-2 leading-relaxed font-normal">
                       {item.specs}
                     </p>
                   </div>
@@ -93,10 +93,10 @@ export const MerchSection: React.FC = () => {
                   <div className="mt-5 pt-4 border-t border-neutral-800">
                     <button
                       onClick={() => handleAddToCart(item)}
-                      className={`min-h-[44px] w-full py-2.5 font-ui font-bold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer ${
+                      className={`min-h-[44px] w-full py-2.5 font-ui font-bold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer border ${
                         isAdded
-                          ? 'bg-green-500 text-black'
-                          : 'bg-white text-black hover:bg-yellow-400'
+                          ? 'bg-emerald-500 border-emerald-500 text-black'
+                          : 'bg-white border-white text-black hover:bg-neutral-200'
                       }`}
                     >
                       {isAdded ? (

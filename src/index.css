@@ -79,14 +79,14 @@ body {
   pointer-events: none;
 }
 
-/* Sticker raw drop shadow */
+/* Tactile offset shadow */
 .sticker-shadow {
-  filter: drop-shadow(4px 6px 0px rgba(0, 0, 0, 0.85));
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.2s ease;
+  box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.95);
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease;
 }
 
 .sticker-shadow:hover {
-  filter: drop-shadow(6px 10px 0px rgba(0, 0, 0, 0.95));
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 1);
 }
 
 /* Safe area padding for mobile sticky player */
