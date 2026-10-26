@@ -36,18 +36,18 @@ export const ShowsArchiveGrid: React.FC<ShowsArchiveGridProps> = ({
               <Disc size={14} />
               <span>CURATED ARCHIVE // TAPES & RECENT BROADCASTS</span>
             </div>
-            <h2 className="font-display font-black text-3xl md:text-5xl tracking-tight uppercase">
+            <h2 className="font-display font-black text-section-display uppercase">
               RADIO PICKS & RECENT MIXES
             </h2>
           </div>
 
           {/* Interactive filter tabs (functional buttons) */}
-          <div className="flex flex-wrap items-center gap-1.5 p-1 bg-neutral-900 border border-neutral-800 rounded font-mono text-xs">
+          <div className="flex flex-wrap items-center gap-1.5 p-1 bg-neutral-900 border border-neutral-800 rounded font-ui font-bold text-xs">
             {genres.map((g) => (
               <button
                 key={g}
                 onClick={() => setFilterGenre(g)}
-                className={`px-3 py-1.5 rounded transition-colors uppercase ${
+                className={`min-h-[36px] px-3.5 py-1.5 rounded transition-colors uppercase cursor-pointer ${
                   filterGenre === g
                     ? 'bg-white text-black font-bold'
                     : 'text-neutral-400 hover:text-white'
@@ -113,29 +113,29 @@ export const ShowsArchiveGrid: React.FC<ShowsArchiveGridProps> = ({
                       </span>
                     </div>
 
-                    <h3 className="font-display font-black text-xl tracking-tight text-white group-hover:text-yellow-400 transition-colors uppercase leading-snug">
+                    <h3 className="font-display font-black text-card-display uppercase text-white group-hover:text-yellow-400 transition-colors leading-snug">
                       {show.title}
                     </h3>
 
-                    <p className="font-mono text-xs text-neutral-300 mt-1">
+                    <p className="font-ui text-xs text-neutral-300 mt-1">
                       Resident: <strong className="text-white">{show.host}</strong>
                     </p>
 
-                    <p className="font-mono text-[11px] text-neutral-400 mt-2 line-clamp-2">
+                    <p className="font-ui text-[12px] text-neutral-400 mt-2 line-clamp-2 leading-relaxed">
                       {show.description}
                     </p>
                   </div>
 
                   {/* Genres Unboxed & Action Buttons */}
                   <div className="mt-5 pt-4 border-t border-neutral-800">
-                    <div className="flex items-center gap-1 text-[11px] font-mono text-yellow-400/90 mb-3 truncate">
+                    <div className="flex items-center gap-1 text-[11px] font-mono text-yellow-400 tracking-wider mb-3 truncate uppercase">
                       {show.genres.join(' · ')}
                     </div>
 
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => onPlayShow(show)}
-                        className={`flex-1 py-2 font-mono text-xs font-bold uppercase transition-colors flex items-center justify-center gap-1.5 ${
+                        className={`min-h-[40px] flex-1 py-2 font-ui font-bold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
                           isThisPlaying
                             ? 'bg-yellow-400 text-black'
                             : 'bg-white text-black hover:bg-neutral-200'
@@ -157,7 +157,7 @@ export const ShowsArchiveGrid: React.FC<ShowsArchiveGridProps> = ({
                       <button
                         onClick={() => onOpenShowDetail(show)}
                         title="View tracklist"
-                        className="p-2 border border-neutral-700 hover:border-neutral-400 text-neutral-300 hover:text-white transition-colors"
+                        className="w-10 h-10 flex items-center justify-center border border-neutral-700 hover:border-neutral-400 text-neutral-300 hover:text-white transition-colors cursor-pointer shrink-0"
                       >
                         <ListMusic size={15} />
                       </button>

@@ -2,19 +2,6 @@ import { Channel, MerchItem, ScheduleItem, Show, StickerItem } from '../types/ra
 
 export const CHANNELS: Channel[] = [
   {
-    id: 'live-relay',
-    name: 'CHANNEL 00: LIVE SATELLITE RELAY',
-    frequency: '104.5 FM / SAT-FEED',
-    currentShow: 'IBIZA GLOBAL BROADCAST // MEDITERRANEAN DUB SESSIONS',
-    dj: 'Ibiza Global Live Feed',
-    genre: 'Underground Tech House · Balearic Techno · Deep Dub',
-    location: 'Ibiza / Mediterranean Relay',
-    bitrate: '128 kbps MP3 Live Stream',
-    sourceType: 'stream',
-    streamUrl: 'https://cdn-peer012.streaming-pro.com:8025/ibizaglobalradio.mp3',
-    relayAttribution: 'Live Stream Audio Feed: Ibiza Global Radio (Demo Relay)',
-  },
-  {
     id: 'ch1',
     name: 'BOOTH 01: BERLIN KIOSK',
     frequency: '104.5 FM',
@@ -22,8 +9,7 @@ export const CHANNELS: Channel[] = [
     dj: 'MAYA VANEK',
     genre: 'Minimal Synth · Coldwave · Electro',
     location: 'Berlin (Holzmarktstr)',
-    bitrate: '320 kbps WebSynth',
-    sourceType: 'synth',
+    bitrate: '320 kbps MP3',
   },
   {
     id: 'ch2',
@@ -33,8 +19,7 @@ export const CHANNELS: Channel[] = [
     dj: 'K. VANCE',
     genre: 'Dark Dub Techno · Industrial Ambient',
     location: 'Brooklyn (Greenpoint)',
-    bitrate: '320 kbps WebSynth',
-    sourceType: 'synth',
+    bitrate: '320 kbps Opus',
   },
   {
     id: 'ch3',
@@ -44,8 +29,7 @@ export const CHANNELS: Channel[] = [
     dj: 'MORPHEUS 9',
     genre: 'Acid 303 · Deconstructed Club · Breakcore',
     location: 'London (Hackney Wick)',
-    bitrate: '320 kbps WebSynth',
-    sourceType: 'synth',
+    bitrate: '320 kbps AAC',
   },
 ];
 

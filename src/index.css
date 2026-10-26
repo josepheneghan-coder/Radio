@@ -1,23 +1,67 @@
 @import "tailwindcss";
 
 @theme {
-  --font-display: 'Syne', sans-serif;
-  --font-mono: 'Space Mono', monospace;
-  --font-sans: 'Plus Jakarta Sans', sans-serif;
+  --font-display: 'Archivo', 'Space Grotesk', sans-serif;
+  --font-ui: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Space Mono', monospace;
+  --font-sans: 'Space Grotesk', sans-serif;
+}
+
+:root {
+  --font-display: 'Archivo', 'Space Grotesk', sans-serif;
+  --font-ui: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
 }
 
 body {
-  font-family: var(--font-sans);
+  font-family: var(--font-ui);
   overflow-x: hidden;
-  background-color: #0d0d0d;
+  background-color: #0c0c0c;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* Typographic Utility Classes */
 .font-display {
   font-family: var(--font-display);
+  letter-spacing: -0.035em;
+}
+
+.font-ui {
+  font-family: var(--font-ui);
+  letter-spacing: -0.01em;
 }
 
 .font-mono {
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Fluid responsive typography classes */
+.text-hero-fluid {
+  font-size: clamp(2.4rem, 8.5vw, 7.8rem);
+  line-height: 0.88;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+
+.text-subhero-fluid {
+  font-size: clamp(0.85rem, 2vw, 1.15rem);
+  line-height: 1.45;
+}
+
+.text-section-display {
+  font-size: clamp(1.65rem, 4.2vw, 3.4rem);
+  line-height: 0.94;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.text-card-display {
+  font-size: clamp(1.1rem, 2.2vw, 1.45rem);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
 }
 
 /* CRT Scanline effect */
@@ -45,22 +89,31 @@ body {
   filter: drop-shadow(6px 10px 0px rgba(0, 0, 0, 0.95));
 }
 
-/* Noise overlay */
-.noise-bg {
-  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 0);
-  background-size: 24px 24px;
+/* Safe area padding for mobile sticky player */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 1rem);
+}
+
+/* Motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Smooth custom scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #0a0a0a;
+  background: #080808;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2a2a2a;
+  background: #252525;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #ffffff;

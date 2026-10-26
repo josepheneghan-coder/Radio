@@ -115,7 +115,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col font-sans selection:bg-yellow-400 selection:text-black">
+    <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col font-ui selection:bg-yellow-400 selection:text-black">
       {/* Fixed Top Header */}
       <Header
         isPlaying={isPlaying}

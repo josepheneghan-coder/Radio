@@ -30,18 +30,18 @@ export const MerchSection: React.FC = () => {
               <ShoppingBag size={14} />
               <span>STATION SUPPLY // SUPPORT INDEPENDENT RADIO</span>
             </div>
-            <h2 className="font-display font-black text-3xl md:text-5xl tracking-tight uppercase">
+            <h2 className="font-display font-black text-section-display uppercase">
               MERCH & PHYSICAL RELEASES
             </h2>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="font-mono text-xs text-neutral-400">
+            <div className="font-mono text-xs text-neutral-400 hidden sm:block">
               100% OF REVENUE FUNDS STUDIO GEAR & STREAM BANDWIDTH
             </div>
             {totalItems > 0 && (
-              <div className="px-3 py-1 bg-yellow-400 text-black font-mono text-xs font-bold rounded flex items-center gap-1.5">
-                <ShoppingBag size={13} />
+              <div className="px-3 py-1.5 bg-yellow-400 text-black font-ui font-bold text-xs rounded flex items-center gap-1.5">
+                <ShoppingBag size={14} />
                 <span>BAG: {totalItems}</span>
               </div>
             )}
@@ -68,7 +68,7 @@ export const MerchSection: React.FC = () => {
                     referrerPolicy="no-referrer"
                   />
                   {item.badge && (
-                    <div className="absolute top-3 left-3 bg-black/90 px-2 py-0.5 text-[10px] font-mono font-bold tracking-wider uppercase text-yellow-400 border border-white/20">
+                    <div className="absolute top-3 left-3 bg-black/90 px-2.5 py-1 text-[10px] font-mono font-bold tracking-widest uppercase text-yellow-400 border border-white/20">
                       {item.badge}
                     </div>
                   )}
@@ -78,13 +78,13 @@ export const MerchSection: React.FC = () => {
                 <div className="p-5 flex-1 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between text-xs font-mono text-neutral-400 mb-1">
-                      <span>{item.category}</span>
-                      <strong className="text-white text-sm">{item.price}</strong>
+                      <span className="font-ui uppercase tracking-wider">{item.category}</span>
+                      <strong className="text-white text-sm tabular-nums font-bold">{item.price}</strong>
                     </div>
-                    <h3 className="font-display font-black text-lg tracking-tight uppercase text-white leading-snug">
+                    <h3 className="font-display font-black text-lg md:text-xl uppercase text-white leading-snug">
                       {item.title}
                     </h3>
-                    <p className="font-mono text-[11px] text-neutral-400 mt-2">
+                    <p className="font-ui text-xs text-neutral-400 mt-2 leading-relaxed">
                       {item.specs}
                     </p>
                   </div>
@@ -93,7 +93,7 @@ export const MerchSection: React.FC = () => {
                   <div className="mt-5 pt-4 border-t border-neutral-800">
                     <button
                       onClick={() => handleAddToCart(item)}
-                      className={`w-full py-2.5 font-mono text-xs font-bold uppercase transition-colors flex items-center justify-center gap-2 ${
+                      className={`min-h-[44px] w-full py-2.5 font-ui font-bold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer ${
                         isAdded
                           ? 'bg-green-500 text-black'
                           : 'bg-white text-black hover:bg-yellow-400'

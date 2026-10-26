@@ -31,22 +31,22 @@ export const ScheduleTimetable: React.FC<ScheduleTimetableProps> = ({
               <Calendar size={14} />
               <span>TIMETABLE // TODAY'S LIVE BROADCASTS</span>
             </div>
-            <h2 className="font-display font-black text-3xl md:text-5xl tracking-tight uppercase">
+            <h2 className="font-display font-black text-section-display uppercase">
               TRANSMISSION SCHEDULE
             </h2>
           </div>
 
           {/* Timezone Switcher */}
           <div className="flex items-center gap-2 font-mono text-xs">
-            <span className="text-neutral-400 flex items-center gap-1">
+            <span className="text-neutral-400 flex items-center gap-1 font-ui font-semibold">
               <Globe size={13} /> TIMEZONE:
             </span>
-            <div className="flex items-center bg-neutral-900 border border-neutral-800 rounded p-1">
+            <div className="flex items-center bg-neutral-900 border border-neutral-800 rounded p-1 font-ui font-bold text-xs">
               {(['CET', 'EST', 'GMT', 'JST'] as const).map((tz) => (
                 <button
                   key={tz}
                   onClick={() => setSelectedTz(tz)}
-                  className={`px-2.5 py-1 rounded transition-colors ${
+                  className={`min-h-[34px] px-2.5 py-1 rounded transition-colors cursor-pointer ${
                     selectedTz === tz
                       ? 'bg-white text-black font-bold'
                       : 'text-neutral-400 hover:text-white'
@@ -89,16 +89,16 @@ export const ScheduleTimetable: React.FC<ScheduleTimetableProps> = ({
                 {/* Show Title & Host */}
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-display font-black text-lg md:text-xl uppercase text-white tracking-tight">
+                    <h3 className="font-display font-black text-lg md:text-2xl uppercase text-white tracking-tight leading-tight">
                       {slot.showTitle}
                     </h3>
                   </div>
-                  <div className="flex items-center gap-2 font-mono text-xs text-neutral-400 mt-0.5">
-                    <span>Host: <strong className="text-neutral-200">{slot.host}</strong></span>
+                  <div className="flex flex-wrap items-center gap-2 font-mono text-xs text-neutral-400 mt-1">
+                    <span className="font-ui">Host: <strong className="text-neutral-200">{slot.host}</strong></span>
                     <span aria-hidden="true">·</span>
                     <span>Studio: {slot.location}</span>
                     <span aria-hidden="true">·</span>
-                    <span className="text-yellow-400">{slot.genre}</span>
+                    <span className="text-yellow-400 uppercase font-semibold">{slot.genre}</span>
                   </div>
                 </div>
 
@@ -107,7 +107,7 @@ export const ScheduleTimetable: React.FC<ScheduleTimetableProps> = ({
                   {slot.isLiveNow ? (
                     <button
                       onClick={onTuneInLive}
-                      className="px-4 py-2 bg-yellow-400 text-black hover:bg-yellow-300 font-mono text-xs font-bold uppercase transition-colors flex items-center gap-2"
+                      className="min-h-[40px] px-4 py-2 bg-yellow-400 text-black hover:bg-yellow-300 font-ui font-bold text-xs uppercase tracking-wider transition-colors flex items-center gap-2 cursor-pointer"
                     >
                       <Radio size={14} />
                       <span>{isPlaying ? 'LISTENING NOW' : 'LISTEN LIVE'}</span>
@@ -115,7 +115,7 @@ export const ScheduleTimetable: React.FC<ScheduleTimetableProps> = ({
                   ) : (
                     <button
                       onClick={() => toggleReminder(slot.showTitle)}
-                      className={`px-3 py-1.5 border font-mono text-xs transition-colors flex items-center gap-1.5 ${
+                      className={`min-h-[40px] px-3.5 py-1.5 border font-ui font-semibold text-xs tracking-wider transition-colors flex items-center gap-1.5 cursor-pointer ${
                         hasReminder
                           ? 'border-green-500 bg-green-500/20 text-green-300'
                           : 'border-neutral-700 hover:border-neutral-400 text-neutral-300'

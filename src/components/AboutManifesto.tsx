@@ -1,5 +1,4 @@
 import React from 'react';
-import { Radio, Mic, Flame, Disc } from 'lucide-react';
 
 export const AboutManifesto: React.FC = () => {
   return (
@@ -11,11 +10,11 @@ export const AboutManifesto: React.FC = () => {
             <div className="font-mono text-xs uppercase tracking-widest text-black/70 mb-1">
               MANIFESTO // OPERATIONAL ARCHITECTURE
             </div>
-            <h2 className="font-display font-black text-4xl md:text-6xl tracking-tight uppercase">
+            <h2 className="font-display font-black text-section-display uppercase">
               NOT AN ALGORITHM.
             </h2>
           </div>
-          <div className="font-mono text-xs text-black/70 max-w-sm">
+          <div className="font-ui text-xs md:text-sm text-neutral-800 max-w-sm font-medium leading-relaxed">
             Founded in a repurposed steel shipping container in Berlin-Kreuzberg, expanded to Brooklyn & London.
           </div>
         </div>
@@ -29,7 +28,7 @@ export const AboutManifesto: React.FC = () => {
             <h3 className="font-display font-black text-xl uppercase mb-2">
               RADICAL SELECTOR AUTONOMY
             </h3>
-            <p className="font-mono text-xs text-neutral-700 leading-relaxed">
+            <p className="font-ui text-xs sm:text-sm text-neutral-700 leading-relaxed font-normal">
               Every host has 100% curation freedom. No corporate labels, no pay-to-play, no automated recommendation engines. We play what needs to be heard.
             </p>
           </div>
@@ -41,7 +40,7 @@ export const AboutManifesto: React.FC = () => {
             <h3 className="font-display font-black text-xl uppercase mb-2">
               OPEN STREET ACCESS
             </h3>
-            <p className="font-mono text-xs text-neutral-700 leading-relaxed">
+            <p className="font-ui text-xs sm:text-sm text-neutral-700 leading-relaxed font-normal">
               Our kiosks face the public street. Passersby watch DJs spin vinyl through the double-pane container windows. Radio is an open physical town square.
             </p>
           </div>
@@ -53,18 +52,18 @@ export const AboutManifesto: React.FC = () => {
             <h3 className="font-display font-black text-xl uppercase mb-2">
               COMMUNITY FUNDED ARCHIVE
             </h3>
-            <p className="font-mono text-xs text-neutral-700 leading-relaxed">
+            <p className="font-ui text-xs sm:text-sm text-neutral-700 leading-relaxed font-normal">
               Operated on zero advertising. Financed purely by listener support, merchandise, and DIY cassette runs. All audio streams are open-source and free worldwide.
             </p>
           </div>
         </div>
 
         {/* Studio Specs */}
-        <div className="mt-10 p-6 bg-black text-white border-2 border-black flex flex-wrap items-center justify-between gap-6 font-mono text-xs">
+        <div className="mt-10 p-5 sm:p-6 bg-black text-white border-2 border-black flex flex-wrap items-center justify-between gap-4 sm:gap-6 font-mono text-xs">
           <div>
             <span className="text-yellow-400 font-bold">HARDWARE CHAIN:</span> Technics 1200MK7 · Condesa Rotary Mixer · Revox B77 Tape Machine · Shure SM7B
           </div>
-          <div className="flex items-center gap-4 text-neutral-400">
+          <div className="flex items-center gap-3 sm:gap-4 text-neutral-400">
             <span>BITRATE: 320 KBPS ICECAST</span>
             <span>·</span>
             <span>OPEN DEMO SUBMISSIONS OPEN</span>

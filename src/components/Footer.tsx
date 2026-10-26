@@ -22,7 +22,7 @@ export const Footer: React.FC = () => {
           <div className="font-mono text-xs uppercase tracking-widest text-yellow-400 mb-2">
             WEEKLY UNDERGROUND DISPATCH // NO SPAM
           </div>
-          <h2 className="font-display font-black text-4xl sm:text-6xl md:text-7xl lg:text-8xl uppercase tracking-tighter leading-[0.9]">
+          <h2 className="font-display font-black text-section-display uppercase leading-[0.9]">
             STAY UPDATED.
             <br />
             <span className="text-neutral-500 hover:text-white transition-colors">
@@ -39,11 +39,11 @@ export const Footer: React.FC = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="enter your email address..."
                   required
-                  className="flex-1 bg-neutral-900 border border-neutral-700 px-4 py-3 text-sm font-mono text-white placeholder-neutral-500 focus:outline-none focus:border-yellow-400"
+                  className="flex-1 min-h-[48px] bg-neutral-900 border border-neutral-700 px-4 py-3 text-sm font-ui text-white placeholder-neutral-500 focus:outline-none focus:border-yellow-400"
                 />
                 <button
                   type="submit"
-                  className="px-6 py-3 bg-white text-black hover:bg-yellow-400 font-mono text-xs font-bold uppercase transition-colors flex items-center justify-center gap-2"
+                  className="min-h-[48px] px-6 py-3 bg-white text-black hover:bg-yellow-400 font-ui font-bold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <span>SUBSCRIBE</span>
                   <ArrowRight size={14} />

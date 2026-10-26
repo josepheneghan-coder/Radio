@@ -51,24 +51,24 @@ export const TracklistModal: React.FC<TracklistModalProps> = ({
             <h2 className="font-display font-black text-2xl md:text-3xl uppercase tracking-tight">
               {show.title}
             </h2>
-            <div className="font-mono text-xs text-neutral-400 mt-1 flex flex-wrap gap-2">
+            <div className="font-ui text-xs text-neutral-300 mt-1 flex flex-wrap gap-2">
               <span>Selector: <strong className="text-white">{show.host}</strong></span>
               <span>·</span>
               <span>{show.location}</span>
               <span>·</span>
-              <span>{show.duration}</span>
+              <span className="font-mono tabular-nums">{show.duration}</span>
             </div>
           </div>
         </div>
 
         {/* Play Action in Modal */}
         <div className="mb-6 flex items-center justify-between gap-4 p-3 bg-neutral-900 border border-neutral-800">
-          <div className="font-mono text-xs text-neutral-300">
-            Audio Synthesizer Preset: <strong className="text-yellow-400 uppercase">{show.audioPreset}</strong>
+          <div className="font-ui text-xs text-neutral-300">
+            Audio Synthesizer Preset: <strong className="text-yellow-400 uppercase font-mono">{show.audioPreset}</strong>
           </div>
           <button
             onClick={() => onPlayShow(show)}
-            className="px-4 py-2 bg-white text-black hover:bg-yellow-400 font-mono text-xs font-bold uppercase transition-colors flex items-center gap-1.5"
+            className="min-h-[40px] px-4 py-2 bg-white text-black hover:bg-yellow-400 font-ui font-bold text-xs uppercase tracking-wider transition-colors flex items-center gap-1.5 cursor-pointer"
           >
             <Play size={14} className="fill-current" />
             <span>{isCurrentPlaying ? 'PLAYING NOW' : 'STREAM THIS MIX'}</span>
@@ -82,14 +82,14 @@ export const TracklistModal: React.FC<TracklistModalProps> = ({
             <span>OFFICIAL PLAYLIST & DUBPLATE CATALOG ({show.tracklist.length} TRACKS)</span>
           </h3>
 
-          <div className="divide-y divide-neutral-800 border border-neutral-800 font-mono text-xs">
+          <div className="divide-y divide-neutral-800 border border-neutral-800 font-ui text-xs">
             {show.tracklist.map((track, i) => (
               <div
                 key={i}
                 className="p-3 flex items-center justify-between gap-4 hover:bg-neutral-900/60 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-neutral-500 tabular-nums w-10">
+                  <span className="font-mono text-neutral-500 tabular-nums w-12 text-[11px]">
                     {track.timestamp}
                   </span>
                   <div>
@@ -100,7 +100,7 @@ export const TracklistModal: React.FC<TracklistModalProps> = ({
                 </div>
 
                 {track.label && (
-                  <span className="text-[11px] text-neutral-500 shrink-0">
+                  <span className="font-mono text-[10px] text-neutral-500 shrink-0 uppercase tracking-wider">
                     [{track.label}]
                   </span>
                 )}

@@ -99,14 +99,14 @@ export const LiveBoothStream: React.FC<LiveBoothStreamProps> = ({
               <Camera size={14} />
               <span>LIVE DJ BOOTH CAM // 24/7 VIDEO FEED</span>
             </div>
-            <h2 className="font-display font-black text-3xl md:text-5xl tracking-tight uppercase">
+            <h2 className="font-display font-black text-section-display uppercase">
               STUDIO SURVEILLANCE
             </h2>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             {/* Camera angle switcher */}
-            <div className="flex items-center bg-neutral-900 border border-neutral-800 rounded p-1 font-mono text-xs">
+            <div className="flex items-center bg-neutral-900 border border-neutral-800 rounded p-1 font-ui font-semibold text-xs">
               {CAM_ANGLES.map((cam) => (
                 <button
                   key={cam.id}
@@ -114,7 +114,7 @@ export const LiveBoothStream: React.FC<LiveBoothStreamProps> = ({
                     setActiveCam(cam.id);
                     audioEngine.playFX('scratch');
                   }}
-                  className={`px-2.5 py-1 rounded transition-colors ${
+                  className={`min-h-[36px] px-3 py-1 rounded transition-colors cursor-pointer ${
                     activeCam === cam.id
                       ? 'bg-white text-black font-bold'
                       : 'text-neutral-400 hover:text-white'
@@ -129,10 +129,10 @@ export const LiveBoothStream: React.FC<LiveBoothStreamProps> = ({
             <button
               onClick={triggerTimeoutGlitch}
               title="Test video signal glitch gimmick"
-              className="px-3 py-1.5 border border-neutral-700 bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white font-mono text-xs flex items-center gap-1.5 rounded transition-colors"
+              className="min-h-[36px] px-3 py-1.5 border border-neutral-700 bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white font-ui font-semibold text-xs flex items-center gap-1.5 rounded transition-colors cursor-pointer"
             >
               <RefreshCw size={13} className={isVideoGlitching ? 'animate-spin' : ''} />
-              <span>TEST TIMEOUT GLITCH</span>
+              <span>TEST TIMEOUT</span>
             </button>
           </div>
         </div>
