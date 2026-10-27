@@ -172,7 +172,7 @@ export const Header: React.FC<HeaderProps> = ({
               className="text-left py-3 px-3 hover:bg-neutral-900 text-neutral-300 hover:text-white transition-colors flex items-center justify-between"
             >
               <span className="text-white font-bold flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-red-500 rounded-full" />
+                <span className="w-1.5 h-1.5 bg-red-500" />
                 <span>Audio Reactor · Spectrum</span>
               </span>
               <span className="font-mono text-xs text-red-500 font-bold">DSP</span>

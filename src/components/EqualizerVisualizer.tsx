@@ -47,15 +47,19 @@ export const EqualizerVisualizer: React.FC<EqualizerVisualizerProps> = ({
           const peak = reactor.peaks[i] || 0;
           const activeSegments = Math.round(val * totalSegments);
 
-          // Render LED segments vertically from bottom to top
+          // Render LED segments vertically from bottom to top with club progression
           for (let s = 0; s < totalSegments; s++) {
             const segY = canvas.height - 2 - (s + 1) * (segHeight + segGap);
             const isActive = s < activeSegments;
 
             if (isActive) {
-              if (s >= 8) {
-                ctx.fillStyle = '#ff0033'; // Signal red top
-              } else if (s >= 6) {
+              if (s >= 9) {
+                ctx.fillStyle = '#ff2a5f'; // Luminous hot red top
+              } else if (s >= 8) {
+                ctx.fillStyle = '#dc2626'; // Bold signal red
+              } else if (s >= 7) {
+                ctx.fillStyle = '#991b1b'; // Dark wine red
+              } else if (s >= 5) {
                 ctx.fillStyle = isRave ? '#f59e0b' : '#f4f4f5'; // Amber warning
               } else {
                 ctx.fillStyle = i % 4 === 0 ? '#ffffff' : '#d4d4d8';
@@ -69,17 +73,18 @@ export const EqualizerVisualizer: React.FC<EqualizerVisualizerProps> = ({
           }
 
           // Peak marker
-          if (peak > 0.08) {
+          if (peak > 0.06) {
             const peakSeg = Math.min(totalSegments - 1, Math.round(peak * totalSegments));
             const peakY = canvas.height - 2 - (peakSeg + 1) * (segHeight + segGap);
-            ctx.fillStyle = peakSeg >= 8 ? '#ff0033' : '#ffffff';
+            ctx.fillStyle = peakSeg >= 9 ? '#ff2a5f' : peakSeg >= 7 ? '#dc2626' : '#ffffff';
             ctx.fillRect(x, peakY, barWidth, Math.max(1.5, segHeight));
           }
         } else {
-          // Resting standby floor
-          const restingHeight = 2;
+          // Resting standby floor (gentle breathing wave)
+          const val = reactor.bands[i] || 0.03;
+          const restingHeight = Math.max(2, Math.floor(val * canvas.height * 0.4));
           const y = canvas.height - restingHeight - 2;
-          ctx.fillStyle = '#1c1c1e';
+          ctx.fillStyle = '#27272a';
           ctx.fillRect(x, y, barWidth, restingHeight);
         }
       }

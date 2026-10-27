@@ -31,10 +31,10 @@ export const STREAM_CONFIG: StreamConfig = {
   AUDIO_SOURCE_ORIGIN: 'Ibiza Global Radio Live Stream Feed',
 
   // Visible Station Metadata (KONTROLL brand identity)
-  STATION_NAME: 'KONTROLL // SUB-FREQ INDIE RADIO',
+  STATION_NAME: 'KONTROLL · SUB-FREQ INDIE RADIO',
   PRIMARY_FEED_NAME: 'KONTROLL TRANSMISSION',
   FREQUENCY: '104.5 FM',
-  LOCATION: 'Berlin Studio // Container #04',
+  LOCATION: 'Berlin Studio · Container #04',
   BITRATE: '320 kbps Icecast',
   GENRE: 'Underground Electronic · Deep Techno · Minimal',
 };

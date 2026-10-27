@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
-  Activity,
   Flame,
   Radio,
   Sliders,
@@ -13,7 +12,7 @@ import {
   Pause,
 } from 'lucide-react';
 import { audioEngine } from '../utils/audioEngine';
-import { AnalysisMode, ReactorMetrics, StreamStatus } from '../types/radio';
+import { AnalysisMode, EqualizerPresetId, ReactorMetrics, StreamStatus } from '../types/radio';
 
 interface UndergroundReactorProps {
   isPlaying: boolean;
@@ -36,7 +35,7 @@ const FREQ_LABELS = [
 ];
 
 const DB_MARKS = [
-  { db: '+3dB CLIP', ratio: 0.06, color: '#ff0033' },
+  { db: '+3dB CLIP', ratio: 0.06, color: '#ff2a5f' },
   { db: '0dB REF', ratio: 0.18, color: '#ffffff' },
   { db: '-6dB', ratio: 0.36, color: '#71717a' },
   { db: '-12dB', ratio: 0.52, color: '#52525b' },
@@ -56,30 +55,35 @@ export const UndergroundReactor: React.FC<UndergroundReactorProps> = ({
 
   // User Interactive Toggles
   const [ravePressure, setRavePressure] = useState<boolean>(() => audioEngine.getRavePressure());
+  const [activePreset, setActivePreset] = useState<EqualizerPresetId>(() => audioEngine.getPreset());
   const [bandResolution, setBandResolution] = useState<64 | 32>(64);
-  const [decaySpeed, setDecaySpeed] = useState<'club' | 'fast'>('club');
   const [expandedView, setExpandedView] = useState<boolean>(false);
   const [showTechInfo, setShowTechInfo] = useState<boolean>(false);
 
-  // Live Technical Metrics Readout
+  // Live Technical Metrics Readout (Peak Techno + Rave Active default)
   const [metrics, setMetrics] = useState<ReactorMetrics>({
-    bpm: 142.0,
+    bpm: 138.0,
     subDb: -48,
     midDb: -48,
     highDb: -48,
     peakDb: -48,
-    ravePressure: false,
+    ravePressure: true,
     analysisMode: 'standby',
     clipDetected: false,
+    preset: 'peak_techno',
   });
 
-  // Sync Rave Pressure from AudioEngine
+  // Sync Rave Pressure & Presets from AudioEngine
   useEffect(() => {
     const unsubRave = audioEngine.subscribeRave((isRave) => {
       setRavePressure(isRave);
     });
+    const unsubPreset = audioEngine.subscribePreset((preset) => {
+      setActivePreset(preset);
+    });
     return () => {
       unsubRave();
+      unsubPreset();
     };
   }, []);
 
@@ -104,7 +108,8 @@ export const UndergroundReactor: React.FC<UndergroundReactorProps> = ({
       const rect = containerRef.current.getBoundingClientRect();
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const displayWidth = Math.floor(rect.width);
-      const displayHeight = expandedView ? 240 : 135;
+      const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+      const displayHeight = expandedView ? 280 : (isMobile ? 180 : 220);
 
       if (canvas.width !== displayWidth * dpr || canvas.height !== displayHeight * dpr) {
         canvas.width = displayWidth * dpr;
@@ -127,8 +132,10 @@ export const UndergroundReactor: React.FC<UndergroundReactorProps> = ({
     };
 
     const render = (time: number) => {
-      const w = canvas.width;
-      const h = canvas.height;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+      const w = Math.floor(canvas.width / dpr);
+      const h = Math.floor(canvas.height / dpr);
       if (w === 0 || h === 0) {
         animId = requestAnimationFrame(render);
         return;
@@ -143,12 +150,20 @@ export const UndergroundReactor: React.FC<UndergroundReactorProps> = ({
         setMetrics(reactor.metrics);
       }
 
+      ctx.save();
+      ctx.scale(dpr, dpr);
+
       // 1. Clear Canvas with Deep Charcoal / Black
       ctx.fillStyle = '#08080a';
       ctx.fillRect(0, 0, w, h);
 
       // 2. Render Graticule / dB Grid Lines
       ctx.lineWidth = 1;
+      const leftGutter = isMobile ? 38 : 44;
+      const rightGutter = 10;
+      const bottomGutter = isMobile ? 18 : 20;
+      const topGutter = 10;
+
       DBMarksLoop: for (let m = 0; m < DB_MARKS.length; m++) {
         const mark = DB_MARKS[m];
         const y = Math.floor(h * mark.ratio) + 0.5;
@@ -156,68 +171,75 @@ export const UndergroundReactor: React.FC<UndergroundReactorProps> = ({
         ctx.strokeStyle = mark.ratio <= 0.06 ? 'rgba(255, 0, 51, 0.22)' : 'rgba(255, 255, 255, 0.07)';
         ctx.beginPath();
         ctx.setLineDash(mark.ratio <= 0.06 ? [4, 4] : [2, 3]);
-        ctx.moveTo(35, y);
-        ctx.lineTo(w - 10, y);
+        ctx.moveTo(leftGutter - 6, y);
+        ctx.lineTo(w - 8, y);
         ctx.stroke();
 
         // Left dB scale label
         ctx.fillStyle = mark.color;
-        ctx.font = '10px "IBM Plex Mono", monospace';
+        ctx.font = isMobile ? '8.5px "IBM Plex Mono", monospace' : '9.5px "IBM Plex Mono", monospace';
         ctx.textAlign = 'left';
-        ctx.fillText(mark.db.replace(' NOISE', ''), 6, y + 3);
+        const labelText = isMobile
+          ? mark.db.replace(' CLIP', '').replace(' REF', '').replace(' NOISE', '')
+          : mark.db.replace(' NOISE', '');
+        ctx.fillText(labelText, 4, y + 3);
       }
       ctx.setLineDash([]); // Reset line dash
 
       // 3. Frequency Band Calculations
-      const leftGutter = 42;
-      const rightGutter = 14;
-      const bottomGutter = 20;
-      const topGutter = 12;
-
       const plotWidth = w - leftGutter - rightGutter;
       const plotHeight = h - topGutter - bottomGutter;
 
-      const gap = numBands >= 48 ? 2.5 : 4;
-      const barWidth = Math.max(3, (plotWidth - (numBands - 1) * gap) / numBands);
-      const totalSegments = 24; // 24 vertical LED segments per bar
-      const segGap = 1.5;
-      const segHeight = Math.max(2, (plotHeight - (totalSegments - 1) * segGap) / totalSegments);
+      const gap = isMobile ? 2 : (numBands >= 48 ? 2.5 : 4);
+      const barWidth = Math.max(2.5, (plotWidth - (numBands - 1) * gap) / numBands);
 
       const isLive = isPlaying && streamStatus === 'live';
       const isRave = reactor.metrics.ravePressure;
+      const totalSegments = 24; // High-resolution segmented LED scale
+      const segGap = 1.2;
+      const segHeight = Math.max(2, (plotHeight - (totalSegments - 1) * segGap) / totalSegments);
 
-      // 4. Render Spectrum Bars as Discrete Segmented LED Blocks
+      // 4. Render Spectrum Bars as Discrete Segmented LED Blocks with Authentic Club Progression
       for (let i = 0; i < numBands; i++) {
         const x = Math.floor(leftGutter + i * (barWidth + gap));
-        const val = isLive ? reactor.bands[i] : 0;
-        const peakVal = isLive ? reactor.peaks[i] : 0;
+        const val = reactor.bands[i] || 0;
+        const peakVal = reactor.peaks[i] || 0;
         const isClipped = reactor.clipFlags[i];
 
         // Active segment count based on amplitude
         const activeSegments = Math.round(val * totalSegments);
 
-        // Render LED segments vertically from bottom (segIndex 0) to top (segIndex 23)
+        // Render LED segments vertically from bottom (0) to top (totalSegments - 1)
         for (let s = 0; s < totalSegments; s++) {
           const segY = Math.floor(topGutter + plotHeight - (s + 1) * (segHeight + segGap));
           const isActive = s < activeSegments;
 
           if (isActive) {
-            // Segment Color Hierarchy:
-            // Top 3 segments (>0dB): Signal Red overload
-            if (s >= 21) {
-              ctx.fillStyle = '#ff0033';
+            // Segment Color Hierarchy (Dark Red -> Vibrant Signal Red -> Luminous Hot Red tips)
+            if (s >= 22) {
+              // Spitzen: Leuchtendes, helleres Rot (+3dB Peak)
+              ctx.fillStyle = '#ff2a5f';
               if (isRave) {
-                ctx.shadowColor = '#ff0033';
+                ctx.shadowColor = '#ff2a5f';
+                ctx.shadowBlur = 6;
+              }
+            } else if (s >= 19) {
+              // Kräftiges Signalrot (0dB bis +2dB)
+              ctx.fillStyle = '#dc2626';
+              if (isRave) {
+                ctx.shadowColor = '#dc2626';
                 ctx.shadowBlur = 4;
               }
-            }
-            // Next 5 segments (-6dB to 0dB): Warm studio amber / bright white
-            else if (s >= 16) {
+            } else if (s >= 16) {
+              // Dunkleres sattes Rot (-3dB bis 0dB)
+              ctx.fillStyle = '#991b1b';
+              ctx.shadowBlur = 0;
+            } else if (s >= 12) {
+              // Warmes Studio-Weiß / Amber bei RAVE (-9dB bis -3dB)
               ctx.fillStyle = isRave ? '#f59e0b' : '#f4f4f5';
               ctx.shadowBlur = 0;
-            }
-            // Lower segments: Crisp industrial white / zinc
-            else {
+            } else {
+              // Untere Frequenzbalken: Präzises Club-Grau / Weiß
               ctx.fillStyle = i % 4 === 0 ? '#ffffff' : '#d4d4d8';
               ctx.shadowBlur = 0;
             }
@@ -225,59 +247,67 @@ export const UndergroundReactor: React.FC<UndergroundReactorProps> = ({
             ctx.fillRect(x, segY, barWidth, segHeight);
             ctx.shadowBlur = 0; // reset
           } else {
-            // Inactive dark LED segment slot
+            // Inaktives dunkles LED-Raster
             ctx.fillStyle = 'rgba(255, 255, 255, 0.035)';
             ctx.fillRect(x, segY, barWidth, segHeight);
           }
         }
 
-        // 5. Render Peak Hold Marker
-        if (isLive && peakVal > 0.05) {
+        // 5. Render Peak Hold Marker with physical descent
+        if (peakVal > 0.04) {
           const peakSegmentIndex = Math.min(totalSegments - 1, Math.round(peakVal * totalSegments));
           const peakY = Math.floor(topGutter + plotHeight - (peakSegmentIndex + 1) * (segHeight + segGap));
 
-          ctx.fillStyle = peakSegmentIndex >= 21 || isClipped ? '#ff0033' : '#ffffff';
-          ctx.fillRect(x, peakY, barWidth, Math.max(2, segHeight * 0.9));
+          ctx.fillStyle = peakSegmentIndex >= 22 
+            ? '#ff2a5f' 
+            : peakSegmentIndex >= 19 || isClipped 
+            ? '#dc2626' 
+            : peakSegmentIndex >= 16 
+            ? '#ef4444' 
+            : '#ffffff';
+          ctx.fillRect(x, peakY, barWidth, Math.max(2, segHeight * 0.95));
         }
 
-        // 6. Sub-bass Ground Glow for left bands during kicks
-        if (isLive && i < 10 && val > 0.65) {
-          ctx.fillStyle = 'rgba(255, 0, 51, 0.12)';
+        // 6. Sub-bass Ground Glow for left kick bands during beats
+        if (isLive && i < 12 && val > 0.62) {
+          ctx.fillStyle = 'rgba(220, 38, 38, 0.14)';
           ctx.fillRect(x - 1, topGutter, barWidth + 2, plotHeight);
         }
       }
 
       // 7. Render Bottom Frequency Labels
-      ctx.font = '9px "IBM Plex Mono", monospace';
+      ctx.font = isMobile ? '8px "IBM Plex Mono", monospace' : '9px "IBM Plex Mono", monospace';
       ctx.textAlign = 'center';
       for (let f = 0; f < FREQ_LABELS.length; f++) {
+        if (isMobile && f % 2 === 1 && f !== FREQ_LABELS.length - 1) continue;
         const item = FREQ_LABELS[f];
         const freqX = leftGutter + item.pos * plotWidth;
         ctx.fillStyle = '#71717a';
-        ctx.fillText(item.label, freqX, h - 5);
+        ctx.fillText(item.label, freqX, h - 4);
 
         // Tiny tick mark
         ctx.strokeStyle = '#3f3f46';
         ctx.beginPath();
         ctx.moveTo(freqX, topGutter + plotHeight + 1);
-        ctx.lineTo(freqX, topGutter + plotHeight + 4);
+        ctx.lineTo(freqX, topGutter + plotHeight + 3);
         ctx.stroke();
       }
 
-      // 8. Standby Watermark when not transmitting
+      // 8. Standby Watermark when not transmitting (Clean, no //)
       if (!isLive) {
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
-        ctx.font = '11px "IBM Plex Mono", monospace';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+        ctx.font = isMobile ? '10px "IBM Plex Mono", monospace' : '11px "IBM Plex Mono", monospace';
         ctx.textAlign = 'center';
         ctx.fillText(
           streamStatus === 'buffering'
             ? '[CONNECTING TO LIVE TRANSMISSION BUS...]'
-            : '[SPECTRUM STANDBY // TRANSMITTER READY 104.5 MHz]',
+            : '[STANDBY · 104.5 MHz TRANSMITTER READY]',
           w / 2,
           h / 2
         );
       }
 
+      ctx.restore();
       animId = requestAnimationFrame(render);
     };
 
@@ -298,21 +328,21 @@ export const UndergroundReactor: React.FC<UndergroundReactorProps> = ({
     >
       <div className="max-w-7xl mx-auto">
         {/* Hardware Control Top Bar */}
-        <div className="bg-[#0b0b0e] border border-neutral-800 p-2 sm:p-2.5 mb-2 flex flex-col md:flex-row md:items-center justify-between gap-2">
+        <div className="bg-[#0b0b0e] border border-neutral-800 p-2 sm:p-2.5 mb-2 flex flex-col md:flex-row md:items-center justify-between gap-2.5">
           {/* Rack Title & Status Indicator */}
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-8 h-8 bg-neutral-900 border border-neutral-700 flex items-center justify-center shrink-0">
-              <Activity size={16} className={isLive ? 'text-red-500 animate-pulse' : 'text-neutral-500'} />
+              <Sliders size={15} className={isLive ? 'text-red-500' : 'text-neutral-400'} />
             </div>
 
             <div className="min-w-0">
               <div className="flex items-center gap-2 font-mono text-[9px] sm:text-[10px] tracking-wider text-neutral-400">
-                <span className="uppercase text-white font-bold">RACK 01 · MASTER DSP</span>
+                <span className="uppercase text-white font-bold">MASTER RACK 01</span>
                 <span>·</span>
-                {/* Live Analysis Mode Indicator */}
+                {/* Live Analysis Mode Indicator (No //) */}
                 {metrics.analysisMode === 'dsp' ? (
                   <span className="text-emerald-400 font-bold flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                    <span className="w-1.5 h-1.5 bg-emerald-500" />
                     <span>LIVE DSP TAP (2048 FFT)</span>
                   </span>
                 ) : metrics.analysisMode === 'modeled' ? (
@@ -320,35 +350,66 @@ export const UndergroundReactor: React.FC<UndergroundReactorProps> = ({
                     className="text-amber-400 font-bold flex items-center gap-1"
                     title="Audio stream lacks permissive CORS headers; running dedicated Berlin Underground acoustic synthesis reactor"
                   >
-                    <span className="w-1.5 h-1.5 bg-amber-400 rounded-full" />
-                    <span>CORS RESTRICTED · FALLBACK ACOUSTIC ENGINE</span>
+                    <span className="w-1.5 h-1.5 bg-amber-400" />
+                    <span>ACOUSTIC CLUB SYNTHESIS</span>
                   </span>
                 ) : (
-                  <span className="text-neutral-500">STANDBY // SENSING CARRIER</span>
+                  <span className="text-neutral-500">STANDBY · SIGNAL READY</span>
                 )}
               </div>
 
               <h2 className="font-display font-black text-sm sm:text-base tracking-tight uppercase truncate">
-                UNDERGROUND AUDIO REACTOR
+                AUDIO REACTOR
               </h2>
             </div>
           </div>
 
-          {/* Interactive Hardware Switches (RAVE PRESSURE, Bands, View) */}
+          {/* Interactive Hardware Switches (Presets, RAVE PRESSURE, Bands, View) */}
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            {/* 3 EQUALIZER PRESETS (Deep House / Tech House / Peak Techno) */}
+            <div className="flex items-center bg-neutral-900 border border-neutral-800 p-0.5 font-mono text-[10px]">
+              <button
+                onClick={() => audioEngine.setPreset('deep_house')}
+                title="PRESET 01: Deep House (122 BPM) — Warm deep bass, soft rolling dynamics"
+                className={`px-2 py-0.5 font-bold cursor-pointer transition-colors ${
+                  activePreset === 'deep_house' ? 'bg-white text-black' : 'text-neutral-400 hover:text-white'
+                }`}
+              >
+                DEEP HOUSE
+              </button>
+              <button
+                onClick={() => audioEngine.setPreset('tech_house')}
+                title="PRESET 02: Tech House (126 BPM) — Punchy 4/4 kick, snappy driving groove"
+                className={`px-2 py-0.5 font-bold cursor-pointer transition-colors ${
+                  activePreset === 'tech_house' ? 'bg-white text-black' : 'text-neutral-400 hover:text-white'
+                }`}
+              >
+                TECH HOUSE
+              </button>
+              <button
+                onClick={() => audioEngine.setPreset('peak_techno')}
+                title="PRESET 03: Peak Techno (138 BPM) — Heavy attack, maximum peaks, intense red tips"
+                className={`px-2 py-0.5 font-bold cursor-pointer transition-colors ${
+                  activePreset === 'peak_techno' ? 'bg-red-600 text-white' : 'text-neutral-400 hover:text-white'
+                }`}
+              >
+                PEAK TECHNO
+              </button>
+            </div>
+
             {/* RAVE PRESSURE Mode Toggle — Core Requirement */}
             <button
               onClick={handleToggleRave}
               title="RAVE PRESSURE: Escalates visual dynamic range, transient attack and red clip saturation. (Audio volume remains strictly unchanged at 0dB)."
               className={`min-h-[28px] sm:min-h-[30px] px-2.5 sm:px-3 py-1 font-mono text-[11px] font-bold flex items-center gap-1.5 border transition-all cursor-pointer ${
                 ravePressure
-                  ? 'bg-red-600 border-red-500 text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
+                  ? 'bg-red-600 border-red-500 text-white shadow-[0_0_12px_rgba(255,42,95,0.5)]'
                   : 'bg-neutral-900 border-neutral-700 text-neutral-300 hover:text-white hover:border-neutral-500'
               }`}
             >
               <Flame size={13} className={ravePressure ? 'animate-bounce' : 'text-red-500'} />
-              <span>RAVE PRESSURE:</span>
-              <span className={`px-1 py-0.2 rounded text-[9px] ${ravePressure ? 'bg-black text-red-400' : 'bg-neutral-800 text-neutral-400'}`}>
+              <span>RAVE:</span>
+              <span className={`px-1 py-0.2 text-[9px] ${ravePressure ? 'bg-black text-red-400' : 'bg-neutral-800 text-neutral-400'}`}>
                 {ravePressure ? 'ACTIVE' : 'OFF'}
               </span>
             </button>
@@ -395,17 +456,18 @@ export const UndergroundReactor: React.FC<UndergroundReactorProps> = ({
               {expandedView ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
             </button>
 
-            {/* Tune in / Stop Quick Button */}
+            {/* Primary Master Play Button (Instantly recognizable music trigger) */}
             <button
               onClick={onTogglePlay}
-              className={`min-h-[28px] sm:min-h-[30px] px-2.5 sm:px-3 py-1 font-ui font-bold text-[11px] uppercase flex items-center gap-1 transition-colors cursor-pointer ${
+              aria-label={isPlaying ? 'Pause transmission' : 'Tune in transmission'}
+              className={`min-h-[32px] sm:min-h-[34px] px-3 sm:px-4 py-1 font-ui font-black text-xs uppercase flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
                 isPlaying
-                  ? 'bg-yellow-400 text-black hover:bg-yellow-300'
-                  : 'bg-white text-black hover:bg-neutral-200'
+                  ? 'bg-yellow-400 text-black hover:bg-yellow-300 shadow-[0_0_12px_rgba(250,204,21,0.4)] border border-yellow-300'
+                  : 'bg-white text-black hover:bg-neutral-200 border border-white'
               }`}
             >
-              {isPlaying ? <Pause size={12} className="fill-current" /> : <Play size={12} className="fill-current" />}
-              <span>{isPlaying ? 'PAUSE' : 'REACT'}</span>
+              {isPlaying ? <Pause size={13} className="fill-current" /> : <Play size={13} className="fill-current ml-0.5" />}
+              <span>{isPlaying ? 'ON AIR' : 'TUNE IN'}</span>
             </button>
           </div>
         </div>
@@ -503,10 +565,16 @@ export const UndergroundReactor: React.FC<UndergroundReactorProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-neutral-500 text-[9px] sm:text-[10px]">
-            <span>TEMPO: <strong className="text-white tabular-nums">{metrics.bpm.toFixed(1)} BPM</strong></span>
+          <div className="flex items-center gap-2 text-neutral-400 text-[9px] sm:text-[10px]">
+            <span>TEMPO: <strong className="text-yellow-400 tabular-nums">{metrics.bpm.toFixed(1)} BPM</strong></span>
             <span>·</span>
-            <span className="hidden xs:inline">PROFILE: <strong className="text-white">BERLIN INDUSTRIAL TECHNO</strong></span>
+            <span>PROFILE: <strong className="text-white uppercase">{
+              metrics.preset === 'deep_house' 
+                ? 'DEEP' 
+                : metrics.preset === 'tech_house' 
+                ? 'TECH' 
+                : 'PEAK TECHNO'
+            }</strong></span>
           </div>
         </div>
       </div>

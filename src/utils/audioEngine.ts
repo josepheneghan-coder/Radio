@@ -8,11 +8,12 @@
  * - Hardware DJ Soundboard FX triggers (Tactile analog scratch, rewind, 808 sub drops)
  */
 
-import { StreamStatus, AnalysisMode, ReactorMetrics } from '../types/radio';
+import { StreamStatus, AnalysisMode, ReactorMetrics, EqualizerPresetId } from '../types/radio';
 import { STREAM_CONFIG } from '../config/streamConfig';
 
 type StateListener = (isPlaying: boolean, status: StreamStatus, message?: string) => void;
 type RaveListener = (isRave: boolean) => void;
+type PresetListener = (preset: EqualizerPresetId) => void;
 
 class AudioEngine {
   // Web Audio Context for Soundboard FX & Stream Analyser
@@ -39,13 +40,15 @@ class AudioEngine {
   private volume: number = 0.85;
   private isMuted: boolean = false;
   private tapeSaturationActive: boolean = false;
-  private statusMessage: string = 'STANDBY // SIGNAL READY';
+  private statusMessage: string = 'STANDBY · SIGNAL READY';
   private analysisMode: AnalysisMode = 'standby';
-  private ravePressureActive: boolean = false;
+  private ravePressureActive: boolean = true;
+  private currentPreset: EqualizerPresetId = 'peak_techno';
 
   // Event Listeners
   private listeners: Set<StateListener> = new Set();
   private raveListeners: Set<RaveListener> = new Set();
+  private presetListeners: Set<PresetListener> = new Set();
 
   // Reactor Simulation & Peak Hold Cache
   private lastTime: number = performance.now();
@@ -53,7 +56,7 @@ class AudioEngine {
   private reactorPeaks: Float32Array = new Float32Array(64);
   private peakHoldExpiry: Float64Array = new Float64Array(64);
   private clipFlags: boolean[] = new Array(64).fill(false);
-  private bpm: number = 142.0; // Underground industrial techno tempo
+  private bpm: number = 138.0; // Peak Techno default: 138 BPM
   private phrasePhase: number = 0; // 0 to 1 for long phrase filter sweeps
 
   constructor() {
@@ -88,7 +91,7 @@ class AudioEngine {
     this.streamAudio.addEventListener('canplay', () => {
       if (this.isRunning) {
         this.streamStatus = 'live';
-        this.statusMessage = 'LIVE ON AIR // 104.5 FM';
+        this.statusMessage = 'LIVE ON AIR · 104.5 FM';
         this.retryCount = 0;
         this.notify();
       }
@@ -97,7 +100,7 @@ class AudioEngine {
     this.streamAudio.addEventListener('playing', () => {
       if (this.isRunning) {
         this.streamStatus = 'live';
-        this.statusMessage = 'LIVE ON AIR // 104.5 FM';
+        this.statusMessage = 'LIVE ON AIR · 104.5 FM';
         this.retryCount = 0;
         this.notify();
       }
@@ -107,7 +110,7 @@ class AudioEngine {
       // Only transition to standby if user explicitly stopped
       if (this.isUserInitiatedStop && !this.isRunning) {
         this.streamStatus = 'standby';
-        this.statusMessage = 'STANDBY // SIGNAL READY';
+        this.statusMessage = 'STANDBY · SIGNAL READY';
         this.notify();
       }
     });
@@ -145,7 +148,7 @@ class AudioEngine {
       this.streamStatus = 'offline';
       this.isRunning = false;
       this.analysisMode = 'standby';
-      this.statusMessage = 'SIGNAL OFFLINE // TRANSMISSION UNREACHABLE';
+      this.statusMessage = 'SIGNAL OFFLINE · TRANSMISSION UNREACHABLE';
       this.notify();
     }
   }
@@ -251,11 +254,11 @@ class AudioEngine {
       this.isRunning = false;
       this.streamStatus = 'offline';
       this.analysisMode = 'standby';
-      this.statusMessage = 'SIGNAL OFFLINE // TRANSMISSION NOT CONFIGURED';
+      this.statusMessage = 'SIGNAL OFFLINE · TRANSMISSION NOT CONFIGURED';
       this.notify();
       return {
         success: false,
-        message: 'SIGNAL OFFLINE // Custom stream URL not configured yet in streamConfig.ts',
+        message: 'SIGNAL OFFLINE · Custom stream URL not configured yet in streamConfig.ts',
       };
     }
 
@@ -269,7 +272,7 @@ class AudioEngine {
       this.streamStatus = 'offline';
       this.isRunning = false;
       this.analysisMode = 'standby';
-      this.statusMessage = 'SIGNAL OFFLINE // TRANSMISSION NOT CONFIGURED';
+      this.statusMessage = 'SIGNAL OFFLINE · TRANSMISSION NOT CONFIGURED';
       this.notify();
       return;
     }
@@ -313,7 +316,7 @@ class AudioEngine {
           .then(() => {
             if (!this.isRunning) return;
             this.streamStatus = 'live';
-            this.statusMessage = 'LIVE ON AIR // 104.5 FM';
+            this.statusMessage = 'LIVE ON AIR · 104.5 FM';
             this.retryCount = 0;
             this.notify();
           })
@@ -349,7 +352,7 @@ class AudioEngine {
     }
     this.streamStatus = 'standby';
     this.analysisMode = 'standby';
-    this.statusMessage = 'STANDBY // SIGNAL READY';
+    this.statusMessage = 'STANDBY · SIGNAL READY';
     this.notify();
   }
 
@@ -395,11 +398,33 @@ class AudioEngine {
     return this.tapeSaturationActive;
   }
 
+  public setPreset(preset: EqualizerPresetId) {
+    this.currentPreset = preset;
+    if (preset === 'deep_house') {
+      this.bpm = 122.0;
+    } else if (preset === 'tech_house') {
+      this.bpm = 126.0;
+    } else if (preset === 'peak_techno') {
+      this.bpm = 138.0;
+    }
+    this.presetListeners.forEach((cb) => cb(preset));
+  }
+
+  public getPreset(): EqualizerPresetId {
+    return this.currentPreset;
+  }
+
+  public subscribePreset(callback: PresetListener): () => void {
+    this.presetListeners.add(callback);
+    callback(this.currentPreset);
+    return () => this.presetListeners.delete(callback);
+  }
+
   // --- KONTROLL UNDERGROUND AUDIO REACTOR DATA PROVIDER ---
 
   /**
    * High performance spectrum telemetry provider for canvas equalizers.
-   * Computes 64 or 32 bands with asymmetric inertia, physical peak holds, and RAVE PRESSURE dynamics.
+   * Computes 64 or 32 bands with asymmetric inertia, beat-accurate attack & release, and 3 club presets.
    */
   public getReactorData(numBands: number = 64): {
     bands: Float32Array;
@@ -421,12 +446,15 @@ class AudioEngine {
 
     const isLive = this.isRunning && this.streamStatus === 'live';
 
-    // Standby resting state
+    // Standby resting state: calm, subtle breathing baseline (no hectic jumping)
     if (!isLive) {
+      const timeSec = now / 1000;
       for (let i = 0; i < numBands; i++) {
-        // Smoothly decay to zero resting floor
-        this.reactorBands[i] = Math.max(0, this.reactorBands[i] - dt * 2.0);
-        this.reactorPeaks[i] = Math.max(0, this.reactorPeaks[i] - dt * 1.5);
+        const normIndex = i / numBands;
+        // Calm resting curve (0.02 - 0.06 amplitude)
+        const idleWave = Math.sin(timeSec * 1.2 + normIndex * 3.0) * 0.015 + 0.035;
+        this.reactorBands[i] += (idleWave - this.reactorBands[i]) * Math.min(1.0, dt * 3.5);
+        this.reactorPeaks[i] = Math.max(this.reactorBands[i], this.reactorPeaks[i] - dt * 0.5);
         this.clipFlags[i] = false;
       }
       return {
@@ -435,102 +463,130 @@ class AudioEngine {
         clipFlags: this.clipFlags,
         metrics: {
           bpm: this.bpm,
-          subDb: -48,
-          midDb: -48,
+          subDb: -42,
+          midDb: -45,
           highDb: -48,
-          peakDb: -48,
+          peakDb: -40,
           ravePressure: this.ravePressureActive,
           analysisMode: 'standby',
           clipDetected: false,
+          preset: this.currentPreset,
         },
       };
     }
 
     this.analysisMode = 'modeled';
 
-    // Compute target spectrum targets
+    // Compute target spectrum targets according to active Preset & RAVE mode
     const targetBands = new Float32Array(numBands);
-    const raveMult = this.ravePressureActive ? 1.35 : 1.0;
-      // --- INDUSTRIAL TECHNO / HARD TECHNO / SCHRANZ ACOUSTIC SYNTHESIS MODEL ---
-      // 142 BPM = 2.3666 Hz beat frequency.
-      const beatInterval = 60 / this.bpm; // ~0.4225s
-      const timeSec = now / 1000;
-      const beatPos = (timeSec % beatInterval) / beatInterval; // 0.0 to 1.0 within beat
-      const bar16Pos = ((timeSec / beatInterval) % 16) / 16; // 16-bar phase for filter sweeps
-      this.phrasePhase = bar16Pos;
+    const raveMult = this.ravePressureActive ? 1.28 : 1.0;
+    const beatInterval = 60 / this.bpm; // Beat period in seconds
+    const timeSec = now / 1000;
+    const beatPos = (timeSec % beatInterval) / beatInterval; // 0.0 to 1.0 within beat
+    this.phrasePhase = ((timeSec / beatInterval) % 16) / 16;
 
-      // 1. Kick Transient (30Hz - 80Hz): Heavy 4-on-the-floor sub slam
-      // Attack is instant, exponential decay over ~220ms
-      const kickEnvelope = Math.exp(-beatPos * 8.5);
-      const subRumble = Math.sin(timeSec * 45 * Math.PI) * 0.15 + Math.cos(timeSec * 28 * Math.PI) * 0.1;
+    // Club Rhythm Physics based on active Preset:
+    let kickDecayRate: number;
+    let kickIntensity: number;
+    let subWeight: number;
+    let midActivity: number;
+    let highSizzle: number;
+    let peakExcursionScale: number;
 
-      // 2. Offbeat Hi-Hat (6kHz - 14kHz): hits at beatPos ~0.5
-      const offbeatPos = Math.abs(beatPos - 0.5);
-      const openHatEnvelope = Math.exp(-offbeatPos * 22.0) * 0.95;
+    if (this.currentPreset === 'deep_house') {
+      // PRESET 01: DEEP HOUSE (122 BPM) - Warm deep rolling bass, softer decay, elegant highs
+      kickDecayRate = 6.2;
+      kickIntensity = 0.88;
+      subWeight = 1.15;
+      midActivity = 0.75;
+      highSizzle = 0.65;
+      peakExcursionScale = 0.86;
+    } else if (this.currentPreset === 'tech_house') {
+      // PRESET 02: TECH HOUSE (126 BPM) - Punchy 4/4 kick, snappy mids, driving hats
+      kickDecayRate = 8.8;
+      kickIntensity = 0.98;
+      subWeight = 1.0;
+      midActivity = 0.95;
+      highSizzle = 0.88;
+      peakExcursionScale = 0.94;
+    } else {
+      // PRESET 03: PEAK-TIME TECHNO (138 BPM) - Thunderous kick, heavy excursion, intense red tips
+      kickDecayRate = 10.5;
+      kickIntensity = 1.18;
+      subWeight = 1.22;
+      midActivity = 1.15;
+      highSizzle = 1.12;
+      peakExcursionScale = 1.12;
+    }
 
-      // 3. 16th-note rolling Shaker / Industrial Clatter:
-      const sixteenthPos = (beatPos * 4) % 1.0;
-      const sixteenthHat = Math.exp(-sixteenthPos * 16.0) * 0.5;
+    // 1. Kick Transient (30Hz - 90Hz): Fast attack, natural exponential release
+    const kickEnvelope = Math.exp(-beatPos * kickDecayRate) * kickIntensity;
+    const subRumble = (Math.sin(timeSec * 38 * Math.PI) * 0.12 + Math.cos(timeSec * 24 * Math.PI) * 0.08) * subWeight;
 
-      // 4. Snare / Industrial Clap on beats 2 and 4 (beat index 1 and 3 in 4-beat measure)
-      const measureBeat = (timeSec / beatInterval) % 4;
-      const isClapBeat = measureBeat >= 1 && measureBeat < 2 || measureBeat >= 3 && measureBeat < 4;
-      const clapPos = isClapBeat ? (measureBeat % 1) : 1;
-      const clapEnvelope = Math.exp(-clapPos * 10.0) * 0.85;
+    // 2. Offbeat Hi-Hat (6kHz - 14kHz): Hits at beatPos ~0.5
+    const offbeatDist = Math.abs(beatPos - 0.5);
+    const openHatEnvelope = Math.exp(-offbeatDist * 22.0) * highSizzle;
 
-      // 5. Acid / Resonance Filter Sweep (moving resonant peak across mid bands 15 to 45)
-      const sweepCenter = 0.2 + Math.sin(timeSec * 0.35) * 0.4 + Math.sin(timeSec * 0.12) * 0.25;
+    // 3. 16th-note rolling Shaker / Percussion:
+    const sixteenthPos = (beatPos * 4) % 1.0;
+    const sixteenthHat = Math.exp(-sixteenthPos * 14.0) * 0.5 * highSizzle;
 
-      // Populate frequency bands with club physics
-      for (let i = 0; i < numBands; i++) {
-        const normFreq = i / numBands; // 0.0 (sub) to 1.0 (ultra-high)
+    // 4. Snare / Claps on beats 2 and 4
+    const measureBeat = (timeSec / beatInterval) % 4;
+    const isClapBeat = (measureBeat >= 1 && measureBeat < 2) || (measureBeat >= 3 && measureBeat < 4);
+    const clapPos = isClapBeat ? (measureBeat % 1) : 1;
+    const clapEnvelope = Math.exp(-clapPos * 9.5) * 0.85 * midActivity;
 
-        let energy = 0;
+    // 5. Filter Sweep modulation
+    const sweepCenter = 0.25 + Math.sin(timeSec * 0.28) * 0.35;
 
-        // Sub & Bass bands (first 25% of spectrum: 30Hz - 150Hz)
-        if (normFreq < 0.22) {
-          const bassWeight = 1.0 - (normFreq / 0.22) * 0.35;
-          const punch = kickEnvelope * (0.85 + 0.15 * Math.sin(i * 1.5));
-          const lowSub = Math.max(0, subRumble * 1.2 + 0.35);
-          energy = (punch * 0.75 + lowSub * 0.35) * bassWeight;
-        }
-        // Low Mids & Industrial Body (22% to 45%: 150Hz - 800Hz)
-        else if (normFreq < 0.45) {
-          const midDist = (normFreq - 0.22) / 0.23;
-          const acidSweep = Math.exp(-Math.pow(normFreq - sweepCenter, 2) * 35.0) * 0.75;
-          const clapPunch = clapEnvelope * (0.6 + 0.3 * Math.sin(i * 2.1));
-          const industrialNoise = (Math.sin(timeSec * (120 + i * 15)) * 0.5 + 0.5) * 0.25;
-          energy = (acidSweep * 0.45 + clapPunch * 0.35 + industrialNoise * 0.2) * (1.0 - midDist * 0.15);
-        }
-        // Upper Mids & Crisp Clangs (45% to 70%: 800Hz - 4kHz)
-        else if (normFreq < 0.70) {
-          const clapSnap = clapEnvelope * 0.7;
-          const hatEdge = openHatEnvelope * 0.5;
-          const acidEdge = Math.exp(-Math.pow(normFreq - sweepCenter, 2) * 40.0) * 0.5;
-          const harmonicDistortion = Math.sin(timeSec * 210 + i * 3.7) * 0.15 + 0.15;
-          energy = clapSnap * 0.35 + hatEdge * 0.3 + acidEdge * 0.2 + harmonicDistortion;
-        }
-        // Highs & Air (70% to 100%: 4kHz - 16kHz)
-        else {
-          const hatPeak = openHatEnvelope * 0.85;
-          const shaker = sixteenthHat * 0.65;
-          const cymbalWash = (Math.sin(timeSec * 450 + i * 7.1) * 0.5 + 0.5) * 0.22;
-          energy = hatPeak * 0.55 + shaker * 0.35 + cymbalWash * 0.2;
-        }
+    // Populate frequency bands
+    for (let i = 0; i < numBands; i++) {
+      const normFreq = i / numBands;
+      let energy = 0;
 
-        // Add subtle dynamic variance so adjacent bands don't lock perfectly
-        const bandNoise = (Math.sin(timeSec * 8.0 + i * 1.8) * 0.5 + 0.5) * 0.12;
-        energy = Math.max(0.02, Math.min(1.0, (energy + bandNoise) * raveMult));
-
-        // RAVE PRESSURE dynamic expansion (boost contrast and peak spikes)
-        if (this.ravePressureActive) {
-          energy = Math.pow(energy, 0.85) * 1.15;
-        }
-
-        targetBands[i] = Math.min(1.0, energy);
+      // Sub & Bass bands (first 26% of spectrum: 30Hz - 160Hz)
+      if (normFreq < 0.26) {
+        const bassFalloff = 1.0 - (normFreq / 0.26) * 0.28;
+        const kickImpact = kickEnvelope * (0.90 + 0.10 * Math.sin(i * 1.4));
+        const rollingBass = Math.max(0, subRumble * 1.1 + 0.38);
+        energy = (kickImpact * 0.82 + rollingBass * 0.32) * bassFalloff * subWeight;
+      }
+      // Low Mids & Body (26% to 50%: 160Hz - 900Hz)
+      else if (normFreq < 0.50) {
+        const sweepPeak = Math.exp(-Math.pow(normFreq - sweepCenter, 2) * 32.0) * 0.72;
+        const clapPunch = clapEnvelope * (0.65 + 0.25 * Math.sin(i * 2.3));
+        const grooveTexture = (Math.sin(timeSec * (90 + i * 12)) * 0.5 + 0.5) * 0.22;
+        energy = (sweepPeak * 0.42 + clapPunch * 0.40 + grooveTexture * 0.18) * midActivity;
+      }
+      // Upper Mids & Crisp Stabs (50% to 75%: 900Hz - 4.5kHz)
+      else if (normFreq < 0.75) {
+        const clapSnap = clapEnvelope * 0.68;
+        const hatPresence = openHatEnvelope * 0.52;
+        const harmonicGrit = (Math.sin(timeSec * 180 + i * 3.2) * 0.5 + 0.5) * 0.18;
+        energy = (clapSnap * 0.45 + hatPresence * 0.38 + harmonicGrit * 0.17) * midActivity;
+      }
+      // Highs & Air (75% to 100%: 4.5kHz - 16kHz)
+      else {
+        const hatPeak = openHatEnvelope * 0.90;
+        const shaker = sixteenthHat * 0.68;
+        const airSizzle = (Math.sin(timeSec * 320 + i * 5.5) * 0.5 + 0.5) * 0.18;
+        energy = (hatPeak * 0.58 + shaker * 0.30 + airSizzle * 0.12) * highSizzle;
       }
 
-    // Apply asymmetric physical inertia and peak holds
+      // Dynamic subtle variation between adjacent bands
+      const microVariance = (Math.sin(timeSec * 7.5 + i * 1.7) * 0.5 + 0.5) * 0.08;
+      energy = Math.max(0.04, Math.min(1.0, (energy + microVariance) * raveMult * peakExcursionScale));
+
+      // RAVE PRESSURE expansion: punchier spikes
+      if (this.ravePressureActive) {
+        energy = Math.pow(energy, 0.82) * 1.18;
+      }
+
+      targetBands[i] = Math.min(1.0, energy);
+    }
+
+    // Natural Attack & Release Physics with Damped Return
     let subSum = 0;
     let midSum = 0;
     let highSum = 0;
@@ -541,30 +597,31 @@ class AudioEngine {
       const target = targetBands[i];
       const normIndex = i / numBands;
 
-      // Asymmetric inertia:
-      // Bass (low normIndex): heavy inertia (slower decay ~0.91, heavy weight)
-      // Highs (high normIndex): razor-fast attack (0.95), snappy decay (0.78)
+      // Physically damped attack-and-release:
+      // Fast attack upwards on transient hit, controlled damped springy return downwards
       let attackSpeed: number;
-      let decaySpeed: number;
+      let decayFactor: number;
 
-      if (normIndex < 0.25) {
-        // Sub-bass heavy inertia
-        attackSpeed = this.ravePressureActive ? 0.88 : 0.80;
-        decaySpeed = this.ravePressureActive ? 0.88 : 0.85;
+      if (normIndex < 0.26) {
+        // Sub bass: Heavy physical mass (rapid attack 0.86, smooth controlled decay 0.84)
+        attackSpeed = this.ravePressureActive ? 0.92 : 0.86;
+        decayFactor = this.currentPreset === 'deep_house' ? 0.80 : 0.84;
       } else if (normIndex < 0.65) {
-        // Mids punchy response
-        attackSpeed = 0.86;
-        decaySpeed = 0.80;
+        // Mids: Snappy transient (attack 0.90, controlled elastic decay 0.82)
+        attackSpeed = 0.90;
+        decayFactor = 0.82;
       } else {
-        // Highs agile sizzle
-        attackSpeed = 0.95;
-        decaySpeed = 0.72;
+        // Highs: High-speed agile sizzle (attack 0.96, snappy decay 0.74)
+        attackSpeed = 0.96;
+        decayFactor = 0.74;
       }
 
+      // Attack (rising) vs Release (falling)
       if (target > this.reactorBands[i]) {
         this.reactorBands[i] += (target - this.reactorBands[i]) * attackSpeed;
       } else {
-        this.reactorBands[i] += (target - this.reactorBands[i]) * (1.0 - decaySpeed);
+        // Controlled, damped downward motion (no harsh drops, no random trembling)
+        this.reactorBands[i] += (target - this.reactorBands[i]) * (1.0 - decayFactor);
       }
 
       const val = Math.max(0, Math.min(1.0, this.reactorBands[i]));
@@ -573,35 +630,34 @@ class AudioEngine {
       // Peak Hold Logic:
       if (val >= this.reactorPeaks[i]) {
         this.reactorPeaks[i] = val;
-        this.peakHoldExpiry[i] = now + (this.ravePressureActive ? 550 : 380); // hold for ~400ms
+        this.peakHoldExpiry[i] = now + (this.ravePressureActive ? 520 : 420);
       } else if (now > this.peakHoldExpiry[i]) {
-        // Smooth gravitational fall after hold expires
-        const gravity = (this.ravePressureActive ? 0.025 : 0.035) * (1.0 + normIndex * 0.5);
+        const gravity = (this.ravePressureActive ? 0.022 : 0.030) * (1.0 + normIndex * 0.4);
         this.reactorPeaks[i] = Math.max(val, this.reactorPeaks[i] - gravity);
       }
 
-      // Clip detection (top 8% threshold or RAVE overload)
-      const clipThreshold = this.ravePressureActive ? 0.86 : 0.94;
+      // Clip detection (top excursion)
+      const clipThreshold = this.currentPreset === 'peak_techno' 
+        ? (this.ravePressureActive ? 0.82 : 0.88)
+        : (this.ravePressureActive ? 0.85 : 0.93);
       const isClipping = val >= clipThreshold;
       this.clipFlags[i] = isClipping;
       if (isClipping) clipOccurred = true;
 
-      // Accumulate metrics
-      if (normIndex < 0.25) subSum += val;
+      if (normIndex < 0.26) subSum += val;
       else if (normIndex < 0.65) midSum += val;
       else highSum += val;
 
       if (val > maxVal) maxVal = val;
     }
 
-    // Convert normalized metrics to dB representation (-48dB to +3dB)
     const normToDb = (norm: number) => {
       if (norm <= 0.01) return -48;
       return Math.round(20 * Math.log10(norm) * 1.2);
     };
 
-    const subDb = normToDb(subSum / (numBands * 0.25));
-    const midDb = normToDb(midSum / (numBands * 0.40));
+    const subDb = normToDb(subSum / (numBands * 0.26));
+    const midDb = normToDb(midSum / (numBands * 0.39));
     const highDb = normToDb(highSum / (numBands * 0.35));
     const peakDb = normToDb(maxVal);
 
@@ -616,8 +672,9 @@ class AudioEngine {
         highDb,
         peakDb,
         ravePressure: this.ravePressureActive,
-        analysisMode: this.getAnalysisMode(),
+        analysisMode: this.analysisMode,
         clipDetected: clipOccurred,
+        preset: this.currentPreset,
       },
     };
   }

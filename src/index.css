@@ -118,3 +118,38 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #ffffff;
 }
+
+/* Ticker marquee animation */
+@keyframes ticker-marquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-ticker-marquee {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  animation: ticker-marquee var(--ticker-duration, 55s) linear infinite;
+}
+
+.group:hover .pause-on-hover {
+  animation-play-state: paused;
+}
+
+.pause-animation {
+  animation-play-state: paused !important;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+

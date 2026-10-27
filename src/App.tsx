@@ -13,6 +13,7 @@ import { AboutManifesto } from './components/AboutManifesto';
 import { Footer } from './components/Footer';
 import { PersistentAudioPlayer } from './components/PersistentAudioPlayer';
 import { UndergroundReactor } from './components/UndergroundReactor';
+import { LiveEventTicker } from './components/LiveEventTicker';
 import { TracklistModal } from './components/TracklistModal';
 import { CHANNELS, SHOWS_DATA } from './data/radioData';
 import { Channel, Show, StreamStatus } from './types/radio';
@@ -21,7 +22,7 @@ import { audioEngine } from './utils/audioEngine';
 export default function App() {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [streamStatus, setStreamStatus] = useState<StreamStatus>('standby');
-  const [statusMessage, setStatusMessage] = useState<string>('STANDBY // SIGNAL READY');
+  const [statusMessage, setStatusMessage] = useState<string>('STANDBY · SIGNAL READY');
   const [activeChannel, setActiveChannel] = useState<Channel>(CHANNELS[0]);
   const [selectedShowForModal, setSelectedShowForModal] = useState<Show | null>(null);
   const [isMuted, setIsMuted] = useState<boolean>(false);
@@ -106,22 +107,25 @@ export default function App() {
         onNavigate={handleNavigate}
       />
 
-      {/* Main Content Sections */}
+      {/* Main Content Sections: Live Event Ticker above Underground Reactor */}
       <main className="flex-1 overflow-x-hidden">
-        {/* Live DJ Booth Surveillance Stream & Shoutbox */}
+        {/* Global Verified Electronic Music Live Event Ticker */}
+        <LiveEventTicker onNavigate={handleNavigate} />
+
+        {/* 1. Master Audio Reactor & Equalizer (Mobile-First: Music First) */}
+        <UndergroundReactor
+          isPlaying={isPlaying}
+          streamStatus={streamStatus}
+          onTogglePlay={handleTogglePlay}
+        />
+
+        {/* 2. Community Dispatch Log & Studio Surveillance Cam */}
         <LiveBoothStream
           channel={activeChannel}
           isPlaying={isPlaying}
           streamStatus={streamStatus}
           onTogglePlay={handleTogglePlay}
           onOpenTracklistModal={() => setSelectedShowForModal(SHOWS_DATA[0])}
-        />
-
-        {/* Underground Audio Reactor (64-Band Berlin Club Equalizer & Telemetry) */}
-        <UndergroundReactor
-          isPlaying={isPlaying}
-          streamStatus={streamStatus}
-          onTogglePlay={handleTogglePlay}
         />
 
         {/* Shows & Radio Picks Archive Grid */}

@@ -2,6 +2,17 @@ export type StreamStatus = 'idle' | 'buffering' | 'live' | 'error' | 'offline' |
 
 export type AnalysisMode = 'dsp' | 'modeled' | 'standby';
 
+export type EqualizerPresetId = 'deep_house' | 'tech_house' | 'peak_techno';
+
+export interface EqualizerPreset {
+  id: EqualizerPresetId;
+  name: string;
+  label: string;
+  subTitle: string;
+  bpm: number;
+  description: string;
+}
+
 export interface ReactorMetrics {
   bpm: number;
   subDb: number;
@@ -11,6 +22,7 @@ export interface ReactorMetrics {
   ravePressure: boolean;
   analysisMode: AnalysisMode;
   clipDetected: boolean;
+  preset?: EqualizerPresetId;
 }
 
 export interface Show {

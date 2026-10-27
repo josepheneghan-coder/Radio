@@ -10,7 +10,7 @@ import {
   AlertCircle,
   Flame,
 } from 'lucide-react';
-import { Channel, StreamStatus } from '../types/radio';
+import { Channel, StreamStatus, EqualizerPresetId } from '../types/radio';
 import { CHANNELS } from '../data/radioData';
 import { audioEngine } from '../utils/audioEngine';
 import { EqualizerVisualizer } from './EqualizerVisualizer';
@@ -36,19 +36,29 @@ export const PersistentAudioPlayer: React.FC<PersistentAudioPlayerProps> = ({
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [tapeSaturation, setTapeSaturation] = useState<boolean>(false);
   const [ravePressure, setRavePressure] = useState<boolean>(() => audioEngine.getRavePressure());
-  const [showFXDrawer, setShowFXDrawer] = useState<boolean>(false);
+  const [activePreset, setActivePreset] = useState<EqualizerPresetId>(() => audioEngine.getPreset());
   const [offlineToast, setOfflineToast] = useState<string | null>(null);
 
   useEffect(() => {
-    const unsub = audioEngine.subscribeRave((isRave) => {
+    const unsubRave = audioEngine.subscribeRave((isRave) => {
       setRavePressure(isRave);
     });
-    return () => unsub();
+    const unsubPreset = audioEngine.subscribePreset((p) => {
+      setActivePreset(p);
+    });
+    return () => {
+      unsubRave();
+      unsubPreset();
+    };
   }, []);
 
   const handleToggleRave = () => {
     const next = audioEngine.toggleRavePressure();
     setRavePressure(next);
+  };
+
+  const handleSelectPreset = (preset: EqualizerPresetId) => {
+    audioEngine.setPreset(preset);
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,13 +80,9 @@ export const PersistentAudioPlayer: React.FC<PersistentAudioPlayerProps> = ({
     setTapeSaturation(active);
   };
 
-  const triggerFX = (type: 'scratch' | 'airhorn' | 'rewind' | 'radio_drop' | 'sub_drop') => {
-    audioEngine.playFX(type);
-  };
-
   const handlePlayClick = () => {
     if (!activeChannel.streamUrl && !isPlaying) {
-      setOfflineToast('SIGNAL OFFLINE // TRANSMISSION NOT CONFIGURED');
+      setOfflineToast('SIGNAL OFFLINE · TRANSMISSION NOT CONFIGURED');
       setTimeout(() => setOfflineToast(null), 4000);
     }
     onTogglePlay();
@@ -102,56 +108,6 @@ export const PersistentAudioPlayer: React.FC<PersistentAudioPlayerProps> = ({
 
       {/* Persistent Bottom Audio Player Dock with Safe Area for Mobile */}
       <footer className="fixed bottom-0 left-0 right-0 z-50 bg-[#000000] text-white border-t border-neutral-800 shadow-[0_-8px_24px_rgba(0,0,0,0.85)] pb-[max(0.5rem,env(safe-area-inset-bottom,0px))]">
-        {/* DJ Soundboard Drawer (Collapsible) */}
-        {showFXDrawer && (
-          <div className="bg-[#0c0c0c] border-b border-neutral-800 px-3 md:px-8 py-2.5 flex flex-wrap items-center justify-between gap-2.5 font-mono text-xs">
-            <div className="flex items-center gap-2 text-white font-bold uppercase text-[11px]">
-              <Zap size={13} className="text-yellow-400" />
-              <span>BOOTH FX TRIGGER:</span>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-1.5 font-ui font-bold text-[11px]">
-              <button
-                onClick={() => triggerFX('scratch')}
-                className="px-3 py-1 bg-neutral-900 hover:bg-white hover:text-black border border-neutral-700 transition-colors cursor-pointer"
-              >
-                SCRATCH
-              </button>
-              <button
-                onClick={() => triggerFX('airhorn')}
-                className="px-3 py-1 bg-neutral-900 hover:bg-yellow-400 hover:text-black border border-neutral-700 transition-colors cursor-pointer"
-              >
-                AIRHORN
-              </button>
-              <button
-                onClick={() => triggerFX('rewind')}
-                className="px-3 py-1 bg-neutral-900 hover:bg-red-600 hover:text-white border border-neutral-700 transition-colors cursor-pointer"
-              >
-                REWIND
-              </button>
-              <button
-                onClick={() => triggerFX('sub_drop')}
-                className="px-3 py-1 bg-neutral-900 hover:bg-emerald-400 hover:text-black border border-neutral-700 transition-colors cursor-pointer"
-              >
-                808 SUB
-              </button>
-              <button
-                onClick={() => triggerFX('radio_drop')}
-                className="px-3 py-1 bg-neutral-900 hover:bg-white hover:text-black border border-neutral-700 transition-colors cursor-pointer"
-              >
-                STATION ID
-              </button>
-            </div>
-
-            <button
-              onClick={() => setShowFXDrawer(false)}
-              className="text-neutral-400 hover:text-white uppercase font-ui font-bold text-[10px] cursor-pointer"
-            >
-              [CLOSE]
-            </button>
-          </div>
-        )}
-
         <div className="max-w-7xl mx-auto px-3 md:px-8 py-2 sm:py-2.5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-4">
           {/* Top Row on Mobile: Master Play Button + Channel/Show Info + Mute */}
           <div className="flex items-center justify-between sm:justify-start gap-2.5 sm:gap-4 min-w-0 flex-1">
@@ -226,7 +182,7 @@ export const PersistentAudioPlayer: React.FC<PersistentAudioPlayerProps> = ({
               <button
                 onClick={handleToggleMute}
                 aria-label={isMuted ? 'Unmute' : 'Mute'}
-                className="w-10 h-10 flex items-center justify-center border border-neutral-800 rounded text-neutral-400 hover:text-white transition-colors cursor-pointer"
+                className="w-10 h-10 flex items-center justify-center border border-neutral-800 text-neutral-400 hover:text-white transition-colors cursor-pointer"
               >
                 {isMuted || volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
               </button>
@@ -238,33 +194,59 @@ export const PersistentAudioPlayer: React.FC<PersistentAudioPlayerProps> = ({
             <EqualizerVisualizer isPlaying={isPlaying} isLive={isLive} barCount={24} />
           </div>
 
-          {/* Right Controls: Channel Buttons, TAPE filter, FX, Desktop Volume */}
+          {/* Right Controls: MAIN Channel, 3 EQ Presets, RAVE, Desktop Volume */}
           <div className="flex items-center justify-between sm:justify-end gap-1.5 sm:gap-2.5 shrink-0 font-ui font-semibold text-xs border-t border-neutral-900 sm:border-0 pt-1 sm:pt-0">
-            {/* Channel Selection Buttons — Hardware selector keys */}
+            {/* Primary MAIN Channel Indicator */}
             <div className="flex items-center bg-neutral-900 border border-neutral-800 p-0.5">
-              {CHANNELS.map((ch) => (
-                <button
-                  key={ch.id}
-                  onClick={() => onChangeChannel(ch)}
-                  className={`min-h-[32px] sm:min-h-[34px] px-2.5 sm:px-3 py-1 text-[10px] sm:text-[11px] font-bold transition-colors cursor-pointer ${
-                    activeChannel.id === ch.id
-                      ? 'bg-white text-black'
-                      : 'text-neutral-400 hover:text-white'
-                  }`}
-                  title={`${ch.name} - ${ch.genre}`}
-                >
-                  {ch.id.toUpperCase()}
-                </button>
-              ))}
+              <span className="px-2.5 py-1 text-[10px] sm:text-[11px] font-bold bg-white text-black">
+                MAIN
+              </span>
+            </div>
+
+            {/* 3 Authentic Sound / Equalizer Presets */}
+            <div className="flex items-center bg-neutral-900 border border-neutral-800 p-0.5 font-mono text-[10px]">
+              <button
+                onClick={() => handleSelectPreset('deep_house')}
+                title="PRESET 01: Deep House (122 BPM) — Warm deep bass, soft rolling dynamics"
+                className={`min-h-[30px] sm:min-h-[32px] px-2 sm:px-2.5 py-1 font-bold transition-colors cursor-pointer ${
+                  activePreset === 'deep_house'
+                    ? 'bg-neutral-200 text-black font-extrabold'
+                    : 'text-neutral-400 hover:text-white'
+                }`}
+              >
+                DEEP
+              </button>
+              <button
+                onClick={() => handleSelectPreset('tech_house')}
+                title="PRESET 02: Tech House (126 BPM) — Punchy 4/4 kick, snappy driving groove"
+                className={`min-h-[30px] sm:min-h-[32px] px-2 sm:px-2.5 py-1 font-bold transition-colors cursor-pointer ${
+                  activePreset === 'tech_house'
+                    ? 'bg-neutral-200 text-black font-extrabold'
+                    : 'text-neutral-400 hover:text-white'
+                }`}
+              >
+                TECH
+              </button>
+              <button
+                onClick={() => handleSelectPreset('peak_techno')}
+                title="PRESET 03: Peak Techno (138 BPM) — Heavy attack, maximum peaks, intense red tips"
+                className={`min-h-[30px] sm:min-h-[32px] px-2 sm:px-2.5 py-1 font-bold transition-colors cursor-pointer ${
+                  activePreset === 'peak_techno'
+                    ? 'bg-red-600 text-white font-extrabold'
+                    : 'text-neutral-400 hover:text-white'
+                }`}
+              >
+                PEAK
+              </button>
             </div>
 
             {/* RAVE Pressure Toggle (Visual dynamic transient booster) */}
             <button
               onClick={handleToggleRave}
-              title="Toggle RAVE PRESSURE visual dynamics (Audio 0dB output remains unchanged)"
-              className={`min-h-[32px] sm:min-h-[34px] px-2.5 sm:px-3 py-1 border text-[10px] sm:text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer ${
+              title="Toggle RAVE PRESSURE visual dynamics (Audio 0dB output remains strictly untouched)"
+              className={`min-h-[30px] sm:min-h-[32px] px-2.5 sm:px-3 py-1 border text-[10px] sm:text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer ${
                 ravePressure
-                  ? 'border-red-500 bg-red-600 text-white shadow-[0_0_10px_rgba(255,0,51,0.5)]'
+                  ? 'border-red-500 bg-red-600 text-white shadow-[0_0_10px_rgba(255,42,95,0.5)]'
                   : 'border-neutral-800 text-neutral-400 hover:text-white'
               }`}
             >
@@ -275,28 +257,14 @@ export const PersistentAudioPlayer: React.FC<PersistentAudioPlayerProps> = ({
             {/* Tape Filter Toggle */}
             <button
               onClick={handleToggleTape}
-              title="Toggle analog tape filter (lowpass warm cut)"
-              className={`hidden sm:flex min-h-[32px] sm:min-h-[34px] items-center px-2.5 sm:px-3 py-1 border text-[10px] sm:text-[11px] font-bold transition-colors cursor-pointer ${
+              title="Toggle analog tape warmth filter (gentle high roll-off)"
+              className={`hidden sm:flex min-h-[30px] sm:min-h-[32px] items-center px-2.5 sm:px-3 py-1 border text-[10px] sm:text-[11px] font-bold transition-colors cursor-pointer ${
                 tapeSaturation
                   ? 'border-yellow-400 bg-yellow-400/20 text-yellow-300'
                   : 'border-neutral-800 text-neutral-400 hover:text-white'
               }`}
             >
               TAPE
-            </button>
-
-            {/* DJ FX Button */}
-            <button
-              onClick={() => setShowFXDrawer(!showFXDrawer)}
-              aria-label="Toggle DJ soundboard"
-              className={`min-h-[32px] sm:min-h-[34px] px-2.5 sm:px-3 py-1 border text-[10px] sm:text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer ${
-                showFXDrawer
-                  ? 'border-white bg-white text-black'
-                  : 'border-neutral-800 text-neutral-400 hover:text-white'
-              }`}
-            >
-              <Zap size={11} />
-              <span>FX</span>
             </button>
 
             {/* Volume Control / Mute (Desktop) */}

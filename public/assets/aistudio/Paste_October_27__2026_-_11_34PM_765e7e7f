@@ -1,0 +1,742 @@
+# KONTROLL — HERO SECTION REDESIGN 2026/2027
+## Underground Club Culture × Industrial Chrome × Hypnotic Audio Visualization
+
+### 1. YOUR MISSION
+
+Redesign the entire existing KONTROLL Live hero section.
+
+Do not build a completely different website. Work within the existing KONTROLL visual identity and improve the current hero section by introducing a clear visual hierarchy, removing redundant controls, refining the information architecture, and creating a powerful underground club atmosphere.
+
+The current hero section feels cluttered, repetitive, and insufficiently structured. Too many controls compete for attention, and several functions are duplicated.
+
+We want to transform it into a distinctive, immersive, premium underground radio experience that feels authentic to electronic music culture while remaining technologically advanced and visually relevant for 2026/2027.
+
+The result must feel like a hybrid of:
+
+- An underground Berlin techno radio station.
+- A vintage industrial mixing console.
+- A high-end digital audio visualization system.
+- A raw, metallic, chrome-inspired club interface.
+- A contemporary electronic music broadcast platform.
+
+**Core principle: Less interface. More atmosphere. More movement. More identity.**
+
+Do not add unnecessary features. Every element must have a clear purpose.
+
+---
+
+### 2. THE THREE CORE ELEMENTS
+
+The hero section must be built around three primary visual elements, arranged in this order:
+
+1. LIVE TICKER — the live information layer.
+2. HYPNOTIC EQUALIZER — the primary visual centerpiece.
+3. DISPATCH FEED — the live community layer.
+
+A single, clearly positioned stream call-to-action sits below these elements.
+
+These components must feel like one coherent broadcast system rather than separate widgets stacked together.
+
+The equalizer is the main visual attraction. The ticker establishes the live context, while the dispatch feed communicates the energy of the community.
+
+The interface must be immediately understandable without instructions.
+
+---
+
+### 3. COMPONENT ONE: THE LIVE TICKER
+
+Position the live ticker directly above the equalizer.
+
+It should feel like an authentic electronic music broadcast ticker, inspired by underground radio transmissions, old club hardware, industrial control systems, and contemporary motion graphics.
+
+#### Visual direction
+
+- Black and near-black background.
+- Subtle brushed-metal or dark industrial texture.
+- Fine metallic borders.
+- Restrained red signal indicators.
+- Compact uppercase typography.
+- High-contrast text with excellent readability.
+- Subtle movement reminiscent of a hardware display or electronic transmission terminal.
+
+Use the established KONTROLL visual identity rather than introducing a completely new brand language.
+
+#### Functional behavior
+
+The ticker must actually run.
+
+It should display relevant information such as:
+
+- Current broadcast or event.
+- DJ or artist name when available.
+- Genre or current session.
+- Upcoming event information when available.
+- Live transmission status.
+
+Example:
+
+`● KONTROLL TRANSMISSION LIVE  /  UNDERGROUND TECHNO  /  BERLIN AFTER DARK  /  TRANSMISSION 104.5 FM`
+
+The content should move horizontally in a continuous, seamless loop.
+
+The animation must be smooth, with no sudden jumps, empty gaps, or abrupt resets.
+
+Avoid excessively fast scrolling. The information should remain readable.
+
+If real event data is unavailable, use clearly defined fallback content. Do not invent actual live events or imply that a broadcast is active when it is not.
+
+The ticker must be implemented as a functioning component, not a static visual imitation.
+
+---
+
+### 4. COMPONENT TWO: THE HYPNOTIC EQUALIZER
+
+This is the most important part of the entire hero section.
+
+The equalizer must become the dominant visual centerpiece and create the impression of being inside an underground club, surrounded by powerful sound systems, moving lights, and pulsating electronic energy.
+
+The existing equalizer grid and frequency-bar concept can be retained, but the presentation must be completely refined.
+
+#### A. Visual appearance
+
+Create a wide, immersive equalizer visualization with:
+
+- A dark industrial background.
+- A precise frequency grid.
+- Multiple vertical frequency bars.
+- Distinct low-, mid-, and high-frequency behavior.
+- Subtle metallic depth.
+- Red and amber accents.
+- Carefully controlled white highlights.
+- A restrained chrome-inspired finish.
+- Fine technical markings and frequency labels.
+
+The visual language should combine vintage analog audio equipment with a futuristic digital sound system.
+
+Avoid a generic music-player equalizer.
+
+It should feel custom-built for KONTROLL.
+
+#### B. The animation must be alive
+
+The equalizer must feature continuously moving frequency bars.
+
+The movement should suggest real club audio:
+
+- Deep bass frequencies create powerful, physical pulses.
+- Midrange frequencies produce complex, rhythmic movement.
+- High frequencies create faster, sharper peaks.
+- The overall waveform changes continuously.
+- Neighboring frequencies influence each other to create a cohesive visual pattern.
+
+The bass must feel heavy, the mids must remain active, and the highs must produce sharp, energetic accents.
+
+Create a convincing combination of rhythmic movement and controlled randomness.
+
+Avoid having every bar move identically or independently without any musical relationship.
+
+The animation should feel hypnotic and immersive, encouraging the user to keep watching.
+
+#### C. Create club atmosphere
+
+The equalizer should have visual intensity without becoming visually chaotic.
+
+Use subtle techniques such as:
+
+- Short-lived glow around the highest peaks.
+- Controlled brightness pulses on strong bass hits.
+- Layered bars with a sense of depth.
+- Subtle changes in luminosity.
+- Restrained red or amber accent flashes.
+- Fine metallic reflections where appropriate.
+
+The glow must remain localized to the bars.
+
+Do not flood the entire interface with neon light.
+
+Do not use excessive blur, oversized gradients, cartoon-like waveforms, or generic audio-reactive visual effects.
+
+The result should feel industrial, raw, tactile, and premium.
+
+#### D. Important: remove the existing Pressure Boost feature
+
+Completely remove the following element from the interface:
+
+`PRESSURE BOOST ACTIVE`
+
+Do not replace it with another status badge.
+
+Do not introduce a different boost mode, audio enhancement control, or similar feature.
+
+We want the equalizer to communicate energy through its animation itself.
+
+**The movement is the message. No additional boost label is required.**
+
+#### E. Audio-reactive behavior
+
+If actual audio data is accessible, connect the visualization to the live audio stream using the Web Audio API and an appropriate audio analysis node.
+
+The bars should respond to the actual sound rather than merely playing a decorative animation.
+
+If the stream is not yet connected or audio analysis is unavailable, use a sophisticated simulated animation.
+
+The fallback animation must continue smoothly and maintain the club atmosphere without falsely claiming to represent real audio measurements.
+
+Do not invent actual decibel readings.
+
+If frequency measurements are displayed, derive them from available audio data. Otherwise, label the visualization as simulated or omit numerical measurements.
+
+#### F. Technical implementation
+
+- Use Canvas or another efficient rendering approach appropriate to the existing application.
+- Maintain smooth animation and stable frame rates.
+- Use `requestAnimationFrame` for animation where appropriate.
+- Avoid unnecessary React re-renders on every animation frame.
+- Handle component mounting and unmounting correctly.
+- Release audio resources when no longer required.
+- Support mobile devices and high-density displays.
+- Respect `prefers-reduced-motion` by providing a less animated presentation.
+
+The equalizer must remain visually impressive on desktop and mobile.
+
+---
+
+### 5. COMPONENT THREE: THE DISPATCH FEED
+
+Position the dispatch feed directly beneath the equalizer.
+
+This component represents the people, energy, and community behind KONTROLL.
+
+It should feel like a live transmission log from an underground club network rather than a conventional social media comment box.
+
+#### Visual appearance
+
+Use:
+
+- A dark, compact industrial panel.
+- Fine metallic separators.
+- Subtle red transmission indicators.
+- Small, carefully styled usernames.
+- Clear timestamps.
+- High-contrast message text.
+- Restrained chrome-inspired details.
+- A dense but readable layout.
+
+The dispatch feed should complement the equalizer, not compete with it.
+
+Keep the styling consistent with the overall KONTROLL interface.
+
+#### Content structure
+
+Each dispatch entry should contain:
+
+`USERNAME  /  TIMESTAMP`
+
+`MESSAGE`
+
+Example entries for visual development:
+
+`LINA_GOTHENBURG  /  23:13`
+Minimal melodic perfection.
+
+`ROLAND_808_FAN  /  23:14`
+The bass is speaking. 🔥
+
+`UNDERGROUND_91  /  23:15`
+No phones. Just frequencies.
+
+These are example messages for development only. Do not represent them as genuine live user comments.
+
+#### Functional behavior
+
+The feed should support:
+
+- Displaying the latest available dispatch messages.
+- Adding new messages when actual events arrive.
+- Updating the interface without a full-page reload.
+- Smoothly revealing incoming messages.
+- Maintaining readable timestamps and usernames.
+- Scrolling through older messages when supported by the existing application.
+
+If the application already has a dispatch API, database, WebSocket connection, or real-time messaging service, preserve and reuse it.
+
+Do not build a disconnected visual mockup that ignores existing data sources.
+
+If no backend exists, use clearly identified sample messages for development and structure the component so that a real backend can be connected later.
+
+Never fabricate genuine user activity or display a fictional audience count as a real statistic.
+
+#### Avoid unnecessary social features
+
+Do not add:
+
+- Profile cards.
+- Avatars for every user unless already required.
+- Social media-style reactions.
+- Unnecessary buttons.
+- A large message composer that dominates the hero.
+- Additional panels unrelated to the broadcast experience.
+
+The dispatch feed should remain compact, atmospheric, and focused on the live community.
+
+---
+
+### 6. STREAM CALL-TO-ACTION
+
+The stream-start action belongs at the bottom of the hero section.
+
+It must not be duplicated in the header.
+
+We want one obvious primary action that connects the visual experience to the actual audio stream.
+
+#### Primary button
+
+Use a prominent, tactile button with a label such as:
+
+`▶ START TRANSMISSION`
+
+Alternative label when appropriate:
+
+`▶ LISTEN LIVE`
+
+Choose one primary label and use it consistently.
+
+The button should combine:
+
+- A strong industrial silhouette.
+- A clear play icon.
+- High-contrast typography.
+- A restrained red or amber accent.
+- Subtle metallic details.
+- A satisfying hover and active state.
+
+The button should be visually important without overpowering the equalizer.
+
+It should feel like activating a physical transmission system rather than clicking a generic website button.
+
+#### Functional requirements
+
+When clicked:
+
+1. Attempt to start the configured audio stream.
+2. Update the playback interface according to the actual playback state.
+3. Display an appropriate loading state when necessary.
+4. Handle browser autoplay restrictions and playback errors.
+5. Allow the user to pause or resume playback through the same primary control.
+6. Keep the interface synchronized with the actual audio state.
+
+When playback starts successfully, change the label to an appropriate active state, such as:
+
+`Ⅱ TRANSMISSION LIVE`
+
+When playback is stopped or paused, update the label accordingly.
+
+Do not indicate that the stream is playing unless playback has actually started.
+
+If no real audio stream is configured, keep the component ready for integration and display a clear unavailable or demo state instead of pretending that audio is playing.
+
+Use the existing audio source and playback logic if available. Do not create duplicate audio players.
+
+---
+
+### 7. REMOVE REDUNDANT CONTROLS
+
+This cleanup is mandatory.
+
+The current interface contains too many repeated elements. The redesigned hero must establish one clear interaction model.
+
+#### Remove these elements from the hero if they duplicate existing functionality:
+
+- The extra play or pause button in the top header.
+- The additional play or pause button in the lower player area.
+- The repeated Deep, Tech, Peak, and Rave controls when they serve the same purpose in multiple locations.
+- The `PRESSURE BOOST ACTIVE` indicator.
+- Unnecessary information icons.
+- Unnecessary expand buttons.
+- Redundant status labels.
+- Decorative controls that look functional but do nothing.
+- Any additional controls that do not contribute directly to listening or understanding the broadcast.
+
+Do not introduce new features simply to fill empty space.
+
+#### Keep the existing RAVE functionality
+
+The existing RAVE status must be preserved.
+
+Display `RAVE ACTIVE` as a single, compact status indicator in the appropriate broadcast-information area.
+
+The status should be visually clear but secondary to the equalizer.
+
+Use a restrained red treatment, consistent with the KONTROLL identity.
+
+Do not create another RAVE button in the bottom navigation if it duplicates the same functionality.
+
+Do not convert a status indicator into a new feature unless the existing application already supports that behavior.
+
+#### Simplify genre navigation
+
+The current interface repeats genre-related controls in multiple locations.
+
+Remove the duplicated Deep, Tech, Peak, and Rave selectors from the hero when they are not necessary.
+
+If the application requires genre navigation, retain only one existing, functional navigation component outside the primary visual focus.
+
+Do not introduce additional genre-selection functionality.
+
+The hero's main purpose is to communicate the broadcast atmosphere, show the animated equalizer, display the live dispatch feed, and provide a clear way to start listening.
+
+---
+
+### 8. HEADER SIMPLIFICATION
+
+The header should support the hero, not compete with it.
+
+Retain the existing KONTROLL branding.
+
+The header should feel compact, confident, and industrial.
+
+Keep only the controls and information genuinely required by the existing application.
+
+Remove the duplicated playback control from the header.
+
+Do not add another stream-start button at the top.
+
+The user should immediately understand where they are, but their attention should move naturally toward the live ticker and animated equalizer.
+
+Use a clear typographic hierarchy:
+
+- KONTROLL branding: prominent.
+- Broadcast status: compact.
+- Secondary navigation: restrained.
+- Equalizer: dominant.
+
+The result must feel intentional rather than crowded.
+
+---
+
+### 9. ART DIRECTION: INDUSTRIAL UNDERGROUND 2026/2027
+
+This design must not look like a generic AI-generated dashboard or a conventional SaaS product.
+
+We want a recognizable aesthetic that reflects underground electronic music culture.
+
+#### Materials and textures
+
+Explore a restrained combination of:
+
+- Brushed steel.
+- Dark chrome.
+- Scratched industrial metal.
+- Blackened aluminum.
+- Matte black surfaces.
+- Fine mechanical engraving.
+- Subtle analog equipment references.
+- Controlled reflections.
+- Minimal grain and surface imperfections.
+
+Use these materials selectively.
+
+Do not apply a metallic texture to every element. Too much texture will make the interface muddy and difficult to read.
+
+The design should feel tactile and physical while remaining crisp and technically precise.
+
+#### Color palette
+
+Build around the existing KONTROLL identity:
+
+- Deep black: primary background.
+- Charcoal: panel surfaces.
+- Industrial gray: borders and secondary elements.
+- Metallic silver: hardware-inspired details.
+- Signal red: live indicators and selected status elements.
+- Acid yellow or amber: important highlights and the primary CTA.
+- Off-white: readable text.
+
+Avoid introducing multiple unrelated accent colors.
+
+Red and yellow should have distinct purposes rather than competing everywhere.
+
+#### Typography
+
+Use typography inspired by:
+
+- Industrial labels.
+- Technical equipment displays.
+- Underground event flyers.
+- Contemporary electronic music editorial design.
+
+Combine a strong condensed display face with a highly legible interface font.
+
+Use uppercase lettering selectively for short labels and status indicators.
+
+Avoid making long messages or the dispatch feed difficult to read.
+
+Use monospaced typography for timestamps, frequency labels, and technical metadata where appropriate.
+
+Typography must feel deliberate and contemporary, not like a generic retro computer terminal.
+
+#### Nostalgia meets the future
+
+The design should communicate underground heritage without looking outdated.
+
+Use vintage hardware references as inspiration, not as a literal imitation of a 1980s control panel.
+
+The interface must remain modern through:
+
+- Clean spacing.
+- Precise alignment.
+- Sophisticated motion.
+- Responsive layouts.
+- Consistent component behavior.
+- High-quality typography.
+- Accessible contrast.
+- Efficient rendering.
+
+**The final result should feel like a physical underground sound system translated into a premium digital experience for 2026/2027.**
+
+---
+
+### 10. LAYOUT AND VISUAL HIERARCHY
+
+Use the following order for the hero:
+
+1. Compact KONTROLL header.
+2. Continuous live ticker.
+3. Small broadcast metadata and the single RAVE ACTIVE status.
+4. Large animated equalizer.
+5. Compact dispatch feed.
+6. One primary stream-start or playback control.
+
+Maintain a clear separation between the components.
+
+The equalizer should occupy the largest share of the hero's visual attention.
+
+The ticker should be visible immediately, without taking up excessive vertical space.
+
+The dispatch feed should display enough content to communicate that the platform has a community, without overwhelming the equalizer.
+
+The primary CTA should be easy to locate and operate.
+
+Avoid excessive padding, unnecessary cards, and nested borders.
+
+Use fine dividers and a consistent spacing system instead of placing every element inside its own box.
+
+On mobile, preserve the same content hierarchy.
+
+Do not shrink the desktop design until it becomes cramped. Adapt the layout to the available width and height.
+
+The entire hero must feel like one coherent interface.
+
+---
+
+### 11. MOTION DESIGN
+
+Motion is essential to the experience.
+
+However, every animation must have a purpose.
+
+Prioritize:
+
+1. Continuous ticker movement.
+2. Hypnotic equalizer animation.
+3. Subtle incoming dispatch messages.
+4. Small, responsive CTA interactions.
+5. Restrained status-indicator animation.
+
+Avoid:
+
+- Constant shaking.
+- Aggressive flashing.
+- Excessive glitch effects.
+- Random interface movement.
+- Large animated gradients.
+- Animations that interfere with reading.
+- Unnecessary spinning icons.
+
+Use smooth transitions and carefully controlled motion.
+
+The equalizer should provide the main sense of energy.
+
+The ticker should feel continuous.
+
+The dispatch feed should feel alive without constantly moving when there are no new messages.
+
+The result must be immersive, not exhausting.
+
+---
+
+### 12. RESPONSIVE DESIGN
+
+The hero must work exceptionally well across desktop, tablet, and mobile.
+
+#### Desktop
+
+- Large, immersive equalizer.
+- Clear separation between ticker, visualization, and dispatch feed.
+- Strong visual hierarchy.
+- Refined industrial details.
+- Generous horizontal space where appropriate.
+
+#### Tablet
+
+- Preserve the equalizer's prominence.
+- Keep the ticker readable.
+- Maintain sufficient space for dispatch messages.
+- Simplify secondary metadata if necessary.
+
+#### Mobile
+
+- Stack the components vertically.
+- Keep the ticker compact.
+- Make the equalizer fill the available content width.
+- Ensure frequency bars remain visually distinct.
+- Keep dispatch messages readable.
+- Make the primary CTA easy to tap.
+- Prevent horizontal page overflow.
+- Avoid placing too many controls next to one another.
+
+The mobile interface must feel purpose-designed, not like a compressed desktop interface.
+
+---
+
+### 13. TECHNICAL IMPLEMENTATION RULES
+
+Before changing the code, inspect the existing project.
+
+Identify:
+
+- The framework and component structure.
+- The current hero component.
+- Existing styles and design tokens.
+- The audio player and stream URL.
+- Current playback-state management.
+- Existing ticker implementation.
+- Dispatch feed data sources.
+- Any existing genre or navigation functionality.
+
+Then implement the redesign within the existing architecture.
+
+#### Preserve existing functionality
+
+Do not unnecessarily replace the application's framework.
+
+Do not break existing routes, integrations, data sources, or global state.
+
+Do not create a second audio player.
+
+Do not duplicate playback state.
+
+Do not remove backend functionality merely because its corresponding control is being removed from the hero.
+
+If a feature is moved or hidden, preserve its underlying functionality when it remains necessary elsewhere.
+
+Reuse existing components and APIs wherever possible.
+
+#### Code quality
+
+- Use reusable, well-structured components.
+- Maintain consistent design tokens.
+- Avoid unnecessary dependencies.
+- Avoid hard-coded viewport assumptions.
+- Ensure clean component lifecycle management.
+- Optimize animation performance.
+- Provide accessible button labels.
+- Support keyboard interaction.
+- Respect reduced-motion preferences.
+- Handle stream and connection errors.
+- Prevent layout shifts during initialization.
+
+Do not leave placeholder buttons that appear functional but have no behavior.
+
+Do not simulate a successful stream connection when no connection exists.
+
+Do not create fake real-time audience counts or fabricate live user activity.
+
+---
+
+### 14. IMPLEMENTATION WORKFLOW
+
+Execute the redesign in the following order.
+
+**Phase 1 — Audit**
+
+Inspect the existing hero, header, audio controls, equalizer, ticker, dispatch feed, and genre navigation.
+
+Identify all duplicated controls and determine which components already provide the required functionality.
+
+**Phase 2 — Restructure**
+
+Establish the new hierarchy:
+
+HEADER → LIVE TICKER → BROADCAST STATUS → EQUALIZER → DISPATCH FEED → STREAM CTA.
+
+Remove unnecessary interface elements.
+
+**Phase 3 — Visual redesign**
+
+Implement the industrial underground art direction, including the material treatment, typography, spacing, colors, borders, and component styling.
+
+**Phase 4 — Animation**
+
+Implement the continuous ticker and hypnotic equalizer.
+
+Connect the equalizer to actual audio data when available.
+
+Otherwise, implement a polished simulated animation that does not misrepresent itself as real audio analysis.
+
+**Phase 5 — Functional integration**
+
+Connect the primary CTA to the existing audio player.
+
+Verify that dispatch messages and ticker data use the appropriate existing sources.
+
+**Phase 6 — Responsive refinement**
+
+Test the full hero on mobile, tablet, and desktop.
+
+**Phase 7 — Quality assurance**
+
+Verify that:
+
+- There is no duplicate play/pause control.
+- There is no duplicate stream-start CTA.
+- `PRESSURE BOOST ACTIVE` has been removed.
+- `RAVE ACTIVE` remains visible exactly once in the hero.
+- Genre controls are not unnecessarily duplicated.
+- The ticker animates continuously.
+- The equalizer animates smoothly.
+- The dispatch feed displays available messages correctly.
+- Playback controls reflect the actual audio state.
+- No new decorative control pretends to provide functionality.
+- The interface does not overflow on mobile.
+- Existing application functionality remains intact.
+
+---
+
+### 15. FINAL DESIGN OBJECTIVE
+
+The finished KONTROLL hero must immediately communicate three things:
+
+**THE TRANSMISSION IS ALIVE.**
+
+The ticker communicates the broadcast.
+
+**THE SOUND HAS ENERGY.**
+
+The equalizer creates a hypnotic, club-like visual experience.
+
+**THE COMMUNITY IS HERE.**
+
+The dispatch feed shows the human side of the transmission.
+
+The primary CTA gives the visitor one clear way to enter that experience.
+
+Everything else is secondary.
+
+Do not add more features to make the interface look sophisticated.
+
+Make the existing elements exceptional through stronger hierarchy, better animation, precise typography, industrial materials, and purposeful interaction.
+
+The final experience should be raw, metallic, underground, hypnotic, contemporary, and unmistakably KONTROLL.
+
+**Design principle: A live underground transmission system — not another music dashboard.**
