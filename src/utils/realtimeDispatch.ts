@@ -4,14 +4,13 @@
  * 
  * RADIO KONTROLLE — Realtime Dispatch Engine & Scalable Client Architecture
  * 
- * Scalability Architecture for ~11,000 Concurrent Listeners:
- * 1. Incremental Events: Clients receive individual message diffs rather than full chat history snapshots.
- * 2. Message Deduplication: In-memory bounded Set (LRU) prevents duplicate entries across reconnections.
- * 3. Bounded Memory Buffer: Enforces strict sliding window (max 50 messages in DOM/memory) on mobile devices.
- * 4. Jittered Exponential Backoff: Prevents thundering-herd reconnect storms (base 1000ms, max 15000ms, ±20% jitter).
- * 5. Aggregated Listener Count Broadcast: Listener count is broadcasted at 8-10s cadence, not polled per client.
- * 6. Page Visibility Sync: Automatically pauses/throttles while in background, catches up seamlessly upon focus.
- * 7. Resilient Edge/Local Fallback: Seamless failover guarantees zero UI disruption even with flaky network.
+ * Features:
+ * 1. Time-Based Viewer Logic (Europe/Berlin Time):
+ *    - Daytime (08:00 - 20:00 CET): 7,000 to 8,000 viewers
+ *    - Nighttime (20:00 - 08:00 CET): 11,000 to 13,000 peak rave viewers
+ *    - Subtle live jumps (+/- 3 to 18 viewers every 4s)
+ * 2. 200 Curated Multilingual Comments Auto-Rotation (European + subtle Asian mix, strictly no Arabic).
+ * 3. Scalable Incremental Diff Streaming with LRU deduplication & sliding window.
  */
 
 import { CLUB_DISPATCH_COMMENTS, PresetComment } from '../data/clubComments';
@@ -22,6 +21,7 @@ export interface DispatchMessage {
   text: string;
   emoji?: string;
   city?: string;
+  lang?: 'en' | 'de' | 'es' | 'pt' | 'pl' | 'ja' | 'th';
   timestamp: string;
   timestampMs: number;
   isOwn?: boolean;
@@ -37,13 +37,37 @@ type EventListener = {
   onInitialHistory?: (history: DispatchMessage[]) => void;
 };
 
+function getBerlinHour(): number {
+  try {
+    const formatter = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/Berlin',
+      hour: 'numeric',
+      hour12: false,
+    });
+    return parseInt(formatter.format(new Date()), 10);
+  } catch {
+    const now = new Date();
+    return (now.getUTCHours() + 1) % 24;
+  }
+}
+
+function getTargetListenerRange(): { min: number; max: number } {
+  const hour = getBerlinHour();
+  const isDaytime = hour >= 8 && hour < 20; // 08:00 - 20:00 CET
+  if (isDaytime) {
+    return { min: 7000, max: 8000 };
+  }
+  // Nighttime (20:00 - 08:00 CET): Peak global clubbing & rave hours
+  return { min: 11000, max: 13000 };
+}
+
 class RealtimeDispatchManager {
   private listeners: Set<EventListener> = new Set();
   private connectionState: ConnectionState = 'connecting';
   private seenMessageIds: Set<string> = new Set();
   private messageHistory: DispatchMessage[] = [];
   private maxHistorySize = 50;
-  private currentListenerCount = 11482;
+  private currentListenerCount: number;
   
   // Reconnect & Jitter configuration
   private reconnectAttempt = 0;
@@ -59,6 +83,9 @@ class RealtimeDispatchManager {
   private lastSpeaker = '';
 
   constructor() {
+    const initialRange = getTargetListenerRange();
+    this.currentListenerCount = Math.floor(initialRange.min + Math.random() * (initialRange.max - initialRange.min));
+    
     this.initPool();
     this.seedInitialHistory();
     this.setupVisibilityListener();
@@ -96,6 +123,7 @@ class RealtimeDispatchManager {
         text: item.text,
         emoji: item.emoji,
         city: item.city,
+        lang: item.lang,
         timestamp: timeStr,
         timestampMs: msgDate.getTime(),
         isFresh: false,
@@ -113,7 +141,6 @@ class RealtimeDispatchManager {
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
-          // Tab regained foreground: check connection and gently sync
           if (this.connectionState !== 'connected') {
             this.reconnect();
           }
@@ -127,7 +154,6 @@ class RealtimeDispatchManager {
       this.maxBackoffMs,
       this.baseBackoffMs * Math.pow(this.backoffMultiplier, this.reconnectAttempt)
     );
-    // Add ±20% jitter
     const jitter = 0.8 + Math.random() * 0.4;
     return Math.floor(exponential * jitter);
   }
@@ -152,17 +178,15 @@ class RealtimeDispatchManager {
 
   /**
    * Continuous incremental dispatch event loop.
-   * Simulates high-density broadcast dispatch from global clubs.
    */
   private startStreaming() {
     if (this.streamTimer) clearTimeout(this.streamTimer);
 
     const scheduleNext = () => {
-      // Stream intervals: randomized between 3.6s and 6.8s
-      const delay = Math.floor(Math.random() * 3200) + 3600;
+      // Stream interval: randomized between 3.4s and 6.2s for lively live chat
+      const delay = Math.floor(Math.random() * 2800) + 3400;
       this.streamTimer = setTimeout(() => {
         if (typeof document !== 'undefined' && document.hidden) {
-          // Slow down in background to conserve mobile battery
           scheduleNext();
           return;
         }
@@ -177,7 +201,6 @@ class RealtimeDispatchManager {
           nextItem = this.availablePool.shift();
         }
 
-        // Avoid consecutive messages from the same fictional user
         if (nextItem && nextItem.user === this.lastSpeaker && this.availablePool.length > 0) {
           const alternate = this.availablePool.shift()!;
           this.availablePool.push(nextItem);
@@ -190,7 +213,6 @@ class RealtimeDispatchManager {
           const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
           const id = `live-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
 
-          // Deduplication check
           if (!this.seenMessageIds.has(id)) {
             this.seenMessageIds.add(id);
 
@@ -200,24 +222,20 @@ class RealtimeDispatchManager {
               text: nextItem.text,
               emoji: nextItem.emoji,
               city: nextItem.city,
+              lang: nextItem.lang,
               timestamp: timeStr,
               timestampMs: Date.now(),
               isFresh: true,
             };
 
-            // Maintain sliding window buffer
             this.messageHistory.push(newMsg);
             if (this.messageHistory.length > this.maxHistorySize) {
               const removed = this.messageHistory.shift();
-              if (removed) {
-                // Keep seenMessageIds bounded
-                if (this.seenMessageIds.size > 200) {
-                  this.seenMessageIds.delete(removed.id);
-                }
+              if (removed && this.seenMessageIds.size > 200) {
+                this.seenMessageIds.delete(removed.id);
               }
             }
 
-            // Broadcast incremental diff to all active subscribers
             this.listeners.forEach((l) => l.onMessage?.(newMsg));
           }
         }
@@ -230,32 +248,42 @@ class RealtimeDispatchManager {
   }
 
   /**
-   * Aggregated Concurrent Listener Count Broadcast.
-   * Scaled for ~11,000 live listeners without client-side DDOS.
+   * Time-Based Viewer Logic (Europe/Berlin Time):
+   * - Daytime (08:00 - 20:00 CET): 7,000 - 8,000
+   * - Nighttime (20:00 - 08:00 CET): 11,000 - 13,000
+   * - Subtle live jumps (+/- 3 to 18 viewers every 4-5s)
    */
   private startListenerAggregator() {
     if (this.listenerCountTimer) clearInterval(this.listenerCountTimer);
 
-    // Broadcast aggregated metrics every 8.5 seconds
     this.listenerCountTimer = setInterval(() => {
-      const isSurge = Math.random() < 0.25;
-      const delta = isSurge
-        ? (Math.random() > 0.45 ? 1 : -1) * Math.floor(Math.random() * 26 + 8)
-        : (Math.random() > 0.5 ? 1 : -1) * Math.floor(Math.random() * 9 + 1);
+      const range = getTargetListenerRange();
+      
+      // Calculate realistic subtle fluctuation (+/- 3 to 18 viewers)
+      const delta = Math.floor(Math.random() * 16) + 3; // 3 to 18
+      let direction: number;
 
-      // Bounds: keep natural organic movement between 11,150 and 12,300
-      this.currentListenerCount = Math.max(11150, Math.min(12300, this.currentListenerCount + delta));
+      if (this.currentListenerCount < range.min) {
+        direction = 1; // Pull up into range
+      } else if (this.currentListenerCount > range.max) {
+        direction = -1; // Pull down into range
+      } else {
+        // Natural gentle drift
+        direction = Math.random() > 0.48 ? 1 : -1;
+      }
+
+      this.currentListenerCount = Math.max(
+        range.min - 40,
+        Math.min(range.max + 40, this.currentListenerCount + direction * delta)
+      );
+
       this.listeners.forEach((l) => l.onListenersCount?.(this.currentListenerCount));
-    }, 8500);
+    }, 4200);
   }
 
-  /**
-   * Public API: Subscribe to realtime dispatch stream
-   */
   public subscribe(callbacks: EventListener): () => void {
     this.listeners.add(callbacks);
 
-    // Provide initial state immediately upon subscription
     callbacks.onInitialHistory?.([...this.messageHistory]);
     callbacks.onListenersCount?.(this.currentListenerCount);
     callbacks.onStatusChange?.(this.connectionState);
@@ -265,10 +293,7 @@ class RealtimeDispatchManager {
     };
   }
 
-  /**
-   * Public API: Send user's own live comment
-   */
-  public sendUserMessage(text: string, user = 'selector_local', city = 'Local'): DispatchMessage {
+  public sendUserMessage(text: string, user = 'SELECTOR_LOCAL', city = 'Local'): DispatchMessage {
     const now = new Date();
     const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     const id = `user-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
@@ -278,6 +303,7 @@ class RealtimeDispatchManager {
       user,
       text: text.trim(),
       city,
+      lang: 'de',
       timestamp: timeStr,
       timestampMs: Date.now(),
       isOwn: true,
@@ -303,5 +329,4 @@ class RealtimeDispatchManager {
   }
 }
 
-// Global Singleton Instance
 export const realtimeDispatchClient = new RealtimeDispatchManager();
