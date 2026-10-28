@@ -4,14 +4,9 @@ import {
   Pause,
   Volume2,
   VolumeX,
-  Zap,
-  Radio,
-  Sliders,
   AlertCircle,
-  Flame,
 } from 'lucide-react';
 import { Channel, StreamStatus, EqualizerPresetId } from '../types/radio';
-import { CHANNELS } from '../data/radioData';
 import { audioEngine } from '../utils/audioEngine';
 import { EqualizerVisualizer } from './EqualizerVisualizer';
 
@@ -194,18 +189,8 @@ export const PersistentAudioPlayer: React.FC<PersistentAudioPlayerProps> = ({
             <EqualizerVisualizer isPlaying={isPlaying} isLive={isLive} barCount={24} />
           </div>
 
-          {/* Right Controls: Permanent PEAK + RAVE Status & Master Volume */}
+          {/* Right Controls: Master Volume & Optional Controls */}
           <div className="flex items-center justify-between sm:justify-end gap-2.5 shrink-0 font-ui font-semibold text-xs border-t border-neutral-900 sm:border-0 pt-1 sm:pt-0">
-            {/* Permanent Peak Techno & Rave Active Status (Locked to Volle Power) */}
-            <div className="flex items-center gap-1.5 font-mono text-[10px] sm:text-[11px] bg-neutral-950 border border-red-600/60 px-2 py-1 text-white shadow-[0_0_8px_rgba(220,38,38,0.3)]">
-              <span className="px-1.5 py-0.5 bg-red-600 text-white font-bold text-[9px] uppercase tracking-wider">
-                PEAK
-              </span>
-              <span className="flex items-center gap-1 text-red-400 font-bold uppercase text-[9px] sm:text-[10px]">
-                <Flame size={12} className="text-red-500 animate-pulse" />
-                RAVE: ACTIVE
-              </span>
-            </div>
 
             {/* Tape Filter Toggle */}
             <button
