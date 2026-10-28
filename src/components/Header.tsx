@@ -57,7 +57,7 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="sticky top-0 z-50 bg-[#000000] text-white border-b border-[#1a1a1f] px-3 sm:px-6 md:px-8 py-2 sm:py-2.5 transition-colors select-none">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
-        {/* 1. Left: Optimized Logo Icon & Scaled Typography */}
+        {/* 1. Left: Optimized Logo Icon & Scaled Typography in Orbitron */}
         <button
           onClick={handleLogoClick}
           className="flex items-center gap-2.5 text-left group focus:outline-none cursor-pointer shrink-0"
@@ -68,7 +68,7 @@ export const Header: React.FC<HeaderProps> = ({
             alt="Radio Kontrolle Icon"
             className="w-6 h-6 sm:w-7 sm:h-7 object-contain shrink-0 filter brightness-100 group-hover:brightness-125 transition-all drop-shadow-[0_0_8px_rgba(255,255,255,0.25)]"
           />
-          <span className="text-base sm:text-lg md:text-xl font-bold tracking-wider text-white uppercase font-mono group-hover:text-neutral-200 transition-colors">
+          <span className="font-orbitron text-xs sm:text-sm md:text-[15px] font-semibold tracking-wider sm:tracking-widest text-white uppercase group-hover:text-neutral-200 transition-colors">
             RADIO KONTROLLE
           </span>
         </button>

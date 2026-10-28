@@ -26,24 +26,24 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
 
   return (
     <div 
-      className="w-full bg-[#070709] border-b border-[#22222c] text-white select-none relative z-30 transition-colors"
+      className="w-full bg-[#f8f8fa] border-y border-neutral-300 text-black select-none relative z-30 shadow-[0_4px_20px_rgba(0,0,0,0.12)] transition-colors"
       role="region"
       aria-label="RADIO KONTROLLE Live Global Event Ticker"
     >
-      {/* PURE ENLARGED CONTINUOUS MARQUEE STREAM (Top controls/filters removed as requested) */}
+      {/* WHITE EVENT BROADCAST — ENLARGED CONTINUOUS MARQUEE STREAM */}
       <div 
-        className="relative overflow-hidden h-14 sm:h-16 md:h-16 flex items-center bg-[#07070a] border-t border-b border-[#1c1c26] group cursor-pointer"
+        className="relative overflow-hidden h-28 sm:h-32 md:h-36 min-h-[112px] sm:min-h-[128px] md:min-h-[140px] flex items-center bg-gradient-to-r from-[#f0f0f4] via-[#ffffff] to-[#f0f0f4] group cursor-pointer"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         onTouchStart={() => setIsPaused(true)}
         onTouchEnd={() => setIsPaused(false)}
       >
         <div 
-          className={`animate-ticker-marquee flex items-center gap-10 sm:gap-14 ${isPaused ? 'pause-animation' : 'pause-on-hover'}`}
-          style={{ '--ticker-duration': `${Math.max(80, LIVE_EVENTS_DATA.length * 12)}s` } as React.CSSProperties}
+          className={`animate-ticker-marquee flex items-center gap-8 sm:gap-12 ${isPaused ? 'pause-animation' : 'pause-on-hover'}`}
+          style={{ '--ticker-duration': `${Math.max(160, LIVE_EVENTS_DATA.length * 24)}s` } as React.CSSProperties}
         >
           {/* Run 1 */}
-          <div className="flex items-center gap-10 sm:gap-14 pr-10 sm:pr-14">
+          <div className="flex items-center gap-8 sm:gap-12 pr-8 sm:pr-12">
             {LIVE_EVENTS_DATA.map((event) => (
               <TickerItem 
                 key={event.id} 
@@ -53,7 +53,7 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
             ))}
           </div>
           {/* Run 2 for seamless infinite marquee loop */}
-          <div className="flex items-center gap-10 sm:gap-14 pr-10 sm:pr-14" aria-hidden="true">
+          <div className="flex items-center gap-8 sm:gap-12 pr-8 sm:pr-12" aria-hidden="true">
             {LIVE_EVENTS_DATA.map((event) => (
               <TickerItem 
                 key={`${event.id}-dup`} 
@@ -218,7 +218,7 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
   );
 };
 
-// Component to render individual ticker node with enlarged mobile dimensions and official logos
+// Component to render individual ticker node in WHITE EVENT BROADCAST aesthetic
 interface TickerItemProps {
   event: LiveEventEntry;
   onInspect: () => void;
@@ -226,11 +226,9 @@ interface TickerItemProps {
 }
 
 const TickerItem: React.FC<TickerItemProps> = ({ event, onInspect, isAriaHidden = false }) => {
-  const statusConfig = STATUS_STYLE_CONFIG[event.status];
-
   return (
     <div
-      className="flex items-center gap-3 sm:gap-4 whitespace-nowrap cursor-pointer group/item hover:opacity-95 transition-opacity py-1"
+      className="flex items-center gap-4 sm:gap-6 whitespace-nowrap cursor-pointer group/item py-2 shrink-0 select-none transition-opacity hover:opacity-90"
       onClick={onInspect}
       role="button"
       tabIndex={isAriaHidden ? -1 : 0}
@@ -241,54 +239,60 @@ const TickerItem: React.FC<TickerItemProps> = ({ event, onInspect, isAriaHidden 
         }
       }}
     >
-      {/* Official Verified Club/Festival Logo Emblem */}
-      <OfficialEventLogo badge={event.clubBadge} size="md" />
+      {/* 1. Official Club / Festival Logo Emblem */}
+      <div className="shrink-0 flex items-center">
+        <OfficialEventLogo badge={event.clubBadge} size="md" />
+      </div>
 
-      {/* Verification Status Pill */}
-      <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] sm:text-[10px] font-mono font-bold uppercase tracking-wider border shrink-0 ${
-        statusConfig?.badgeBg || 'bg-neutral-900'
-      } ${statusConfig?.badgeBorder || 'border-neutral-700'} ${statusConfig?.badgeText || 'text-neutral-300'}`}>
-        <span className={`w-1.5 h-1.5 rounded-full ${statusConfig?.dotColor || 'bg-neutral-500'}`} />
-        {event.status}
+      {/* 2. Structured White Broadcast Poster Layout */}
+      <div className="flex flex-col justify-center gap-1 sm:gap-1.5 leading-tight">
+        {/* Top: Status Label (LIVE in Magenta + ONLINE BROADCAST in black box) */}
+        <div className="flex items-center gap-2">
+          <span className="flex items-center gap-1.5 font-mono font-black text-[10px] sm:text-[11px] text-[#db2777] uppercase tracking-wider">
+            <span className="w-2 h-2 rounded-full bg-[#db2777] animate-pulse inline-block shrink-0 shadow-[0_0_6px_rgba(219,39,119,0.5)]" />
+            LIVE
+          </span>
+          <span className="text-neutral-400 text-[10px] font-bold">&</span>
+          <span className="bg-black text-white px-1.5 py-0.5 text-[8.5px] sm:text-[9.5px] font-mono font-bold tracking-widest uppercase shrink-0">
+            ONLINE BROADCAST
+          </span>
+          <span className="text-neutral-500 text-[9px] sm:text-[10px] font-mono uppercase tracking-wide">
+            · {event.status}
+          </span>
+        </div>
+
+        {/* Middle: Big Black Bold Display Typography + Solid Black Destination Box */}
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          <h4 className="font-display font-black text-black text-xl sm:text-2xl md:text-3xl tracking-tight uppercase leading-none group-hover/item:text-neutral-800 transition-colors">
+            {event.eventName}
+          </h4>
+          <span className="bg-black text-white px-2 sm:px-2.5 py-1 text-xs sm:text-sm font-mono font-black tracking-wider uppercase shrink-0 shadow-sm">
+            {event.destination.split(',')[0].toUpperCase()}
+          </span>
+        </div>
+
+        {/* Bottom: Date & Venue Badges in compact solid black surfaces with white text */}
+        <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] font-mono font-bold uppercase">
+          <span className="bg-black text-white px-2 py-0.5 shrink-0 shadow-xs">
+            {event.venue}
+          </span>
+          <span className="bg-black text-white px-2 py-0.5 shrink-0 shadow-xs">
+            {event.dateDisplay}
+          </span>
+          <span className="bg-neutral-800 text-neutral-100 px-2 py-0.5 hidden md:inline-flex items-center gap-1 shrink-0">
+            <span className="text-yellow-400">SELECTORS:</span>
+            <span>{event.headliners.slice(0, 2).join(' · ')}</span>
+          </span>
+          <span className="text-neutral-400 group-hover/item:text-black transition-colors pl-0.5 inline-flex items-center">
+            <ExternalLink size={11} />
+          </span>
+        </div>
+      </div>
+
+      {/* Industrial Separator Slash */}
+      <span className="text-neutral-300 font-black text-lg select-none px-2 sm:px-4 shrink-0">
+        ///
       </span>
-
-      {/* Destination Badge */}
-      <span className="text-[10px] sm:text-[11px] font-mono uppercase px-2 py-0.5 bg-[#14141d] text-neutral-300 border border-[#252535] shrink-0">
-        {event.destination.split(',')[0].toUpperCase()}
-      </span>
-
-      {/* Enlarged Event Name for Smartphones (~16px on mobile, bold condensed club font) */}
-      <span className="text-white font-display font-black text-[15px] sm:text-[16px] md:text-[18px] tracking-wide group-hover/item:text-red-400 transition-colors uppercase">
-        {event.eventName}
-      </span>
-
-      {/* Confirmed Selectors */}
-      <span className="text-neutral-300 font-mono text-[11px] sm:text-[12px] flex items-center gap-1.5 shrink-0">
-        <span className="text-neutral-400 text-[9px] uppercase tracking-wider">SELECTORS:</span>
-        <strong className="text-yellow-400 font-semibold">
-          {event.headliners.slice(0, 2).join(' · ')}
-        </strong>
-      </span>
-
-      {/* Date */}
-      <span className="text-neutral-300 font-mono text-[10px] sm:text-[11px] bg-[#121218] px-2 py-0.5 border border-[#222230] shrink-0">
-        {event.dateDisplay}
-      </span>
-
-      {/* External Link */}
-      <a
-        href={event.sourceUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={(e) => e.stopPropagation()}
-        className="text-neutral-400 hover:text-white transition-colors p-1 shrink-0"
-        title={`Open official source (${event.officialSource})`}
-      >
-        <ExternalLink size={12} />
-      </a>
-
-      {/* Industrial Separator */}
-      <span className="text-[#3a3a4c] font-black text-sm select-none pl-2">///</span>
     </div>
   );
 };

@@ -5,12 +5,14 @@
   --font-ui: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'IBM Plex Mono', 'Space Mono', monospace;
   --font-sans: 'Space Grotesk', sans-serif;
+  --font-orbitron: 'Orbitron', 'Space Grotesk', sans-serif;
 }
 
 :root {
   --font-display: 'Archivo', 'Space Grotesk', sans-serif;
   --font-ui: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'IBM Plex Mono', monospace;
+  --font-orbitron: 'Orbitron', 'Space Grotesk', sans-serif;
 }
 
 body {
@@ -36,6 +38,10 @@ body {
 .font-mono {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+}
+
+.font-orbitron {
+  font-family: var(--font-orbitron);
 }
 
 /* Fluid responsive typography classes */
