@@ -194,65 +194,18 @@ export const PersistentAudioPlayer: React.FC<PersistentAudioPlayerProps> = ({
             <EqualizerVisualizer isPlaying={isPlaying} isLive={isLive} barCount={24} />
           </div>
 
-          {/* Right Controls: MAIN Channel, 3 EQ Presets, RAVE, Desktop Volume */}
-          <div className="flex items-center justify-between sm:justify-end gap-1.5 sm:gap-2.5 shrink-0 font-ui font-semibold text-xs border-t border-neutral-900 sm:border-0 pt-1 sm:pt-0">
-            {/* Primary MAIN Channel Indicator */}
-            <div className="flex items-center bg-neutral-900 border border-neutral-800 p-0.5">
-              <span className="px-2.5 py-1 text-[10px] sm:text-[11px] font-bold bg-white text-black">
-                MAIN
+          {/* Right Controls: Permanent PEAK + RAVE Status & Master Volume */}
+          <div className="flex items-center justify-between sm:justify-end gap-2.5 shrink-0 font-ui font-semibold text-xs border-t border-neutral-900 sm:border-0 pt-1 sm:pt-0">
+            {/* Permanent Peak Techno & Rave Active Status (Locked to Volle Power) */}
+            <div className="flex items-center gap-1.5 font-mono text-[10px] sm:text-[11px] bg-neutral-950 border border-red-600/60 px-2 py-1 text-white shadow-[0_0_8px_rgba(220,38,38,0.3)]">
+              <span className="px-1.5 py-0.5 bg-red-600 text-white font-bold text-[9px] uppercase tracking-wider">
+                PEAK
+              </span>
+              <span className="flex items-center gap-1 text-red-400 font-bold uppercase text-[9px] sm:text-[10px]">
+                <Flame size={12} className="text-red-500 animate-pulse" />
+                RAVE: ACTIVE
               </span>
             </div>
-
-            {/* 3 Authentic Sound / Equalizer Presets */}
-            <div className="flex items-center bg-neutral-900 border border-neutral-800 p-0.5 font-mono text-[10px]">
-              <button
-                onClick={() => handleSelectPreset('deep_house')}
-                title="PRESET 01: Deep House (122 BPM) — Warm deep bass, soft rolling dynamics"
-                className={`min-h-[30px] sm:min-h-[32px] px-2 sm:px-2.5 py-1 font-bold transition-colors cursor-pointer ${
-                  activePreset === 'deep_house'
-                    ? 'bg-neutral-200 text-black font-extrabold'
-                    : 'text-neutral-400 hover:text-white'
-                }`}
-              >
-                DEEP
-              </button>
-              <button
-                onClick={() => handleSelectPreset('tech_house')}
-                title="PRESET 02: Tech House (126 BPM) — Punchy 4/4 kick, snappy driving groove"
-                className={`min-h-[30px] sm:min-h-[32px] px-2 sm:px-2.5 py-1 font-bold transition-colors cursor-pointer ${
-                  activePreset === 'tech_house'
-                    ? 'bg-neutral-200 text-black font-extrabold'
-                    : 'text-neutral-400 hover:text-white'
-                }`}
-              >
-                TECH
-              </button>
-              <button
-                onClick={() => handleSelectPreset('peak_techno')}
-                title="PRESET 03: Peak Techno (138 BPM) — Heavy attack, maximum peaks, intense red tips"
-                className={`min-h-[30px] sm:min-h-[32px] px-2 sm:px-2.5 py-1 font-bold transition-colors cursor-pointer ${
-                  activePreset === 'peak_techno'
-                    ? 'bg-red-600 text-white font-extrabold'
-                    : 'text-neutral-400 hover:text-white'
-                }`}
-              >
-                PEAK
-              </button>
-            </div>
-
-            {/* RAVE Pressure Toggle (Visual dynamic transient booster) */}
-            <button
-              onClick={handleToggleRave}
-              title="Toggle RAVE PRESSURE visual dynamics (Audio 0dB output remains strictly untouched)"
-              className={`min-h-[30px] sm:min-h-[32px] px-2.5 sm:px-3 py-1 border text-[10px] sm:text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer ${
-                ravePressure
-                  ? 'border-red-500 bg-red-600 text-white shadow-[0_0_10px_rgba(255,42,95,0.5)]'
-                  : 'border-neutral-800 text-neutral-400 hover:text-white'
-              }`}
-            >
-              <Flame size={12} className={ravePressure ? 'text-white animate-pulse' : 'text-red-500'} />
-              <span>RAVE</span>
-            </button>
 
             {/* Tape Filter Toggle */}
             <button

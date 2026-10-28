@@ -1,278 +1,88 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { 
-  Globe2, 
   ExternalLink, 
-  ChevronLeft, 
-  ChevronRight, 
-  Pause, 
-  Play, 
   ShieldCheck, 
   Calendar, 
   MapPin, 
   UserCheck, 
   Sparkles,
   Ticket,
-  X,
-  Info
+  X
 } from 'lucide-react';
 import { 
   LIVE_EVENTS_DATA, 
   LiveEventEntry, 
-  EventRegion, 
-  EventVerificationStatus, 
   STATUS_STYLE_CONFIG 
 } from '../data/liveEventsData';
+import { OfficialEventLogo } from './OfficialEventLogos';
 
 interface LiveEventTickerProps {
   onNavigate?: (sectionId: string) => void;
 }
 
-const REGION_TABS: { id: EventRegion; label: string }[] = [
-  { id: 'ALL', label: 'ALL DESTINATIONS' },
-  { id: 'IBIZA', label: 'IBIZA' },
-  { id: 'TULUM', label: 'TULUM' },
-  { id: 'MYKONOS', label: 'MYKONOS' },
-  { id: 'BRAZIL', label: 'BRAZIL' },
-  { id: 'ASIA', label: 'BALI & ASIA' },
-  { id: 'FESTIVALS', label: 'FESTIVALS' },
-];
-
 export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
-  const [selectedRegion, setSelectedRegion] = useState<EventRegion>('ALL');
-  const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [inspectEvent, setInspectEvent] = useState<LiveEventEntry | null>(null);
-  const [displayMode, setDisplayMode] = useState<'ticker' | 'focus'>('ticker');
-  const autoAdvanceTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Filtered events
-  const filteredEvents = useMemo(() => {
-    if (selectedRegion === 'ALL') return LIVE_EVENTS_DATA;
-    return LIVE_EVENTS_DATA.filter((ev) => ev.region === selectedRegion);
-  }, [selectedRegion]);
-
-  // Keep index within bounds
-  useEffect(() => {
-    setCurrentIndex(0);
-  }, [selectedRegion]);
-
-  // Auto-advance focused event when not paused
-  useEffect(() => {
-    if (isPaused || filteredEvents.length <= 1) return;
-
-    autoAdvanceTimerRef.current = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % filteredEvents.length);
-    }, 6500);
-
-    return () => {
-      if (autoAdvanceTimerRef.current) clearInterval(autoAdvanceTimerRef.current);
-    };
-  }, [isPaused, filteredEvents.length]);
-
-  const handleNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % filteredEvents.length);
-  };
-
-  const handlePrev = () => {
-    setCurrentIndex((prev) => (prev - 1 + filteredEvents.length) % filteredEvents.length);
-  };
-
-  const activeEvent = filteredEvents[currentIndex] || filteredEvents[0];
 
   return (
     <div 
-      className="w-full bg-[#070709] border-b border-[#1f1f26] text-white select-none relative z-30 transition-colors"
+      className="w-full bg-[#070709] border-b border-[#22222c] text-white select-none relative z-30 transition-colors"
       role="region"
-      aria-label="Radio Underground Live Global Event Ticker"
+      aria-label="RADIO KONTROLLE Live Global Event Ticker"
     >
-      {/* 1. TOP BROADCAST TELETYPE STRIP */}
-      <div className="border-b border-[#18181f] bg-[#0c0c10] px-3 sm:px-4 py-1.5 flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
-        <div className="flex items-center gap-2">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600" />
-          </span>
-          <span className="text-[10px] sm:text-[11px] font-mono font-black tracking-widest uppercase text-white flex items-center gap-1.5">
-            <Globe2 size={12} className="text-red-500" />
-            GLOBAL EVENT DISPATCH
-          </span>
-          <span className="hidden md:inline text-[9px] text-neutral-300 font-mono tracking-widest uppercase border-l border-neutral-700 pl-2">
-            EDITORIAL VERIFIED · 2025/2026 CALENDAR
-          </span>
-        </div>
-
-        {/* Region Filter Buttons */}
-        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
-          {REGION_TABS.map((tab) => {
-            const count = tab.id === 'ALL' 
-              ? LIVE_EVENTS_DATA.length 
-              : LIVE_EVENTS_DATA.filter((e) => e.region === tab.id).length;
-            const isActive = selectedRegion === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setSelectedRegion(tab.id)}
-                className={`text-[9px] sm:text-[10px] font-mono uppercase px-2 py-0.5 whitespace-nowrap transition-all border cursor-pointer ${
-                  isActive
-                    ? 'bg-red-600 text-white font-bold border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]'
-                    : 'bg-[#121217] text-neutral-400 hover:text-white border-[#26262f] hover:border-neutral-500'
-                }`}
-              >
-                {tab.label} <span className="opacity-70 text-[8px]">({count})</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Display Mode / Speed / Pause Controls */}
-        <div className="flex items-center gap-1.5 ml-auto shrink-0">
-          <button
-            onClick={() => setDisplayMode((m) => (m === 'ticker' ? 'focus' : 'ticker'))}
-            className="text-[9px] font-mono uppercase px-2 py-0.5 bg-[#14141b] text-neutral-300 hover:text-white border border-[#26262f] transition-colors cursor-pointer"
-            title="Toggle compact marquee or highlighted event view"
-          >
-            {displayMode === 'ticker' ? 'HIGHLIGHT VIEW' : 'MARQUEE STREAM'}
-          </button>
-
-          <button
-            onClick={() => setIsPaused((p) => !p)}
-            className={`w-6 h-5 flex items-center justify-center border text-[9px] transition-colors cursor-pointer ${
-              isPaused 
-                ? 'bg-yellow-400 text-black border-yellow-300 font-bold' 
-                : 'bg-[#14141b] text-neutral-400 hover:text-white border-[#26262f]'
-            }`}
-            title={isPaused ? 'Resume auto-cycle' : 'Pause auto-cycle'}
-            aria-label={isPaused ? 'Resume auto-cycle' : 'Pause auto-cycle'}
-          >
-            {isPaused ? <Play size={10} className="fill-current" /> : <Pause size={10} className="fill-current" />}
-          </button>
-
-          <div className="flex items-center border border-[#26262f] bg-[#14141b]">
-            <button
-              onClick={handlePrev}
-              className="px-1.5 py-0.5 text-neutral-400 hover:text-white hover:bg-[#20202a] transition-colors cursor-pointer"
-              title="Previous Event"
-              aria-label="Previous Event"
-            >
-              <ChevronLeft size={12} />
-            </button>
-            <span className="px-1.5 text-[9px] text-neutral-400 font-mono">
-              {currentIndex + 1}/{filteredEvents.length}
-            </span>
-            <button
-              onClick={handleNext}
-              className="px-1.5 py-0.5 text-neutral-400 hover:text-white hover:bg-[#20202a] transition-colors cursor-pointer"
-              title="Next Event"
-              aria-label="Next Event"
-            >
-              <ChevronRight size={12} />
-            </button>
+      {/* PURE ENLARGED CONTINUOUS MARQUEE STREAM (Top controls/filters removed as requested) */}
+      <div 
+        className="relative overflow-hidden h-14 sm:h-16 md:h-16 flex items-center bg-[#07070a] border-t border-b border-[#1c1c26] group cursor-pointer"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        onTouchStart={() => setIsPaused(true)}
+        onTouchEnd={() => setIsPaused(false)}
+      >
+        <div 
+          className={`animate-ticker-marquee flex items-center gap-10 sm:gap-14 ${isPaused ? 'pause-animation' : 'pause-on-hover'}`}
+          style={{ '--ticker-duration': `${Math.max(80, LIVE_EVENTS_DATA.length * 12)}s` } as React.CSSProperties}
+        >
+          {/* Run 1 */}
+          <div className="flex items-center gap-10 sm:gap-14 pr-10 sm:pr-14">
+            {LIVE_EVENTS_DATA.map((event) => (
+              <TickerItem 
+                key={event.id} 
+                event={event} 
+                onInspect={() => setInspectEvent(event)} 
+              />
+            ))}
+          </div>
+          {/* Run 2 for seamless infinite marquee loop */}
+          <div className="flex items-center gap-10 sm:gap-14 pr-10 sm:pr-14" aria-hidden="true">
+            {LIVE_EVENTS_DATA.map((event) => (
+              <TickerItem 
+                key={`${event.id}-dup`} 
+                event={event} 
+                onInspect={() => setInspectEvent(event)} 
+                isAriaHidden 
+              />
+            ))}
           </div>
         </div>
       </div>
 
-      {/* 2. DYNAMIC BROADCAST CONTENT AREA */}
-      {displayMode === 'ticker' ? (
-        /* MARQUEE CONTINUOUS STREAM */
-        <div 
-          className="relative overflow-hidden h-10 sm:h-11 flex items-center bg-[#07070a] group cursor-default"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-        >
-          <div 
-            className={`animate-ticker-marquee flex items-center gap-8 ${isPaused ? 'pause-animation' : 'pause-on-hover'}`}
-            style={{ '--ticker-duration': `${Math.max(35, filteredEvents.length * 5)}s` } as React.CSSProperties}
-          >
-            {/* Run 1 */}
-            <div className="flex items-center gap-8 pr-8">
-              {filteredEvents.map((event) => renderTickerNode(event, () => setInspectEvent(event)))}
-            </div>
-            {/* Run 2 for continuous smooth infinite loop */}
-            <div className="flex items-center gap-8 pr-8" aria-hidden="true">
-              {filteredEvents.map((event) => renderTickerNode(event, () => setInspectEvent(event), true))}
-            </div>
-          </div>
-        </div>
-      ) : (
-        /* HIGHLIGHT FOCUS CARD (CLEAN HIGH DENSITY BROADCAST ROW) */
-        activeEvent && (
-          <div className="px-3 sm:px-4 py-2.5 bg-[#09090d] flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs font-mono transition-all">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-[9px] font-mono font-bold tracking-wider uppercase border ${
-                STATUS_STYLE_CONFIG[activeEvent.status]?.badgeBg || 'bg-neutral-900'
-              } ${STATUS_STYLE_CONFIG[activeEvent.status]?.badgeBorder || 'border-neutral-700'} ${
-                STATUS_STYLE_CONFIG[activeEvent.status]?.badgeText || 'text-neutral-300'
-              }`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${STATUS_STYLE_CONFIG[activeEvent.status]?.dotColor || 'bg-neutral-500'}`} />
-                {activeEvent.status}
-              </span>
-
-              <span className="font-display font-black text-white text-sm sm:text-base tracking-tight hover:text-red-400 transition-colors cursor-pointer" onClick={() => setInspectEvent(activeEvent)}>
-                {activeEvent.eventName}
-              </span>
-
-              <span className="text-neutral-500">·</span>
-
-              <span className="text-neutral-300 flex items-center gap-1 text-[11px]">
-                <MapPin size={11} className="text-red-500 shrink-0" />
-                <span className="font-semibold text-white">{activeEvent.venue}</span> ({activeEvent.destination})
-              </span>
-
-              <span className="text-neutral-500">·</span>
-
-              <span className="text-yellow-400 font-mono text-[11px] flex items-center gap-1">
-                <Calendar size={11} className="text-yellow-400 shrink-0" />
-                {activeEvent.dateDisplay}
-              </span>
-            </div>
-
-            {/* Artists Roster & Direct Outlink */}
-            <div className="flex items-center gap-2 shrink-0 flex-wrap">
-              <div className="flex items-center gap-1 text-[11px] text-neutral-300 bg-[#121217] px-2 py-1 border border-[#202029]">
-                <UserCheck size={11} className="text-emerald-400 shrink-0" />
-                <span className="text-neutral-400 uppercase text-[9px]">Confirmed:</span>
-                <span className="text-white font-semibold truncate max-w-[280px] sm:max-w-md">
-                  {activeEvent.headliners.join(', ')}
-                </span>
-              </div>
-
-              <button
-                onClick={() => setInspectEvent(activeEvent)}
-                className="px-2.5 py-1 text-[10px] font-mono uppercase bg-[#181822] hover:bg-[#232332] text-neutral-200 hover:text-white border border-[#2a2a38] transition-colors flex items-center gap-1 cursor-pointer"
-              >
-                <Info size={11} />
-                FULL DETAILS
-              </button>
-
-              <a
-                href={activeEvent.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-2.5 py-1 text-[10px] font-mono font-bold uppercase bg-red-600 hover:bg-red-500 text-white transition-colors flex items-center gap-1 shadow-[0_0_10px_rgba(220,38,38,0.4)] cursor-pointer"
-                title={`Open official source (${activeEvent.officialSource})`}
-              >
-                <span>OFFICIAL SOURCE</span>
-                <ExternalLink size={10} />
-              </a>
-            </div>
-          </div>
-        )
-      )}
-
-      {/* 3. EVENT INSPECT DRAWER / MODAL */}
+      {/* EVENT INSPECT DRAWER / MODAL */}
       {inspectEvent && (
         <div 
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
           onClick={() => setInspectEvent(null)}
         >
           <div 
-            className="w-full max-w-xl bg-[#0d0d12] border-2 border-red-600/80 shadow-[0_0_30px_rgba(220,38,38,0.3)] text-white font-mono p-5 sm:p-6 relative max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-xl bg-[#0c0c10] border-2 border-red-600 shadow-[0_0_40px_rgba(220,38,38,0.35)] text-white font-mono p-5 sm:p-6 relative max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
             <div className="flex items-start justify-between gap-3 border-b border-[#242432] pb-3 mb-4">
               <div>
-                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  {/* Official Emblem */}
+                  <OfficialEventLogo badge={inspectEvent.clubBadge} size="md" />
+
                   <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-[9px] font-mono font-bold tracking-wider uppercase border ${
                     STATUS_STYLE_CONFIG[inspectEvent.status]?.badgeBg || 'bg-neutral-900'
                   } ${STATUS_STYLE_CONFIG[inspectEvent.status]?.badgeBorder || 'border-neutral-700'} ${
@@ -281,27 +91,29 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
                     <span className={`w-1.5 h-1.5 rounded-full ${STATUS_STYLE_CONFIG[inspectEvent.status]?.dotColor || 'bg-neutral-500'}`} />
                     {inspectEvent.status}
                   </span>
+                  
                   <span className="text-[10px] text-neutral-400 bg-[#161622] px-2 py-0.5 border border-[#222232]">
-                    REGION: {inspectEvent.region} · {inspectEvent.country.toUpperCase()}
+                    {inspectEvent.region} · {inspectEvent.country.toUpperCase()}
                   </span>
                   <span className="text-[10px] text-emerald-400 flex items-center gap-1">
                     <ShieldCheck size={11} /> VERIFIED {inspectEvent.lastVerified}
                   </span>
                 </div>
-                <h3 className="text-lg sm:text-xl font-display font-black tracking-tight text-white uppercase">
+                
+                <h3 className="text-xl sm:text-2xl font-display font-black tracking-tight text-white uppercase leading-tight">
                   {inspectEvent.eventName}
                 </h3>
-                <p className="text-xs text-neutral-400 mt-0.5">
+                <p className="text-xs text-neutral-400 mt-1">
                   Promoted & Curated by <span className="text-neutral-200 font-semibold">{inspectEvent.organizer}</span>
                 </p>
               </div>
 
               <button
                 onClick={() => setInspectEvent(null)}
-                className="w-7 h-7 flex items-center justify-center bg-[#181824] hover:bg-red-600 text-neutral-300 hover:text-white border border-[#2b2b3d] transition-colors cursor-pointer shrink-0"
+                className="w-8 h-8 flex items-center justify-center bg-[#181824] hover:bg-red-600 text-neutral-300 hover:text-white border border-[#2b2b3d] transition-colors cursor-pointer shrink-0"
                 aria-label="Close modal"
               >
-                <X size={14} />
+                <X size={16} />
               </button>
             </div>
 
@@ -316,14 +128,14 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
                   {inspectEvent.dateDisplay}
                 </div>
                 <div className="text-[10px] text-neutral-500 mt-0.5">
-                  Calendar Target: {inspectEvent.startDate}
+                  Target: {inspectEvent.startDate}
                 </div>
               </div>
 
               <div className="bg-[#12121a] p-3 border border-[#20202c]">
                 <div className="text-[10px] text-neutral-400 uppercase tracking-widest flex items-center gap-1 mb-1">
                   <MapPin size={12} className="text-red-500" />
-                  VENUE & CITY
+                  VENUE & LOCATION
                 </div>
                 <div className="font-bold text-white text-sm">
                   {inspectEvent.venue}
@@ -334,7 +146,7 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
               </div>
             </div>
 
-            {/* Confirmed Artists Roster */}
+            {/* Confirmed Selectors Roster */}
             <div className="bg-[#12121a] p-3 border border-[#20202c] mb-4">
               <div className="text-[10px] text-neutral-400 uppercase tracking-widest flex items-center gap-1 mb-2">
                 <UserCheck size={12} className="text-emerald-400" />
@@ -359,7 +171,7 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
               </div>
             </div>
 
-            {/* Notes / Technical Setup */}
+            {/* Notes / Technical Specs */}
             {inspectEvent.notes && (
               <div className="bg-[#12121a] p-3 border border-[#20202c] mb-5 text-xs text-neutral-300 leading-relaxed">
                 <div className="text-[10px] text-neutral-400 uppercase tracking-widest flex items-center gap-1 mb-1">
@@ -370,7 +182,7 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
               </div>
             )}
 
-            {/* External Links Bar */}
+            {/* Action Links Bar */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-[#222230]">
               <div className="text-[10px] text-neutral-400">
                 Official Verification: <span className="text-white font-semibold">{inspectEvent.officialSource}</span>
@@ -406,22 +218,34 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
   );
 };
 
-// Helper to render individual marquee node
-function renderTickerNode(
-  event: LiveEventEntry, 
-  onClickInspect: () => void,
-  isAriaHidden = false
-) {
+// Component to render individual ticker node with enlarged mobile dimensions and official logos
+interface TickerItemProps {
+  event: LiveEventEntry;
+  onInspect: () => void;
+  isAriaHidden?: boolean;
+}
+
+const TickerItem: React.FC<TickerItemProps> = ({ event, onInspect, isAriaHidden = false }) => {
   const statusConfig = STATUS_STYLE_CONFIG[event.status];
 
   return (
     <div
-      key={`${event.id}${isAriaHidden ? '-dup' : ''}`}
-      className="flex items-center gap-3 whitespace-nowrap cursor-pointer group/item hover:opacity-90"
-      onClick={onClickInspect}
+      className="flex items-center gap-3 sm:gap-4 whitespace-nowrap cursor-pointer group/item hover:opacity-95 transition-opacity py-1"
+      onClick={onInspect}
+      role="button"
+      tabIndex={isAriaHidden ? -1 : 0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onInspect();
+        }
+      }}
     >
+      {/* Official Verified Club/Festival Logo Emblem */}
+      <OfficialEventLogo badge={event.clubBadge} size="md" />
+
       {/* Verification Status Pill */}
-      <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] font-mono font-bold uppercase tracking-wider border ${
+      <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] sm:text-[10px] font-mono font-bold uppercase tracking-wider border shrink-0 ${
         statusConfig?.badgeBg || 'bg-neutral-900'
       } ${statusConfig?.badgeBorder || 'border-neutral-700'} ${statusConfig?.badgeText || 'text-neutral-300'}`}>
         <span className={`w-1.5 h-1.5 rounded-full ${statusConfig?.dotColor || 'bg-neutral-500'}`} />
@@ -429,42 +253,42 @@ function renderTickerNode(
       </span>
 
       {/* Destination Badge */}
-      <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 bg-[#14141d] text-neutral-300 border border-[#252535]">
+      <span className="text-[10px] sm:text-[11px] font-mono uppercase px-2 py-0.5 bg-[#14141d] text-neutral-300 border border-[#252535] shrink-0">
         {event.destination.split(',')[0].toUpperCase()}
       </span>
 
-      {/* Event Name */}
-      <span className="text-white font-mono font-bold text-[11px] sm:text-[12px] group-hover/item:text-red-400 transition-colors flex items-center gap-1">
+      {/* Enlarged Event Name for Smartphones (~16px on mobile, bold condensed club font) */}
+      <span className="text-white font-display font-black text-[15px] sm:text-[16px] md:text-[18px] tracking-wide group-hover/item:text-red-400 transition-colors uppercase">
         {event.eventName}
       </span>
 
-      {/* Confirmed Artists */}
-      <span className="text-neutral-300 font-mono text-[11px] flex items-center gap-1">
-        <span className="text-neutral-400 text-[10px]">LINE-UP:</span>
-        <strong className="text-yellow-400 font-medium">
+      {/* Confirmed Selectors */}
+      <span className="text-neutral-300 font-mono text-[11px] sm:text-[12px] flex items-center gap-1.5 shrink-0">
+        <span className="text-neutral-400 text-[9px] uppercase tracking-wider">SELECTORS:</span>
+        <strong className="text-yellow-400 font-semibold">
           {event.headliners.slice(0, 2).join(' · ')}
         </strong>
       </span>
 
       {/* Date */}
-      <span className="text-neutral-400 font-mono text-[10px] bg-[#121218] px-1.5 py-0.5 border border-[#222230]">
+      <span className="text-neutral-300 font-mono text-[10px] sm:text-[11px] bg-[#121218] px-2 py-0.5 border border-[#222230] shrink-0">
         {event.dateDisplay}
       </span>
 
-      {/* Direct Outlink icon */}
+      {/* External Link */}
       <a
         href={event.sourceUrl}
         target="_blank"
         rel="noopener noreferrer"
         onClick={(e) => e.stopPropagation()}
-        className="text-neutral-400 hover:text-white transition-colors p-1"
+        className="text-neutral-400 hover:text-white transition-colors p-1 shrink-0"
         title={`Open official source (${event.officialSource})`}
       >
-        <ExternalLink size={11} />
+        <ExternalLink size={12} />
       </a>
 
-      {/* Separator */}
-      <span className="text-[#333342] font-black">///</span>
+      {/* Industrial Separator */}
+      <span className="text-[#3a3a4c] font-black text-sm select-none pl-2">///</span>
     </div>
   );
-}
+};

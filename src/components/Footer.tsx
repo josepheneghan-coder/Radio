@@ -169,8 +169,13 @@ export const Footer: React.FC = () => {
 
         {/* Bottom Bar & Impressum */}
         <div className="pt-8 border-t border-neutral-900 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[11px] text-neutral-500">
-          <div>
-            © 2026 KONTROLL RADIO · SUB-FREQUENCY INDEPENDENT BROADCAST.
+          <div className="flex items-center gap-3">
+            <img
+              src="/assets/aistudio/images_lllogo-removebg-preview_46d3cb66.png"
+              alt="RADIO KONTROLLE Logo"
+              className="h-6 w-auto object-contain opacity-80"
+            />
+            <span>© 2026 RADIO KONTROLLE · SUB-FREQUENCY INDEPENDENT BROADCAST.</span>
           </div>
 
           <div className="flex items-center gap-4">
@@ -190,9 +195,9 @@ export const Footer: React.FC = () => {
           <div className="mt-6 p-4 bg-neutral-950 border border-neutral-800 font-mono text-[11px] text-neutral-400">
             <div className="font-bold text-white mb-1">ANGABEN GEMÄSS § 5 TMG / IMPRESSUM:</div>
             <p>
-              KONTROLL Radio gGmbH i.G. · Holzmarktstraße 25, 10243 Berlin · Vertreten durch: Redaktion & Studio Kollektiv.
+              RADIO KONTROLLE gGmbH i.G. · Holzmarktstraße 25, 10243 Berlin · Vertreten durch: Redaktion & Studio Kollektiv.
               <br />
-              Kontakt: studio@kontroll-radio.fm · Lizenzierung: GEMA/GVL gemeldeter Webradio-Sender. Keine kommerzielle Datenweitergabe.
+              Kontakt: studio@radiokontrolle.fm · Lizenzierung: GEMA/GVL gemeldeter Webradio-Sender. Keine kommerzielle Datenweitergabe.
             </p>
           </div>
         )}

@@ -28,7 +28,7 @@ const STICKER_TEMPLATES: Omit<StickerItem, 'id' | 'x' | 'y'>[] = [
     rotation: 7,
   },
   {
-    text: 'KONTROLL RADIO',
+    text: 'RADIO KONTROLLE',
     subtext: '104.5 MHz BERLIN',
     type: 'graffiti',
     bgColor: '#FF0055',
@@ -122,7 +122,7 @@ export const HeroCollage: React.FC<HeroCollageProps> = ({ onTuneIn, isPlaying })
           </span>
           <span className="hidden sm:inline">·</span>
           <span className="text-black/80 font-semibold uppercase">
-            KONTROLL RADIO · SUB-FREQUENCY AUDIO
+            RADIO KONTROLLE · SUB-FREQUENCY AUDIO
           </span>
           <span>·</span>
           <span className="font-semibold text-neutral-800">104.5 MHz SATELLITE RELAY</span>
@@ -189,7 +189,7 @@ export const HeroCollage: React.FC<HeroCollageProps> = ({ onTuneIn, isPlaying })
 
           {/* Monumental Display Headline */}
           <h1 className="font-display font-black text-hero-fluid uppercase text-white tracking-[-0.04em] select-none max-w-5xl leading-[0.88] drop-shadow-md">
-            <span>KONTROLL</span>
+            <span>RADIO KONTROLLE</span>
             <span className="text-yellow-400 block tracking-[-0.045em]">
               SUB-FREQUENCY
             </span>

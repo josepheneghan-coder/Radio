@@ -112,7 +112,7 @@ export const EqualizerVisualizer: React.FC<EqualizerVisualizerProps> = ({
       className={`relative flex items-center justify-center bg-[#070709] border border-neutral-800 rounded px-2 py-1 ${className}`}
       title={
         isPlaying && isLive
-          ? 'KONTROLL Realtime Spectrum Reactor · Segmented LED'
+          ? 'RADIO KONTROLLE Realtime Spectrum Reactor · Segmented LED'
           : 'Reactor on standby'
       }
     >

@@ -5,15 +5,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header';
-import { LiveBoothStream } from './components/LiveBoothStream';
+import { PersistentAudioPlayer } from './components/PersistentAudioPlayer';
 import { ShowsArchiveGrid } from './components/ShowsArchiveGrid';
 import { ScheduleTimetable } from './components/ScheduleTimetable';
 import { MerchSection } from './components/MerchSection';
 import { AboutManifesto } from './components/AboutManifesto';
 import { Footer } from './components/Footer';
-import { PersistentAudioPlayer } from './components/PersistentAudioPlayer';
 import { UndergroundReactor } from './components/UndergroundReactor';
 import { LiveEventTicker } from './components/LiveEventTicker';
+import { DispatchLog } from './components/DispatchLog';
+import { HeroRadioPlayer } from './components/HeroRadioPlayer';
+import { StudioSurveillance } from './components/StudioSurveillance';
 import { TracklistModal } from './components/TracklistModal';
 import { CHANNELS, SHOWS_DATA } from './data/radioData';
 import { Channel, Show, StreamStatus } from './types/radio';
@@ -107,26 +109,44 @@ export default function App() {
         onNavigate={handleNavigate}
       />
 
-      {/* Main Content Sections: Live Event Ticker above Underground Reactor */}
+      {/* Main Content Sections: Exact layout order */}
       <main className="flex-1 overflow-x-hidden">
-        {/* Global Verified Electronic Music Live Event Ticker */}
+        {/* 1. Live Event Ticker & Banner */}
         <LiveEventTicker onNavigate={handleNavigate} />
 
-        {/* 1. Master Audio Reactor & Equalizer (Mobile-First: Music First) */}
+        {/* 2. Equalizer Visualizer (Pure Animation — No text, No dB scales, No controls) */}
         <UndergroundReactor
           isPlaying={isPlaying}
           streamStatus={streamStatus}
-          onTogglePlay={handleTogglePlay}
         />
 
-        {/* 2. Community Dispatch Log & Studio Surveillance Cam */}
-        <LiveBoothStream
-          channel={activeChannel}
-          isPlaying={isPlaying}
-          streamStatus={streamStatus}
-          onTogglePlay={handleTogglePlay}
-          onOpenTracklistModal={() => setSelectedShowForModal(SHOWS_DATA[0])}
-        />
+        {/* 3. High-Density 2-Column Broadcast Suite (Desktop lg:grid-cols-12, Mobile streamlined) */}
+        <section className="w-full bg-[#070709] border-b border-[#1c1c24] py-3 sm:py-4 px-2 sm:px-4 md:px-6 select-none">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 items-stretch">
+              {/* Left Column (ca. 7 cols): CCTV Feed + Compact Transmission Player */}
+              <div className="lg:col-span-7 flex flex-col gap-3">
+                <StudioSurveillance
+                  channel={activeChannel}
+                  isPlaying={isPlaying}
+                  streamStatus={streamStatus}
+                  onOpenTracklistModal={() => setSelectedShowForModal(SHOWS_DATA[0])}
+                />
+                <HeroRadioPlayer
+                  isPlaying={isPlaying}
+                  streamStatus={streamStatus}
+                  activeChannel={activeChannel}
+                  onTogglePlay={handleTogglePlay}
+                />
+              </div>
+
+              {/* Right Column (ca. 5 cols): Dispatch Log (Desktop full scrollable feed / Mobile compact vertical action ticker) */}
+              <div className="lg:col-span-5 flex flex-col">
+                <DispatchLog className="h-full" />
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Shows & Radio Picks Archive Grid */}
         <ShowsArchiveGrid

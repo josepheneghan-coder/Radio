@@ -4,10 +4,10 @@ import { STREAM_CONFIG } from '../config/streamConfig';
 export const CHANNELS: Channel[] = [
   {
     id: 'main',
-    name: 'MAIN TRANSMISSION · KONTROLL PRIMARY',
+    name: 'MAIN TRANSMISSION · RADIO KONTROLLE PRIMARY',
     frequency: '104.5 FM',
-    currentShow: 'KONTROLL TRANSMISSIONS · RESIDENT SELECTORS',
-    dj: 'KONTROLL RESIDENTS',
+    currentShow: 'RADIO KONTROLLE TRANSMISSIONS · RESIDENT SELECTORS',
+    dj: 'RADIO KONTROLLE RESIDENTS',
     genre: 'Underground Electronic · Deep Techno · Minimal',
     location: 'Berlin (Kreuzberg)',
     bitrate: '320 kbps Stream',
@@ -221,7 +221,7 @@ export const INITIAL_STICKERS: StickerItem[] = [
   },
   {
     id: 'st-5',
-    text: 'KONTROLL',
+    text: 'RADIO KONTROLLE',
     subtext: 'BROADCAST SYSTEM · BERLIN',
     type: 'graffiti',
     bgColor: '#E60000',
@@ -246,7 +246,7 @@ export const INITIAL_STICKERS: StickerItem[] = [
 export const MERCH_ITEMS: MerchItem[] = [
   {
     id: 'm-1',
-    title: 'KONTROLL BOX-CUT HEAVYWEIGHT HOODIE',
+    title: 'RADIO KONTROLLE BOX-CUT HEAVYWEIGHT HOODIE',
     price: '€ 75.00',
     category: 'Apparel',
     imageUrl: '/images/radio_merch_hoodie_1792936493446.jpg',

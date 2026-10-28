@@ -30,6 +30,7 @@ export interface LiveEventEntry {
   lastVerified: string;
   notes?: string;
   featured?: boolean;
+  clubBadge?: 'berghain' | 'tresor' | 'dc10' | 'amnesia' | 'pacha' | 'hi' | 'zamna' | 'timewarp' | 'awakenings' | 'scorpios' | 'printworks' | 'movement' | 'warung' | 'savaya' | 'sonus' | 'afterlife';
 }
 
 export const LIVE_EVENTS_DATA: LiveEventEntry[] = [
@@ -54,7 +55,8 @@ export const LIVE_EVENTS_DATA: LiveEventEntry[] = [
     ticketUrl: 'https://www.circolocoibiza.com',
     lastVerified: '2025-04-18',
     notes: 'Legendary Monday marathon at DC-10. Sven Väth and Keinemusik announced for select key Terrace dates.',
-    featured: true
+    featured: true,
+    clubBadge: 'dc10'
   },
   {
     id: 'ev-ibz-02',
@@ -77,7 +79,8 @@ export const LIVE_EVENTS_DATA: LiveEventEntry[] = [
     ticketUrl: 'https://www.hiibiza.com',
     lastVerified: '2025-04-15',
     notes: 'Black Coffee anchors the Theatre every Saturday night with Damian Lazarus presiding in the Club Room.',
-    featured: true
+    featured: true,
+    clubBadge: 'hi'
   },
   {
     id: 'ev-ibz-03',
@@ -100,7 +103,8 @@ export const LIVE_EVENTS_DATA: LiveEventEntry[] = [
     ticketUrl: 'https://pacha.com',
     lastVerified: '2025-04-17',
     notes: 'The iconic Sunday format: Solomun invites one chosen selector per night culminating in an extended back-to-back.',
-    featured: true
+    featured: true,
+    clubBadge: 'pacha'
   },
   {
     id: 'ev-ibz-04',
@@ -123,7 +127,8 @@ export const LIVE_EVENTS_DATA: LiveEventEntry[] = [
     ticketUrl: 'https://www.amnesia.es',
     lastVerified: '2025-04-12',
     notes: 'High-octane warehouse techno return with custom spatial lighting and K-Array sound configuration.',
-    featured: true
+    featured: true,
+    clubBadge: 'amnesia'
   },
   {
     id: 'ev-tlm-01',
@@ -145,7 +150,8 @@ export const LIVE_EVENTS_DATA: LiveEventEntry[] = [
     ticketUrl: 'https://zamnafestival.com/events/keinemusik',
     lastVerified: '2025-04-14',
     notes: 'The hallmark open-air sunrise session under the iconic wooden Zamna stage sculpture.',
-    featured: true
+    featured: true,
+    clubBadge: 'zamna'
   },
   {
     id: 'ev-tlm-02',
@@ -166,7 +172,8 @@ export const LIVE_EVENTS_DATA: LiveEventEntry[] = [
     sourceUrl: 'https://after.life',
     ticketUrl: 'https://zamnafestival.com',
     lastVerified: '2025-04-10',
-    notes: 'Two nights across the cenote lake with high-resolution kinetic visual installations.'
+    notes: 'Two nights across the cenote lake with high-resolution kinetic visual installations.',
+    clubBadge: 'afterlife'
   },
   {
     id: 'ev-myk-01',
@@ -189,7 +196,8 @@ export const LIVE_EVENTS_DATA: LiveEventEntry[] = [
     ticketUrl: 'https://www.scorpiosmykonos.com',
     lastVerified: '2025-04-16',
     notes: 'Sunset-to-night rituals facing the Aegean Sea with ceremonial acoustic drumming and deep electronics.',
-    featured: true
+    featured: true,
+    clubBadge: 'scorpios'
   },
   {
     id: 'ev-myk-02',
@@ -233,7 +241,8 @@ export const LIVE_EVENTS_DATA: LiveEventEntry[] = [
     ticketUrl: 'https://www.eventim.com.br',
     lastVerified: '2025-04-18',
     notes: 'The Brazilian chapter of the Mannheim titan featuring monolithic lighting caves and brutalist audio.',
-    featured: true
+    featured: true,
+    clubBadge: 'timewarp'
   },
   {
     id: 'ev-brz-02',
@@ -255,7 +264,8 @@ export const LIVE_EVENTS_DATA: LiveEventEntry[] = [
     sourceUrl: 'https://warungclub.com',
     ticketUrl: 'https://warungclub.com',
     lastVerified: '2025-04-11',
-    notes: 'Celebrated open-air wooden balcony facing the Atlantic coast. Sunrise sets run past 09:00 BRT.'
+    notes: 'Celebrated open-air wooden balcony facing the Atlantic coast. Sunrise sets run past 09:00 BRT.',
+    clubBadge: 'warung'
   },
   {
     id: 'ev-asi-01',
@@ -278,7 +288,8 @@ export const LIVE_EVENTS_DATA: LiveEventEntry[] = [
     ticketUrl: 'https://www.savaya.com',
     lastVerified: '2025-04-17',
     notes: 'Dramatic 100-meter limestone cliff cantilever suspended over the Indian Ocean.',
-    featured: true
+    featured: true,
+    clubBadge: 'savaya'
   },
   {
     id: 'ev-asi-02',
@@ -322,7 +333,8 @@ export const LIVE_EVENTS_DATA: LiveEventEntry[] = [
     ticketUrl: 'https://www.time-warp.de/tickets',
     lastVerified: '2025-04-18',
     notes: 'The undisputed cathedral of techno. 19 straight hours across 6 halls with subterranean sensory design.',
-    featured: true
+    featured: true,
+    clubBadge: 'timewarp'
   },
   {
     id: 'ev-fst-02',
@@ -345,7 +357,8 @@ export const LIVE_EVENTS_DATA: LiveEventEntry[] = [
     ticketUrl: 'https://www.awakenings.com/en/events',
     lastVerified: '2025-04-17',
     notes: 'The world\'s largest dedicated techno festival with 9 outdoor and tented stages and 24-hour camping.',
-    featured: true
+    featured: true,
+    clubBadge: 'awakenings'
   },
   {
     id: 'ev-fst-03',
@@ -390,7 +403,8 @@ export const LIVE_EVENTS_DATA: LiveEventEntry[] = [
     sourceUrl: 'https://movementfestival.com',
     ticketUrl: 'https://movementfestival.com',
     lastVerified: '2025-04-16',
-    notes: 'The spiritual birthplace of techno. Subterranean Concrete stage anchored by Richie Hawtin and Detroit originals.'
+    notes: 'The spiritual birthplace of techno. Subterranean Concrete stage anchored by Richie Hawtin and Detroit originals.',
+    clubBadge: 'movement'
   },
   {
     id: 'ev-fst-05',
@@ -412,7 +426,8 @@ export const LIVE_EVENTS_DATA: LiveEventEntry[] = [
     sourceUrl: 'https://www.sonus-festival.com',
     ticketUrl: 'https://www.sonus-festival.com/tickets',
     lastVerified: '2025-04-14',
-    notes: 'Open-air coastal marathon directly on the Adriatic shore with daily boat parties and sunrise sessions.'
+    notes: 'Open-air coastal marathon directly on the Adriatic shore with daily boat parties and sunrise sessions.',
+    clubBadge: 'sonus'
   },
   {
     id: 'ev-fst-06',
@@ -435,6 +450,73 @@ export const LIVE_EVENTS_DATA: LiveEventEntry[] = [
     ticketUrl: 'https://www.afrikaburn.com',
     lastVerified: '2025-04-08',
     notes: 'Semi-arid desert gathering with mobile rig stages and deep ancestral percussion grooves.'
+  },
+  {
+    id: 'ev-ber-01',
+    eventName: 'BERGHAIN KLUBNACHT · WEEKEND MARATHON',
+    organizer: 'Berghain / Ostgut GmbH',
+    region: 'FESTIVALS',
+    destination: 'Berlin-Friedrichshain, Germany',
+    country: 'Germany',
+    city: 'Berlin',
+    venue: 'Berghain & Panorama Bar (Am Wriezener Bahnhof)',
+    dateDisplay: 'EVERY SATURDAY 23:59 — MON 10:00 CET',
+    startDate: '2025-05-03',
+    artistsConfirmed: ['Ben Klock', 'Marcel Dettmann', 'Steffi', 'Boris', 'Norman Nodge', 'Rødhåd'],
+    headliners: ['Ben Klock', 'Marcel Dettmann', 'Rødhåd'],
+    genre: 'Berliner Bunker Techno / Hypnotic Raw',
+    status: 'LINE-UP CONFIRMED',
+    officialSource: 'Berghain Program & Resident Advisor',
+    sourceUrl: 'https://www.berghain.berlin/en/program/',
+    lastVerified: '2025-04-20',
+    notes: 'Legendary subterranean acoustics powered by custom Funktion-One array. Strict door policy, non-stop 34-hour weekend marathon.',
+    featured: true,
+    clubBadge: 'berghain'
+  },
+  {
+    id: 'ev-ber-02',
+    eventName: 'TRESOR BERLIN: NEW HEADQUARTERS VAULT',
+    organizer: 'Tresor Records Berlin',
+    region: 'FESTIVALS',
+    destination: 'Berlin-Mitte, Germany',
+    country: 'Germany',
+    city: 'Berlin',
+    venue: 'Kraftwerk / Tresor Vault (Köpenicker Str. 70)',
+    dateDisplay: 'EVERY WEDNESDAY, FRIDAY & SATURDAY',
+    startDate: '2025-05-02',
+    artistsConfirmed: ['Surgeon', 'Robert Hood', 'DJ Stingray 313', 'Helena Hauff', 'Donato Dozzy'],
+    headliners: ['Surgeon', 'Robert Hood', 'Helena Hauff'],
+    genre: 'Detroit-Berlin Axis / Raw Industrial Techno',
+    status: 'CONFIRMED',
+    officialSource: 'Tresor Berlin Official Archive',
+    sourceUrl: 'https://tresorberlin.com',
+    lastVerified: '2025-04-19',
+    notes: 'Original safe-deposit vault behind monolithic 1920s power plant walls. Unfiltered strobe and low ceiling fog.',
+    featured: true,
+    clubBadge: 'tresor'
+  },
+  {
+    id: 'ev-lon-01',
+    eventName: 'DRUMSHEDS & PRINTWORKS LONDON: FINAL SERIES',
+    organizer: 'Broadwick Live / Printworks London',
+    region: 'FESTIVALS',
+    destination: 'London, United Kingdom',
+    country: 'United Kingdom',
+    city: 'London',
+    venue: 'Drumsheds / Printworks Cultural Space',
+    dateDisplay: 'OCT 10 — DEC 31, 2025',
+    startDate: '2025-10-10',
+    endDate: '2025-12-31',
+    artistsConfirmed: ['Bicep Chroma AV', 'Overmono', 'Four Tet', 'Amelie Lens', 'Modeselektor'],
+    headliners: ['Bicep Chroma AV', 'Overmono', 'Four Tet'],
+    genre: 'UK Techno / Deconstructed Warehouse',
+    status: 'LINE-UP CONFIRMED',
+    officialSource: 'Broadwick Live Official Portal',
+    sourceUrl: 'https://printworkslondon.co.uk',
+    lastVerified: '2025-04-16',
+    notes: 'Industrial printing press architectural corridor with monolithic linear LED ceiling tracks and d&b audiotechnik array.',
+    featured: true,
+    clubBadge: 'printworks'
   }
 ];
 

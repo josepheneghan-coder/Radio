@@ -30,9 +30,9 @@ export const STREAM_CONFIG: StreamConfig = {
   // Audio source origin (managed independently from visual branding)
   AUDIO_SOURCE_ORIGIN: 'Ibiza Global Radio Live Stream Feed',
 
-  // Visible Station Metadata (KONTROLL brand identity)
-  STATION_NAME: 'KONTROLL · SUB-FREQ INDIE RADIO',
-  PRIMARY_FEED_NAME: 'KONTROLL TRANSMISSION',
+  // Visible Station Metadata (RADIO KONTROLLE brand identity)
+  STATION_NAME: 'RADIO KONTROLLE · SUB-FREQ INDIE RADIO',
+  PRIMARY_FEED_NAME: 'RADIO KONTROLLE TRANSMISSION',
   FREQUENCY: '104.5 FM',
   LOCATION: 'Berlin Studio · Container #04',
   BITRATE: '320 kbps Icecast',
