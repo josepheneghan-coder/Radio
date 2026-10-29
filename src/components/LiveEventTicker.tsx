@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { 
   LIVE_EVENTS_DATA, 
   LiveEventEntry 
@@ -9,53 +9,22 @@ interface LiveEventTickerProps {
 }
 
 export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
-  const trackRef = useRef<HTMLDivElement>(null);
-  const segmentRef = useRef<HTMLDivElement>(null);
-
-  // Hardware Compositor Animation: Sets exact linear speed (28px/s) on GPU compositor
-  // Off-Main-Thread Animation (OMTA) completely eliminates main-thread contention
-  useEffect(() => {
-    const track = trackRef.current;
-    const segment = segmentRef.current;
-    if (!track || !segment) return;
-
-    const computeDuration = () => {
-      const width = segment.getBoundingClientRect().width || segment.offsetWidth;
-      if (width > 0) {
-        // Linear velocity: 28px/s
-        const durationSeconds = width / 28;
-        track.style.setProperty('--ticker-duration', `${durationSeconds.toFixed(1)}s`);
-      }
-    };
-
-    computeDuration();
-    const resizeObserver = new ResizeObserver(() => {
-      computeDuration();
-    });
-    resizeObserver.observe(segment);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, []);
-
   return (
     <div 
-      className="w-full bg-[#f8f8fa] border-y border-neutral-300 text-black select-none relative z-30 transition-colors"
+      className="w-full bg-[#f8f8fa] border-y border-neutral-300 text-black select-none relative z-30 transition-colors pointer-events-none"
       role="region"
       aria-label="RADIO KONTROLLE Live Global Event Ticker"
     >
-      {/* WHITE EVENT BROADCAST — COMPACT STREAMLINED VIEW */}
+      {/* WHITE EVENT BROADCAST — GPU HARDWARE COMPOSITOR STREAM */}
       <div 
-        className="banner-container relative overflow-hidden h-[48px] sm:h-[52px] md:h-[56px] min-h-[48px] sm:min-h-[52px] md:min-h-[56px] flex items-center bg-gradient-to-r from-[#f0f0f4] via-[#ffffff] to-[#f0f0f4] cursor-default"
+        className="banner-container relative overflow-hidden h-[48px] sm:h-[52px] md:h-[56px] min-h-[48px] sm:min-h-[52px] md:min-h-[56px] flex items-center bg-gradient-to-r from-[#f0f0f4] via-[#ffffff] to-[#f0f0f4] cursor-default pointer-events-none"
       >
         {/* Foreground Scrolling Content Layer (Off-Main-Thread GPU Compositor Animation) */}
         <div 
-          ref={trackRef}
-          className="ticker-track-css relative z-10 flex items-center shrink-0"
+          className="ticker-track-css relative z-10 flex items-center shrink-0 pointer-events-none"
         >
           {/* Segment 1 */}
-          <div ref={segmentRef} className="flex items-center shrink-0">
+          <div className="flex items-center shrink-0">
             {LIVE_EVENTS_DATA.map((event) => (
               <TickerItem 
                 key={event.id} 

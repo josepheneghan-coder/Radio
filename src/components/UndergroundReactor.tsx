@@ -54,9 +54,34 @@ export const UndergroundReactor: React.FC<UndergroundReactorProps> = ({
       return 64;
     };
 
-    const render = () => {
+    // Track viewport visibility to sleep canvas when scrolled past
+    let isVisible = true;
+    const observer = new IntersectionObserver(([entry]) => {
+      isVisible = entry.isIntersecting;
+    }, { threshold: 0.05 });
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    let lastRenderTime = 0;
+    const render = (timestamp: number) => {
+      if (!isVisible || document.hidden) {
+        animId = requestAnimationFrame(render);
+        return;
+      }
+
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+
+      // Throttle standby frames to 30fps to leave full GPU/CPU headroom for smooth compositor scrolling
+      const minInterval = (!isPlaying || isMobile) ? 30 : 14;
+      if (timestamp - lastRenderTime < minInterval) {
+        animId = requestAnimationFrame(render);
+        return;
+      }
+      lastRenderTime = timestamp;
+
       const w = Math.floor(canvas.width / dpr);
       const h = Math.floor(canvas.height / dpr);
 
@@ -122,29 +147,17 @@ export const UndergroundReactor: React.FC<UndergroundReactorProps> = ({
             // Segment Color Progression (Zinc/White -> Amber -> Dark Red -> Signal Red -> Luminous Hot Red)
             if (s >= 22) {
               ctx.fillStyle = '#ff2a5f';
-              if (isRave) {
-                ctx.shadowColor = '#ff2a5f';
-                ctx.shadowBlur = 6;
-              }
             } else if (s >= 19) {
               ctx.fillStyle = '#dc2626';
-              if (isRave) {
-                ctx.shadowColor = '#dc2626';
-                ctx.shadowBlur = 4;
-              }
             } else if (s >= 16) {
               ctx.fillStyle = '#991b1b';
-              ctx.shadowBlur = 0;
             } else if (s >= 12) {
               ctx.fillStyle = isRave ? '#f59e0b' : '#f4f4f5';
-              ctx.shadowBlur = 0;
             } else {
               ctx.fillStyle = i % 4 === 0 ? '#ffffff' : '#d4d4d8';
-              ctx.shadowBlur = 0;
             }
 
             ctx.fillRect(x, segY, barWidth, segHeight);
-            ctx.shadowBlur = 0;
           } else {
             // Dark inactive LED segment
             ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
@@ -182,6 +195,7 @@ export const UndergroundReactor: React.FC<UndergroundReactorProps> = ({
 
     return () => {
       cancelAnimationFrame(animId);
+      observer.disconnect();
       window.removeEventListener('resize', updateCanvasSize);
     };
   }, [isPlaying, streamStatus]);

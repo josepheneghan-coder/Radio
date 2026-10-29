@@ -125,11 +125,14 @@ body {
   background: #ffffff;
 }
 
-/* Clean Mobile-Optimized Marquee Banner */
+/* Clean Mobile-Optimized Marquee Banner — Isolated Stacking Context */
 .banner-container {
-  contain: paint;
+  overflow: hidden;
+  contain: layout paint;
+  isolation: isolate;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  pointer-events: none;
 }
 
 /* Hardware Compositor Marquee (Off-Main-Thread Animation on GPU for 120Hz/60Hz VRR displays) */
@@ -148,15 +151,10 @@ body {
   will-change: transform;
   transform: translate3d(0, 0, 0);
   -webkit-transform: translate3d(0, 0, 0);
-  animation: ticker-marquee var(--ticker-duration, 120s) linear infinite;
+  animation: ticker-marquee 70s linear infinite;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .banner-container:hover .ticker-track-css {
-    animation-play-state: paused;
-  }
+  pointer-events: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
