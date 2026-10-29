@@ -44,9 +44,9 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
       role="region"
       aria-label="RADIO KONTROLLE Live Global Event Ticker"
     >
-      {/* WHITE EVENT BROADCAST — GPU HARDWARE COMPOSITOR STREAM (NO WATERMARK, ZERO CLICKS/LINKS) */}
+      {/* WHITE EVENT BROADCAST — GPU HARDWARE COMPOSITOR STREAM (STREAMLINED COMPACT VIEW) */}
       <div 
-        className="banner-container relative overflow-hidden h-[74px] sm:h-[82px] md:h-[88px] min-h-[74px] sm:min-h-[82px] md:min-h-[88px] flex items-center bg-gradient-to-r from-[#f0f0f4] via-[#ffffff] to-[#f0f0f4] cursor-default"
+        className="banner-container relative overflow-hidden h-[58px] sm:h-[64px] md:h-[68px] min-h-[58px] sm:min-h-[64px] md:min-h-[68px] flex items-center bg-gradient-to-r from-[#f0f0f4] via-[#ffffff] to-[#f0f0f4] cursor-default"
       >
         {/* Foreground Scrolling Content Layer (Off-Main-Thread GPU Compositor Animation) */}
         <div 
@@ -77,52 +77,48 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
   );
 };
 
-// Component to render individual ticker node in pure typography broadcast layout (non-interactive, no links/clicks)
+// Component to render individual ticker node strictly focusing on event name, date, and venue
 interface TickerItemProps {
   event: LiveEventEntry;
 }
 
 const TickerItem: React.FC<TickerItemProps> = ({ event }) => {
   return (
-    <div className="flex items-center whitespace-nowrap cursor-default py-1 pr-8 sm:pr-14 shrink-0 select-none">
-      {/* Pure Typography Broadcast Layout — High Density & Sleek */}
-      <div className="flex flex-col justify-center gap-0.5 sm:gap-1 leading-tight">
+    <div className="flex items-center whitespace-nowrap cursor-default py-0.5 pr-8 sm:pr-12 shrink-0 select-none">
+      {/* Pure Typography Broadcast Layout — Streamlined & Compact */}
+      <div className="flex flex-col justify-center gap-0.5 leading-tight">
         {/* Top: Status Label (LIVE in Magenta + ONLINE BROADCAST in black box) */}
-        <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1.5 font-mono font-black text-[9px] sm:text-[10px] text-[#db2777] uppercase tracking-wider">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <span className="flex items-center gap-1 font-mono font-black text-[8.5px] sm:text-[9.5px] text-[#db2777] uppercase tracking-wider">
             <span className="w-1.5 h-1.5 rounded-full bg-[#db2777] inline-block shrink-0" />
             LIVE
           </span>
-          <span className="text-neutral-400 text-[9px] font-bold">&</span>
-          <span className="bg-black text-white px-1.5 py-0.5 text-[8px] sm:text-[9px] font-mono font-bold tracking-widest uppercase shrink-0">
+          <span className="text-neutral-400 text-[8px] font-bold">&</span>
+          <span className="bg-black text-white px-1.5 py-0.5 text-[7.5px] sm:text-[8.5px] font-mono font-bold tracking-widest uppercase shrink-0">
             ONLINE BROADCAST
           </span>
-          <span className="text-neutral-500 text-[8.5px] sm:text-[9.5px] font-mono uppercase tracking-wide">
+          <span className="text-neutral-500 text-[8px] sm:text-[9px] font-mono uppercase tracking-wide">
             · {event.status}
           </span>
         </div>
 
-        {/* Middle: Big Black Bold Display Typography + Solid Black Destination Box */}
+        {/* Middle: Big Black Bold Display Typography + Destination Box */}
         <div className="flex items-center gap-2 sm:gap-2.5">
-          <h4 className="font-display font-black text-black text-lg sm:text-xl md:text-2xl tracking-tight uppercase leading-none">
+          <h4 className="font-display font-black text-black text-base sm:text-lg md:text-xl tracking-tight uppercase leading-none">
             {event.eventName}
           </h4>
-          <span className="bg-black text-white px-1.5 sm:px-2 py-0.5 text-[11px] sm:text-xs font-mono font-black tracking-wider uppercase shrink-0">
+          <span className="bg-black text-white px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-[11px] font-mono font-black tracking-wider uppercase shrink-0">
             {event.destination.split(',')[0].toUpperCase()}
           </span>
         </div>
 
-        {/* Bottom: Date & Venue Badges in compact solid black surfaces with white text */}
-        <div className="flex items-center gap-1.5 sm:gap-2 text-[9.5px] sm:text-[10.5px] font-mono font-bold uppercase">
-          <span className="bg-black text-white px-2 py-0.5 shrink-0">
+        {/* Bottom: Strictly Event Date & Venue Badges */}
+        <div className="flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[10px] font-mono font-bold uppercase">
+          <span className="bg-black text-white px-1.5 sm:px-2 py-0.5 shrink-0">
             {event.venue}
           </span>
-          <span className="bg-black text-white px-2 py-0.5 shrink-0">
+          <span className="bg-black text-white px-1.5 sm:px-2 py-0.5 shrink-0">
             {event.dateDisplay}
-          </span>
-          <span className="bg-neutral-800 text-neutral-100 px-2 py-0.5 hidden md:inline-flex items-center gap-1 shrink-0">
-            <span className="text-yellow-400">SELECTORS:</span>
-            <span>{event.headliners.slice(0, 2).join(' · ')}</span>
           </span>
         </div>
       </div>
