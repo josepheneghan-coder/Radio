@@ -1,127 +1,126 @@
-import React, { useRef } from 'react';
-import { 
-  LIVE_EVENTS_DATA, 
-  LiveEventEntry 
-} from '../data/liveEventsData';
+import React from 'react';
+import { LIVE_EVENTS_DATA } from '../data/liveEventsData';
 
 interface LiveEventTickerProps {
   onNavigate?: (sectionId: string) => void;
 }
 
-// Component to render individual ticker node strictly focusing on event name, date, and venue
-// Memoized with React.memo to prevent player audio/visualizer state changes from re-rendering ticker items
-interface TickerItemProps {
-  event: LiveEventEntry;
-}
-
-const TickerItem = React.memo<TickerItemProps>(({ event }) => {
-  return (
-    <div className="flex items-center whitespace-nowrap cursor-default py-1 pr-6 sm:pr-8 shrink-0 select-none">
-      {/* BNG Logo: Hardware-composited wrapper with fixed height (h-6 sm:h-7) and translate3d(0, 0, 0) */}
-      <div 
-        className="mr-2.5 sm:mr-3.5 shrink-0 flex items-center justify-center"
-        style={{ transform: 'translate3d(0, 0, 0)', willChange: 'transform' }}
-      >
-        <img 
-          src="/assets/aistudio/lllogo-removebg-preview__1__14e0ee15.svg"
-          alt="BNG"
-          className="h-6 sm:h-7 w-auto object-contain block select-none pointer-events-none"
-          loading="eager"
-          decoding="async"
-          width="28"
-          height="28"
-        />
-      </div>
-
-      {/* Streamlined Compact View: Strictly Event Name, Venue, Date */}
-      <div className="flex flex-col justify-center gap-1 leading-tight">
-        {/* Event Name */}
-        <h4 className="font-display font-black text-black text-sm sm:text-base md:text-[17px] tracking-tight uppercase leading-none">
-          {event.eventName}
-        </h4>
-
-        {/* Venue & Date */}
-        <div className="flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[10px] font-mono font-bold uppercase">
-          <span className="bg-black text-white px-1.5 py-0.5 shrink-0">
-            {event.venue}
-          </span>
-          <span className="bg-neutral-800 text-neutral-100 px-1.5 py-0.5 shrink-0">
-            {event.dateDisplay}
-          </span>
-        </div>
-      </div>
-      <span className="ml-6 sm:ml-8 text-neutral-300 font-mono text-xs select-none">/</span>
-    </div>
-  );
-});
-
-TickerItem.displayName = 'TickerItem';
-
 export const LiveEventTicker: React.FC<LiveEventTickerProps> = React.memo(() => {
-  const trackRef = useRef<HTMLDivElement>(null);
-
-  // Interaction isolation: Touch events mutate animationPlayState directly on the DOM ref
-  // without triggering any React state updates, re-renders, or event dispatch hitches.
-  const handleTouchStart = () => {
-    if (trackRef.current) {
-      trackRef.current.style.animationPlayState = 'paused';
-    }
+  // Retrieve events from database or fallback to canonical data
+  const tulumEvent = LIVE_EVENTS_DATA.find((e) => e.id === 'ev-tlm-01') || {
+    eventName: 'ZAMNA TULUM · KEINEMUSIK GATHERING',
+    venue: 'Cenote Zamna Tulum',
+    dateDisplay: 'JAN 08, 2026',
   };
 
-  const handleTouchEnd = () => {
-    if (trackRef.current) {
-      trackRef.current.style.animationPlayState = 'running';
-    }
+  const berghainEvent = LIVE_EVENTS_DATA.find((e) => e.id === 'ev-ber-01') || {
+    eventName: 'BERGHAIN KLUBNACHT',
+    venue: 'Berghain & Panorama Bar',
+    dateDisplay: 'EVERY SATURDAY 23:59',
+  };
+
+  const blackCoffeeEvent = LIVE_EVENTS_DATA.find((e) => e.id === 'ev-ibz-02') || {
+    eventName: 'BLACK COFFEE HI IBIZA',
+    venue: 'Hï Ibiza',
+    dateDisplay: 'MAY 17 — OCT 04, 2025',
   };
 
   return (
     <div 
-      className="w-full bg-[#f8f8fa] border-y border-neutral-300 text-black select-none relative z-30"
-      style={{ 
-        contain: 'content',
-        contentVisibility: 'auto'
-      }}
+      className="w-full bg-[#ffffff] border-y border-neutral-300 text-black select-none relative z-30"
       role="region"
-      aria-label="RADIO KONTROLLE Live Global Event Ticker"
+      aria-label="RADIO KONTROLLE Event Banner"
     >
-      {/* WHITE EVENT BROADCAST — GPU HARDWARE COMPOSITOR STREAM */}
-      <div 
-        className="banner-container relative overflow-hidden h-[48px] sm:h-[52px] md:h-[56px] min-h-[48px] sm:min-h-[52px] md:min-h-[56px] flex items-center bg-[#ffffff] cursor-default"
-        style={{ 
-          contain: 'strict',
-          touchAction: 'pan-y'
-        }}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        onTouchCancel={handleTouchEnd}
-      >
-        {/* Foreground Scrolling Content Layer (Off-Main-Thread GPU Compositor Animation) */}
-        <div 
-          ref={trackRef}
-          className="ticker-track-css relative z-10 flex items-center shrink-0"
-          style={{
-            transform: 'translate3d(0, 0, 0)',
-            willChange: 'transform',
-            backfaceVisibility: 'hidden'
-          }}
-        >
-          {/* Segment 1 */}
-          <div className="flex items-center shrink-0">
-            {LIVE_EVENTS_DATA.map((event) => (
-              <TickerItem 
-                key={event.id} 
-                event={event} 
-              />
-            ))}
+      {/* MOBILE DISPLAY (< 768px): Strictly Tulum Live Event (Stationary, Fixed Banner) */}
+      <div className="flex md:hidden items-center justify-center px-3 py-2 w-full min-h-[46px]">
+        <div className="flex items-center justify-center flex-wrap gap-x-2.5 gap-y-1 text-center">
+          {/* Category Tag */}
+          <span className="bg-black text-[#e7fb04] text-[9px] font-mono font-bold px-1.5 py-0.5 tracking-wider uppercase shrink-0">
+            TULUM
+          </span>
+
+          {/* Event Title */}
+          <h4 className="font-display font-black text-black text-xs sm:text-sm tracking-tight uppercase leading-tight">
+            Zamna Tulum · Keinemusik Gathering
+          </h4>
+
+          {/* Venue & Date */}
+          <div className="flex items-center gap-1.5 text-[9px] font-mono font-bold uppercase shrink-0">
+            <span className="bg-black text-white px-1.5 py-0.5 shrink-0">
+              Cenote Zamna
+            </span>
+            <span className="bg-neutral-800 text-neutral-100 px-1.5 py-0.5 shrink-0">
+              JAN 08, 2026
+            </span>
           </div>
-          {/* Segment 2 for seamless infinite marquee loop */}
-          <div className="flex items-center shrink-0" aria-hidden="true">
-            {LIVE_EVENTS_DATA.map((event) => (
-              <TickerItem 
-                key={`${event.id}-dup`} 
-                event={event} 
-              />
-            ))}
+        </div>
+      </div>
+
+      {/* DESKTOP DISPLAY (>= 768px): 3 Events — Tulum, Berghain Klubnacht & Black Coffee Ibiza */}
+      <div className="hidden md:flex items-center justify-between gap-3 lg:gap-5 px-4 lg:px-8 py-2.5 w-full max-w-7xl mx-auto min-h-[50px]">
+        {/* 1. Tulum Event */}
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="bg-black text-[#e7fb04] text-[9px] font-mono font-bold px-1.5 py-0.5 tracking-wider uppercase shrink-0">
+            TULUM
+          </span>
+          <div className="flex items-center gap-2 min-w-0">
+            <h4 className="font-display font-black text-black text-xs lg:text-[14px] tracking-tight uppercase truncate">
+              Zamna Tulum<span className="hidden xl:inline"> · Keinemusik</span>
+            </h4>
+            <div className="flex items-center gap-1.5 text-[9px] lg:text-[10px] font-mono font-bold uppercase shrink-0">
+              <span className="bg-black text-white px-1.5 py-0.5">
+                Cenote Zamna
+              </span>
+              <span className="bg-neutral-800 text-neutral-100 px-1.5 py-0.5">
+                JAN 08, 2026
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Separator */}
+        <span className="text-neutral-300 font-mono text-sm select-none shrink-0">/</span>
+
+        {/* 2. Berghain Klubnacht Berlin */}
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="bg-black text-[#e7fb04] text-[9px] font-mono font-bold px-1.5 py-0.5 tracking-wider uppercase shrink-0">
+            BERLIN
+          </span>
+          <div className="flex items-center gap-2 min-w-0">
+            <h4 className="font-display font-black text-black text-xs lg:text-[14px] tracking-tight uppercase truncate">
+              Berghain Klubnacht
+            </h4>
+            <div className="flex items-center gap-1.5 text-[9px] lg:text-[10px] font-mono font-bold uppercase shrink-0">
+              <span className="bg-black text-white px-1.5 py-0.5">
+                Berghain<span className="hidden xl:inline"> Berlin</span>
+              </span>
+              <span className="bg-neutral-800 text-neutral-100 px-1.5 py-0.5">
+                EVERY SATURDAY<span className="hidden xl:inline"> · 23:59</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Separator */}
+        <span className="text-neutral-300 font-mono text-sm select-none shrink-0">/</span>
+
+        {/* 3. Black Coffee Hï Ibiza */}
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="bg-black text-[#e7fb04] text-[9px] font-mono font-bold px-1.5 py-0.5 tracking-wider uppercase shrink-0">
+            IBIZA
+          </span>
+          <div className="flex items-center gap-2 min-w-0">
+            <h4 className="font-display font-black text-black text-xs lg:text-[14px] tracking-tight uppercase truncate">
+              Black Coffee Hï Ibiza
+            </h4>
+            <div className="flex items-center gap-1.5 text-[9px] lg:text-[10px] font-mono font-bold uppercase shrink-0">
+              <span className="bg-black text-white px-1.5 py-0.5">
+                Hï Ibiza
+              </span>
+              <span className="bg-neutral-800 text-neutral-100 px-1.5 py-0.5">
+                MAY 17 — OCT 04<span className="hidden xl:inline">, 2025</span>
+              </span>
+            </div>
           </div>
         </div>
       </div>
