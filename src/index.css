@@ -132,7 +132,40 @@ body {
   -webkit-backface-visibility: hidden;
 }
 
-/* RAF-Driven Hardware-Accelerated Ticker Track */
+/* Hardware Compositor Marquee (Off-Main-Thread Animation on GPU for 120Hz/60Hz VRR displays) */
+@keyframes ticker-marquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.ticker-track-css {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  animation: ticker-marquee var(--ticker-duration, 120s) linear infinite;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .banner-container:hover .ticker-track-css {
+    animation-play-state: paused;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track-css {
+    animation: none;
+  }
+}
+
+/* RAF-Driven Hardware-Accelerated Ticker Track (Kept for instant revertability) */
 .ticker-track-raf {
   display: flex;
   width: max-content;

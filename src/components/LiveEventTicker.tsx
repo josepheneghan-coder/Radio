@@ -11,68 +11,30 @@ interface LiveEventTickerProps {
 export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
   const trackRef = useRef<HTMLDivElement>(null);
   const segmentRef = useRef<HTMLDivElement>(null);
-  const isHoveredRef = useRef<boolean>(false);
-
-  // Single requestAnimationFrame loop: frame-consistent, zero React state re-renders
+  // Hardware Compositor Animation: Sets exact linear speed (28px/s) on GPU compositor
+  // Off-Main-Thread Animation (OMTA) completely eliminates main-thread JS contention on 120Hz/60Hz VRR displays
   useEffect(() => {
     const track = trackRef.current;
     const segment = segmentRef.current;
     if (!track || !segment) return;
 
-    // Honor prefers-reduced-motion
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      track.style.transform = 'translate3d(0px, 0, 0)';
-      return;
-    }
-
-    // Dynamic measurement with ResizeObserver
-    let segmentWidth = segment.getBoundingClientRect().width || segment.offsetWidth;
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        if (entry.contentRect && entry.contentRect.width > 0) {
-          segmentWidth = entry.target.getBoundingClientRect().width || entry.contentRect.width;
-        }
+    const computeDuration = () => {
+      const width = segment.getBoundingClientRect().width || segment.offsetWidth;
+      if (width > 0) {
+        // Linear velocity: 28px/s (exact match to target speed)
+        const durationSeconds = width / 28;
+        track.style.setProperty('--ticker-duration', `${durationSeconds.toFixed(1)}s`);
       }
+    };
+
+    computeDuration();
+    const resizeObserver = new ResizeObserver(() => {
+      computeDuration();
     });
     resizeObserver.observe(segment);
 
-    let x = 0;
-    let lastTime = performance.now();
-    let animationFrameId: number;
-
-    // Linear speed in pixels per second (uniform across 60Hz, 90Hz, 120Hz)
-    const SPEED_PX_PER_SEC = 28;
-
-    const tick = (now: number) => {
-      const dt = Math.min((now - lastTime) / 1000, 0.1);
-      lastTime = now;
-
-      // Only advance when page is active and not hovering
-      const isPaused = isHoveredRef.current || document.hidden;
-
-      if (!isPaused && segmentWidth > 0) {
-        x -= SPEED_PX_PER_SEC * dt;
-        // Seamless loop wrap: when x <= -segmentWidth, wrap by exact measured width
-        if (x <= -segmentWidth) {
-          x += segmentWidth;
-        }
-        track.style.transform = `translate3d(${x.toFixed(2)}px, 0, 0)`;
-      }
-
-      animationFrameId = requestAnimationFrame(tick);
-    };
-
-    animationFrameId = requestAnimationFrame(tick);
-
-    const handleVisibilityChange = () => {
-      lastTime = performance.now();
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
     return () => {
-      cancelAnimationFrame(animationFrameId);
       resizeObserver.disconnect();
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
@@ -82,22 +44,14 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
       role="region"
       aria-label="RADIO KONTROLLE Live Global Event Ticker"
     >
-      {/* WHITE EVENT BROADCAST — RAF-DRIVEN MARQUEE STREAM (NO WATERMARK, ZERO CLICKS/LINKS) */}
+      {/* WHITE EVENT BROADCAST — GPU HARDWARE COMPOSITOR STREAM (NO WATERMARK, ZERO CLICKS/LINKS) */}
       <div 
         className="banner-container relative overflow-hidden h-[74px] sm:h-[82px] md:h-[88px] min-h-[74px] sm:min-h-[82px] md:min-h-[88px] flex items-center bg-gradient-to-r from-[#f0f0f4] via-[#ffffff] to-[#f0f0f4] cursor-default"
-        onMouseEnter={() => {
-          if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-            isHoveredRef.current = true;
-          }
-        }}
-        onMouseLeave={() => {
-          isHoveredRef.current = false;
-        }}
       >
-        {/* Foreground Scrolling Content Layer (Single moving track driven by RAF) */}
+        {/* Foreground Scrolling Content Layer (Off-Main-Thread GPU Compositor Animation) */}
         <div 
           ref={trackRef}
-          className="ticker-track-raf relative z-10 flex items-center shrink-0"
+          className="ticker-track-css relative z-10 flex items-center shrink-0"
         >
           {/* Segment 1 */}
           <div ref={segmentRef} className="flex items-center shrink-0">
