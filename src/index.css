@@ -132,17 +132,8 @@ body {
   -webkit-backface-visibility: hidden;
 }
 
-/* Ticker marquee animation: Single moving track */
-@keyframes ticker-marquee {
-  0% {
-    transform: translate3d(0, 0, 0);
-  }
-  100% {
-    transform: translate3d(-50%, 0, 0);
-  }
-}
-
-.animate-ticker-marquee {
+/* RAF-Driven Hardware-Accelerated Ticker Track */
+.ticker-track-raf {
   display: flex;
   width: max-content;
   will-change: transform;
@@ -151,17 +142,6 @@ body {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   contain: layout paint;
-  animation: ticker-marquee var(--ticker-duration, 160s) linear infinite;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .group:hover .pause-on-hover {
-    animation-play-state: paused;
-  }
-}
-
-.pause-animation {
-  animation-play-state: paused !important;
 }
 
 .no-scrollbar::-webkit-scrollbar {

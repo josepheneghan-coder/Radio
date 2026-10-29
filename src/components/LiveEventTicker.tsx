@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   ExternalLink, 
   ShieldCheck, 
@@ -23,15 +23,96 @@ interface LiveEventTickerProps {
 export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
   const [inspectEvent, setInspectEvent] = useState<LiveEventEntry | null>(null);
 
+  const trackRef = useRef<HTMLDivElement>(null);
+  const segmentRef = useRef<HTMLDivElement>(null);
+  const isHoveredRef = useRef<boolean>(false);
+  const inspectEventRef = useRef<boolean>(false);
+
+  // Sync inspection modal state with ref to avoid RAF loop recreation
+  useEffect(() => {
+    inspectEventRef.current = inspectEvent !== null;
+  }, [inspectEvent]);
+
+  // Single requestAnimationFrame loop: frame-consistent, zero React state re-renders
+  useEffect(() => {
+    const track = trackRef.current;
+    const segment = segmentRef.current;
+    if (!track || !segment) return;
+
+    // Honor prefers-reduced-motion
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      track.style.transform = 'translate3d(0px, 0, 0)';
+      return;
+    }
+
+    // Dynamic measurement with ResizeObserver
+    let segmentWidth = segment.getBoundingClientRect().width || segment.offsetWidth;
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.contentRect && entry.contentRect.width > 0) {
+          segmentWidth = entry.target.getBoundingClientRect().width || entry.contentRect.width;
+        }
+      }
+    });
+    resizeObserver.observe(segment);
+
+    let x = 0;
+    let lastTime = performance.now();
+    let animationFrameId: number;
+
+    // Linear speed in pixels per second (uniform across 60Hz, 90Hz, 120Hz)
+    const SPEED_PX_PER_SEC = 28;
+
+    const tick = (now: number) => {
+      const dt = Math.min((now - lastTime) / 1000, 0.1);
+      lastTime = now;
+
+      // Only advance when page is active, not hovering, and modal not open
+      const isPaused = isHoveredRef.current || inspectEventRef.current || document.hidden;
+
+      if (!isPaused && segmentWidth > 0) {
+        x -= SPEED_PX_PER_SEC * dt;
+        // Seamless loop wrap: when x <= -segmentWidth, wrap by exact measured width
+        if (x <= -segmentWidth) {
+          x += segmentWidth;
+        }
+        track.style.transform = `translate3d(${x.toFixed(2)}px, 0, 0)`;
+      }
+
+      animationFrameId = requestAnimationFrame(tick);
+    };
+
+    animationFrameId = requestAnimationFrame(tick);
+
+    const handleVisibilityChange = () => {
+      lastTime = performance.now();
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      resizeObserver.disconnect();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   return (
     <div 
       className="w-full bg-[#f8f8fa] border-y border-neutral-300 text-black select-none relative z-30 transition-colors"
       role="region"
       aria-label="RADIO KONTROLLE Live Global Event Ticker"
     >
-      {/* WHITE EVENT BROADCAST — MOBILE-OPTIMIZED CONTINUOUS MARQUEE STREAM */}
+      {/* WHITE EVENT BROADCAST — RAF-DRIVEN MARQUEE STREAM */}
       <div 
         className="banner-container relative overflow-hidden h-28 sm:h-32 md:h-36 min-h-[112px] sm:min-h-[128px] md:min-h-[140px] flex items-center bg-gradient-to-r from-[#f0f0f4] via-[#ffffff] to-[#f0f0f4] group"
+        onMouseEnter={() => {
+          if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+            isHoveredRef.current = true;
+          }
+        }}
+        onMouseLeave={() => {
+          isHoveredRef.current = false;
+        }}
       >
         {/* 1. Static BNG Logo Watermark (Rendered exactly once, decorative background layer, z-0) */}
         <div 
@@ -46,15 +127,13 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
           />
         </div>
 
-        {/* 2. Foreground Scrolling Content Layer (z-index: 10) */}
+        {/* 2. Foreground Scrolling Content Layer (Single moving track driven by RAF) */}
         <div 
-          className={`animate-ticker-marquee relative z-10 flex items-center shrink-0 ${inspectEvent ? 'pause-animation' : 'pause-on-hover'}`}
-          style={{ 
-            '--ticker-duration': `${Math.max(160, LIVE_EVENTS_DATA.length * 24)}s`,
-          } as React.CSSProperties}
+          ref={trackRef}
+          className="ticker-track-raf relative z-10 flex items-center shrink-0"
         >
-          {/* Run 1 */}
-          <div className="flex items-center shrink-0">
+          {/* Segment 1 */}
+          <div ref={segmentRef} className="flex items-center shrink-0">
             {LIVE_EVENTS_DATA.map((event) => (
               <TickerItem 
                 key={event.id} 
@@ -63,7 +142,7 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
               />
             ))}
           </div>
-          {/* Run 2 for seamless infinite marquee loop */}
+          {/* Segment 2 for seamless infinite marquee loop */}
           <div className="flex items-center shrink-0" aria-hidden="true">
             {LIVE_EVENTS_DATA.map((event) => (
               <TickerItem 
