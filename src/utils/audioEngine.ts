@@ -58,10 +58,145 @@ class AudioEngine {
   private clipFlags: boolean[] = new Array(64).fill(false);
   private bpm: number = 138.0; // Peak Techno default: 138 BPM
   private phrasePhase: number = 0; // 0 to 1 for long phrase filter sweeps
+  // Screen Wake Lock API (Keep mobile display and audio stream session active)
+  private wakeLock: any = null;
 
   constructor() {
     if (typeof window !== 'undefined') {
       this.initStreamAudio();
+      this.setupMediaSession();
+      this.setupWakeLock();
+    }
+  }
+
+  // --- Screen Wake Lock API (Prevent Mobile Standby During Broadcast) ---
+  private setupWakeLock() {
+    if (typeof document === 'undefined') return;
+
+    // Automatically re-request wake lock when returning from background
+    document.addEventListener('visibilitychange', async () => {
+      if (this.isRunning && document.visibilityState === 'visible') {
+        await this.requestWakeLock();
+      }
+    });
+  }
+
+  public async requestWakeLock(): Promise<boolean> {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+      return false;
+    }
+
+    try {
+      // 1. Standard W3C Screen Wake Lock API (Modern Chrome, Safari 16.4+, Edge, Firefox mobile)
+      if ('wakeLock' in navigator && (navigator as any).wakeLock) {
+        if (this.wakeLock && !this.wakeLock.released) {
+          return true;
+        }
+        this.wakeLock = await (navigator as any).wakeLock.request('screen');
+        this.wakeLock.addEventListener('release', () => {
+          this.wakeLock = null;
+        });
+        return true;
+      }
+      // 2. Legacy / Vendor method fallback
+      if (typeof (navigator as any).requestWakeLock === 'function') {
+        this.wakeLock = await (navigator as any).requestWakeLock('screen');
+        return true;
+      }
+    } catch (err: any) {
+      console.warn('Screen Wake Lock notice:', err?.message || err);
+    }
+    return false;
+  }
+
+  public async releaseWakeLock() {
+    if (this.wakeLock) {
+      try {
+        if (!this.wakeLock.released && typeof this.wakeLock.release === 'function') {
+          await this.wakeLock.release();
+        }
+      } catch {
+        // Safe release
+      } finally {
+        this.wakeLock = null;
+      }
+    }
+  }
+
+  // --- Native Media Session API (Lockscreen Controls & Background Playback) ---
+  private setupMediaSession() {
+    if (typeof window === 'undefined' || !('mediaSession' in navigator)) {
+      return;
+    }
+
+    try {
+      navigator.mediaSession.setActionHandler('play', () => {
+        if (!this.isRunning) {
+          if (this.streamAudio && this.streamAudio.src && !this.streamAudio.src.endsWith('/')) {
+            const playPromise = this.streamAudio.play();
+            if (playPromise !== undefined) {
+              playPromise.then(() => {
+                this.isRunning = true;
+                this.streamStatus = 'live';
+                this.statusMessage = 'LIVE ON AIR · 104.5 FM';
+                this.updateMediaSessionMetadata();
+                this.updateMediaSessionState('playing');
+                this.notify();
+              }).catch(() => {
+                this.startStream(this.currentStreamUrl);
+              });
+              return;
+            }
+          }
+          this.startStream(this.currentStreamUrl);
+        }
+      });
+
+      navigator.mediaSession.setActionHandler('pause', () => {
+        this.pause();
+      });
+
+      navigator.mediaSession.setActionHandler('stop', () => {
+        this.stop();
+      });
+    } catch (err) {
+      console.warn('MediaSession handler registration notice:', err);
+    }
+  }
+
+  public updateMediaSessionMetadata() {
+    if (typeof window === 'undefined' || !('mediaSession' in navigator)) {
+      return;
+    }
+
+    try {
+      const origin = window.location.origin;
+      const logoPath = `${origin}/assets/aistudio/images_lllogo-removebg-preview_46d3cb66.png`;
+
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: 'RADIO KONTROLLE TRANSMISSIONS',
+        artist: 'RESIDENT SELECTORS',
+        album: 'ON AIR • 104.5 FM',
+        artwork: [
+          { src: logoPath, sizes: '96x96', type: 'image/png' },
+          { src: logoPath, sizes: '128x128', type: 'image/png' },
+          { src: logoPath, sizes: '192x192', type: 'image/png' },
+          { src: logoPath, sizes: '512x512', type: 'image/png' },
+        ],
+      });
+    } catch (err) {
+      console.warn('Failed to update mediaSession metadata:', err);
+    }
+  }
+
+  public updateMediaSessionState(state: 'playing' | 'paused' | 'none') {
+    if (typeof window === 'undefined' || !('mediaSession' in navigator)) {
+      return;
+    }
+    try {
+      navigator.mediaSession.playbackState = state;
+    } catch {
+      // browser compatibility guard
     }
   }
 
@@ -93,6 +228,9 @@ class AudioEngine {
         this.streamStatus = 'live';
         this.statusMessage = 'LIVE ON AIR · 104.5 FM';
         this.retryCount = 0;
+        this.updateMediaSessionMetadata();
+        this.updateMediaSessionState('playing');
+        this.requestWakeLock();
         this.notify();
       }
     });
@@ -102,11 +240,15 @@ class AudioEngine {
         this.streamStatus = 'live';
         this.statusMessage = 'LIVE ON AIR · 104.5 FM';
         this.retryCount = 0;
+        this.updateMediaSessionMetadata();
+        this.updateMediaSessionState('playing');
+        this.requestWakeLock();
         this.notify();
       }
     });
 
     this.streamAudio.addEventListener('pause', () => {
+      this.updateMediaSessionState('paused');
       // Only transition to standby if user explicitly stopped
       if (this.isUserInitiatedStop && !this.isRunning) {
         this.streamStatus = 'standby';
@@ -244,7 +386,7 @@ class AudioEngine {
 
   public togglePlay(urlToUse?: string): { success: boolean; message: string } {
     if (this.isRunning) {
-      this.stop();
+      this.pause();
       return { success: true, message: 'SIGNAL PAUSED' };
     }
 
@@ -255,6 +397,7 @@ class AudioEngine {
       this.streamStatus = 'offline';
       this.analysisMode = 'standby';
       this.statusMessage = 'SIGNAL OFFLINE · TRANSMISSION NOT CONFIGURED';
+      this.updateMediaSessionState('none');
       this.notify();
       return {
         success: false,
@@ -273,6 +416,7 @@ class AudioEngine {
       this.isRunning = false;
       this.analysisMode = 'standby';
       this.statusMessage = 'SIGNAL OFFLINE · TRANSMISSION NOT CONFIGURED';
+      this.updateMediaSessionState('none');
       this.notify();
       return;
     }
@@ -286,7 +430,43 @@ class AudioEngine {
       this.streamAudio &&
       !this.streamAudio.paused
     ) {
+      this.updateMediaSessionMetadata();
+      this.updateMediaSessionState('playing');
       return;
+    }
+
+    // Quick resume if same URL is already loaded and paused
+    if (
+      !forceReconnect &&
+      this.currentStreamUrl === cleanUrl &&
+      this.streamAudio &&
+      this.streamAudio.src &&
+      this.streamAudio.paused
+    ) {
+      this.isUserInitiatedStop = false;
+      this.isRunning = true;
+      this.streamStatus = 'buffering';
+      this.statusMessage = 'RESUMING TRANSMISSION...';
+      this.notify();
+
+      const playPromise = this.streamAudio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            this.streamStatus = 'live';
+            this.statusMessage = 'LIVE ON AIR · 104.5 FM';
+            this.retryCount = 0;
+            this.updateMediaSessionMetadata();
+            this.updateMediaSessionState('playing');
+            this.requestWakeLock();
+            this.notify();
+          })
+          .catch(() => {
+            // fallback to fresh load
+            this.startStream(cleanUrl, true);
+          });
+        return;
+      }
     }
 
     this.currentStreamUrl = cleanUrl;
@@ -318,6 +498,9 @@ class AudioEngine {
             this.streamStatus = 'live';
             this.statusMessage = 'LIVE ON AIR · 104.5 FM';
             this.retryCount = 0;
+            this.updateMediaSessionMetadata();
+            this.updateMediaSessionState('playing');
+            this.requestWakeLock();
             this.notify();
           })
           .catch((err) => {
@@ -336,10 +519,30 @@ class AudioEngine {
     }
   }
 
+  public pause() {
+    this.isUserInitiatedStop = true;
+    this.isRunning = false;
+    this.releaseWakeLock();
+    if (this.retryTimeout !== null) {
+      window.clearTimeout(this.retryTimeout);
+      this.retryTimeout = null;
+    }
+    if (this.streamAudio) {
+      this.streamAudio.pause();
+      // Keep src intact so audio stream buffer & connection context remain ready for instant resume
+    }
+    this.streamStatus = 'standby';
+    this.analysisMode = 'standby';
+    this.statusMessage = 'SIGNAL PAUSED';
+    this.updateMediaSessionState('paused');
+    this.notify();
+  }
+
   public stop() {
     this.isUserInitiatedStop = true;
     this.isRunning = false;
     this.retryCount = 0;
+    this.releaseWakeLock();
     if (this.retryTimeout !== null) {
       window.clearTimeout(this.retryTimeout);
       this.retryTimeout = null;
@@ -353,6 +556,7 @@ class AudioEngine {
     this.streamStatus = 'standby';
     this.analysisMode = 'standby';
     this.statusMessage = 'STANDBY · SIGNAL READY';
+    this.updateMediaSessionState('none');
     this.notify();
   }
 

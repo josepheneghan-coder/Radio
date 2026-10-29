@@ -1,17 +1,42 @@
 {
-  "name": "KONTROLL RADIO",
-  "short_name": "KONTROLL",
-  "description": "Independent underground electronic radio station broadcasting 24/7 club soundscapes, live DJ sets and satellite feeds.",
+  "name": "RADIO KONTROLLE TRANSMISSIONS",
+  "short_name": "RADIO KONTROLLE",
+  "description": "Independent underground electronic radio station broadcasting 24/7 club soundscapes, live DJ sets, tape archives, and satellite feeds.",
   "start_url": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#0c0c0c",
   "theme_color": "#0c0c0c",
   "icons": [
     {
+      "src": "/assets/aistudio/images_lllogo-removebg-preview_46d3cb66.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/aistudio/images_lllogo-removebg-preview_46d3cb66.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/aistudio/images_lllogo-removebg-preview_46d3cb66.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/aistudio/images_lllogo-removebg-preview_46d3cb66.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
       "src": "/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }

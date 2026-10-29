@@ -61,6 +61,9 @@ export default function App() {
 
   // Handlers
   const handleTogglePlay = () => {
+    if (!isPlaying) {
+      audioEngine.requestWakeLock().catch(() => {});
+    }
     audioEngine.togglePlay(activeChannel.streamUrl);
   };
 

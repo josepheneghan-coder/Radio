@@ -26,20 +26,20 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
 
   return (
     <div 
-      className="w-full bg-[#f8f8fa] border-y border-neutral-300 text-black select-none relative z-30 shadow-[0_4px_20px_rgba(0,0,0,0.12)] transition-colors"
+      className="banner-container w-full bg-[#f8f8fa] border-y border-neutral-300 text-black select-none relative z-30 transition-colors"
       role="region"
       aria-label="RADIO KONTROLLE Live Global Event Ticker"
     >
-      {/* WHITE EVENT BROADCAST — ENLARGED CONTINUOUS MARQUEE STREAM */}
+      {/* WHITE EVENT BROADCAST — GPU-ACCELERATED ENLARGED CONTINUOUS MARQUEE STREAM */}
       <div 
-        className="relative overflow-hidden h-28 sm:h-32 md:h-36 min-h-[112px] sm:min-h-[128px] md:min-h-[140px] flex items-center bg-gradient-to-r from-[#f0f0f4] via-[#ffffff] to-[#f0f0f4] group cursor-pointer"
+        className="banner-container relative overflow-hidden h-28 sm:h-32 md:h-36 min-h-[112px] sm:min-h-[128px] md:min-h-[140px] flex items-center bg-gradient-to-r from-[#f0f0f4] via-[#ffffff] to-[#f0f0f4] group cursor-pointer"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         onTouchStart={() => setIsPaused(true)}
         onTouchEnd={() => setIsPaused(false)}
       >
         <div 
-          className={`animate-ticker-marquee flex items-center gap-8 sm:gap-12 ${isPaused ? 'pause-animation' : 'pause-on-hover'}`}
+          className={`banner-container animate-ticker-marquee flex items-center gap-8 sm:gap-12 ${isPaused ? 'pause-animation' : 'pause-on-hover'}`}
           style={{ '--ticker-duration': `${Math.max(160, LIVE_EVENTS_DATA.length * 24)}s` } as React.CSSProperties}
         >
           {/* Run 1 */}
@@ -228,7 +228,7 @@ interface TickerItemProps {
 const TickerItem: React.FC<TickerItemProps> = ({ event, onInspect, isAriaHidden = false }) => {
   return (
     <div
-      className="flex items-center gap-4 sm:gap-6 whitespace-nowrap cursor-pointer group/item py-2 shrink-0 select-none transition-opacity hover:opacity-90"
+      className="flex items-center gap-4 sm:gap-6 whitespace-nowrap cursor-pointer group/item py-2 shrink-0 select-none transition-opacity hover:opacity-90 transform-gpu"
       onClick={onInspect}
       role="button"
       tabIndex={isAriaHidden ? -1 : 0}
@@ -249,7 +249,7 @@ const TickerItem: React.FC<TickerItemProps> = ({ event, onInspect, isAriaHidden 
         {/* Top: Status Label (LIVE in Magenta + ONLINE BROADCAST in black box) */}
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1.5 font-mono font-black text-[10px] sm:text-[11px] text-[#db2777] uppercase tracking-wider">
-            <span className="w-2 h-2 rounded-full bg-[#db2777] animate-pulse inline-block shrink-0 shadow-[0_0_6px_rgba(219,39,119,0.5)]" />
+            <span className="w-2 h-2 rounded-full bg-[#db2777] inline-block shrink-0" />
             LIVE
           </span>
           <span className="text-neutral-400 text-[10px] font-bold">&</span>
@@ -266,17 +266,17 @@ const TickerItem: React.FC<TickerItemProps> = ({ event, onInspect, isAriaHidden 
           <h4 className="font-display font-black text-black text-xl sm:text-2xl md:text-3xl tracking-tight uppercase leading-none group-hover/item:text-neutral-800 transition-colors">
             {event.eventName}
           </h4>
-          <span className="bg-black text-white px-2 sm:px-2.5 py-1 text-xs sm:text-sm font-mono font-black tracking-wider uppercase shrink-0 shadow-sm">
+          <span className="bg-black text-white px-2 sm:px-2.5 py-1 text-xs sm:text-sm font-mono font-black tracking-wider uppercase shrink-0">
             {event.destination.split(',')[0].toUpperCase()}
           </span>
         </div>
 
         {/* Bottom: Date & Venue Badges in compact solid black surfaces with white text */}
         <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] font-mono font-bold uppercase">
-          <span className="bg-black text-white px-2 py-0.5 shrink-0 shadow-xs">
+          <span className="bg-black text-white px-2 py-0.5 shrink-0">
             {event.venue}
           </span>
-          <span className="bg-black text-white px-2 py-0.5 shrink-0 shadow-xs">
+          <span className="bg-black text-white px-2 py-0.5 shrink-0">
             {event.dateDisplay}
           </span>
           <span className="bg-neutral-800 text-neutral-100 px-2 py-0.5 hidden md:inline-flex items-center gap-1 shrink-0">
@@ -289,10 +289,14 @@ const TickerItem: React.FC<TickerItemProps> = ({ event, onInspect, isAriaHidden 
         </div>
       </div>
 
-      {/* Industrial Separator Slash */}
-      <span className="text-neutral-300 font-black text-lg select-none px-2 sm:px-4 shrink-0">
-        ///
-      </span>
+      {/* BNG Logo Watermark (200% enlarged neon emblem) */}
+      <div className="shrink-0 flex items-center px-3 sm:px-6 pointer-events-none">
+        <img 
+          src="/assets/bng-logo.svg" 
+          alt="BNG Logo" 
+          className="h-14 sm:h-16 md:h-20 w-auto object-contain opacity-95 drop-shadow-sm select-none"
+        />
+      </div>
     </div>
   );
 };

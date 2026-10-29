@@ -44,7 +44,7 @@ export const OfficialEventLogo: React.FC<OfficialLogoProps> = ({
     case 'berghain':
       return (
         <span 
-          className={`inline-flex items-center gap-1.5 bg-black border border-neutral-600 font-mono font-black tracking-widest text-white shadow-[0_0_12px_rgba(255,255,255,0.18)] select-none shrink-0 ${sizeClasses} ${className}`}
+          className={`inline-flex items-center gap-1.5 bg-black border border-neutral-600 font-mono font-black tracking-widest text-white select-none shrink-0 ${sizeClasses} ${className}`}
           title="Berghain Berlin (Official Club Emblem)"
         >
           {/* Authentic Berghain Monolithic Brutalist Cross / Door Glyph */}
@@ -58,7 +58,7 @@ export const OfficialEventLogo: React.FC<OfficialLogoProps> = ({
     case 'tresor':
       return (
         <span 
-          className={`inline-flex items-center gap-1.5 bg-[#0a0102] border border-red-600 font-mono font-bold tracking-widest text-red-500 shadow-[0_0_14px_rgba(220,38,38,0.45)] select-none shrink-0 ${sizeClasses} ${className}`}
+          className={`inline-flex items-center gap-1.5 bg-[#0a0102] border border-red-600 font-mono font-bold tracking-widest text-red-500 select-none shrink-0 ${sizeClasses} ${className}`}
           title="Tresor Berlin (Official Vault 33 Emblem)"
         >
           {/* Authentic Tresor Vault Radial Safe Dial SVG */}
@@ -74,7 +74,7 @@ export const OfficialEventLogo: React.FC<OfficialLogoProps> = ({
     case 'dc10':
       return (
         <span 
-          className={`inline-flex items-center gap-1.5 bg-[#180406] border border-red-600 font-mono font-black tracking-widest text-white shadow-[0_0_12px_rgba(220,38,38,0.4)] select-none shrink-0 ${sizeClasses} ${className}`}
+          className={`inline-flex items-center gap-1.5 bg-[#180406] border border-red-600 font-mono font-black tracking-widest text-white select-none shrink-0 ${sizeClasses} ${className}`}
           title="DC-10 Ibiza (Official Runway Aircraft Logo)"
         >
           {/* DC-10 Aircraft Wing / Circoloco Flight Emblem */}
@@ -88,7 +88,7 @@ export const OfficialEventLogo: React.FC<OfficialLogoProps> = ({
     case 'amnesia':
       return (
         <span 
-          className={`inline-flex items-center gap-1.5 bg-[#0e0e12] border border-yellow-500 font-mono font-black tracking-widest text-yellow-300 shadow-[0_0_12px_rgba(234,179,8,0.35)] select-none shrink-0 ${sizeClasses} ${className}`}
+          className={`inline-flex items-center gap-1.5 bg-[#0e0e12] border border-yellow-500 font-mono font-black tracking-widest text-yellow-300 select-none shrink-0 ${sizeClasses} ${className}`}
           title="Amnesia Ibiza (Official Pyramid Emblem)"
         >
           {/* Iconic Amnesia Pyramid Icon */}
@@ -103,7 +103,7 @@ export const OfficialEventLogo: React.FC<OfficialLogoProps> = ({
     case 'pacha':
       return (
         <span 
-          className={`inline-flex items-center gap-1.5 bg-[#0c0c10] border border-red-500 font-mono font-black tracking-widest text-white shadow-[0_0_12px_rgba(239,68,68,0.3)] select-none shrink-0 ${sizeClasses} ${className}`}
+          className={`inline-flex items-center gap-1.5 bg-[#0c0c10] border border-red-500 font-mono font-black tracking-widest text-white select-none shrink-0 ${sizeClasses} ${className}`}
           title="Pacha Ibiza (Official Twin Cherries Emblem)"
         >
           {/* Authentic Pacha Twin Cherries SVG */}
@@ -138,11 +138,11 @@ export const OfficialEventLogo: React.FC<OfficialLogoProps> = ({
     case 'timewarp':
       return (
         <span 
-          className={`inline-flex items-center gap-1.5 bg-[#120004] border border-red-500 font-mono font-black tracking-widest text-white shadow-[0_0_14px_rgba(239,68,68,0.5)] select-none shrink-0 ${sizeClasses} ${className}`}
+          className={`inline-flex items-center gap-1.5 bg-[#120004] border border-red-500 font-mono font-black tracking-widest text-white select-none shrink-0 ${sizeClasses} ${className}`}
           title="Time Warp (Official Techno Grid Emblem)"
         >
           {/* Time Warp Signature Solid Red Square & Slash */}
-          <span className="w-3 h-3 bg-red-600 inline-block shadow-[0_0_8px_rgba(239,68,68,0.8)] shrink-0" />
+          <span className="w-3 h-3 bg-red-600 inline-block shrink-0" />
           {showLabel && <span className="font-display font-black tracking-tight text-white uppercase">TIME WARP</span>}
         </span>
       );
@@ -150,7 +150,7 @@ export const OfficialEventLogo: React.FC<OfficialLogoProps> = ({
     case 'awakenings':
       return (
         <span 
-          className={`inline-flex items-center gap-1.5 bg-[#0a0a0f] border border-amber-400 font-mono font-black tracking-widest text-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.35)] select-none shrink-0 ${sizeClasses} ${className}`}
+          className={`inline-flex items-center gap-1.5 bg-[#0a0a0f] border border-amber-400 font-mono font-black tracking-widest text-amber-300 select-none shrink-0 ${sizeClasses} ${className}`}
           title="Awakenings Festival (Official Concentric Rings Logo)"
         >
           {/* Awakenings Concentric Rings SVG */}
@@ -177,7 +177,7 @@ export const OfficialEventLogo: React.FC<OfficialLogoProps> = ({
     case 'zamna':
       return (
         <span 
-          className={`inline-flex items-center gap-1.5 bg-[#0e0c06] border border-amber-500 font-mono font-black tracking-widest text-amber-200 shadow-[0_0_10px_rgba(245,158,11,0.3)] select-none shrink-0 ${sizeClasses} ${className}`}
+          className={`inline-flex items-center gap-1.5 bg-[#0e0c06] border border-amber-500 font-mono font-black tracking-widest text-amber-200 select-none shrink-0 ${sizeClasses} ${className}`}
           title="Zamna Tulum (Official Cenote Wood Totem)"
         >
           <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-amber-400 fill-none shrink-0" viewBox="0 0 24 24" strokeWidth="2.2" aria-hidden="true">
@@ -205,7 +205,7 @@ export const OfficialEventLogo: React.FC<OfficialLogoProps> = ({
     case 'movement':
       return (
         <span 
-          className={`inline-flex items-center gap-1.5 bg-[#0b0b0e] border border-cyan-400 font-mono font-black tracking-widest text-cyan-300 shadow-[0_0_12px_rgba(34,211,238,0.3)] select-none shrink-0 ${sizeClasses} ${className}`}
+          className={`inline-flex items-center gap-1.5 bg-[#0b0b0e] border border-cyan-400 font-mono font-black tracking-widest text-cyan-300 select-none shrink-0 ${sizeClasses} ${className}`}
           title="Movement Detroit (313 Techno Cube)"
         >
           <span className="font-mono font-black text-cyan-400 text-[10px] leading-none">313</span>
