@@ -125,18 +125,13 @@ body {
   background: #ffffff;
 }
 
-/* GPU-Accelerated Mobile Marquee Banner Container */
+/* Clean Mobile-Optimized Marquee Banner */
 .banner-container {
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  perspective: 1000px;
-  -webkit-perspective: 1000px;
-  will-change: transform;
 }
 
-/* Ticker marquee animation with native GPU compositing */
+/* Ticker marquee animation */
 @keyframes ticker-marquee {
   0% {
     transform: translate3d(0, 0, 0);
@@ -150,13 +145,18 @@ body {
   display: flex;
   width: max-content;
   will-change: transform;
-  transform: translate3d(0, 0, 0);
-  -webkit-transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  perspective: 1000px;
-  -webkit-perspective: 1000px;
   animation: ticker-marquee var(--ticker-duration, 160s) linear infinite;
+}
+
+.animate-watermark-slow {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  animation: ticker-marquee var(--watermark-duration, 280s) linear infinite;
 }
 
 .group:hover .pause-on-hover {

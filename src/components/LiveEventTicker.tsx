@@ -26,21 +26,67 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
 
   return (
     <div 
-      className="banner-container w-full bg-[#f8f8fa] border-y border-neutral-300 text-black select-none relative z-30 transition-colors"
+      className="w-full bg-[#f8f8fa] border-y border-neutral-300 text-black select-none relative z-30 transition-colors"
       role="region"
       aria-label="RADIO KONTROLLE Live Global Event Ticker"
     >
-      {/* WHITE EVENT BROADCAST — GPU-ACCELERATED ENLARGED CONTINUOUS MARQUEE STREAM */}
+      {/* WHITE EVENT BROADCAST — MOBILE-OPTIMIZED CONTINUOUS MARQUEE STREAM */}
       <div 
-        className="banner-container relative overflow-hidden h-28 sm:h-32 md:h-36 min-h-[112px] sm:min-h-[128px] md:min-h-[140px] flex items-center bg-gradient-to-r from-[#f0f0f4] via-[#ffffff] to-[#f0f0f4] group cursor-pointer"
+        className="relative overflow-hidden h-28 sm:h-32 md:h-36 min-h-[112px] sm:min-h-[128px] md:min-h-[140px] flex items-center bg-gradient-to-r from-[#f0f0f4] via-[#ffffff] to-[#f0f0f4] group cursor-pointer"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         onTouchStart={() => setIsPaused(true)}
         onTouchEnd={() => setIsPaused(false)}
+        style={{ WebkitOverflowScrolling: 'touch' }}
       >
+        {/* 1. Large, Responsive Background Watermark Layer (Ultra-Slow Parallax Glide Behind Content) */}
         <div 
-          className={`banner-container animate-ticker-marquee flex items-center gap-8 sm:gap-12 ${isPaused ? 'pause-animation' : 'pause-on-hover'}`}
-          style={{ '--ticker-duration': `${Math.max(160, LIVE_EVENTS_DATA.length * 24)}s` } as React.CSSProperties}
+          className="absolute inset-0 z-0 pointer-events-none select-none overflow-hidden flex items-center opacity-[0.06] grayscale brightness-0"
+          aria-hidden="true"
+        >
+          <div 
+            className={`animate-watermark-slow flex items-center gap-24 sm:gap-40 ${isPaused ? 'pause-animation' : 'pause-on-hover'}`}
+            style={{ 
+              '--watermark-duration': '280s',
+              willChange: 'transform',
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden'
+            } as React.CSSProperties}
+          >
+            {/* Run 1 */}
+            <div className="flex items-center gap-24 sm:gap-40 pr-24 sm:pr-40 shrink-0">
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <img
+                  key={`wm-1-${idx}`}
+                  src="/assets/bng-logo.svg"
+                  alt=""
+                  className="h-[clamp(72px,10vw,150px)] w-auto max-w-full object-contain shrink-0 select-none"
+                />
+              ))}
+            </div>
+            {/* Run 2 for seamless infinite loop */}
+            <div className="flex items-center gap-24 sm:gap-40 pr-24 sm:pr-40 shrink-0" aria-hidden="true">
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <img
+                  key={`wm-2-${idx}`}
+                  src="/assets/bng-logo.svg"
+                  alt=""
+                  className="h-[clamp(72px,10vw,150px)] w-auto max-w-full object-contain shrink-0 select-none"
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* 2. Foreground Scrolling Content Layer (z-index: 10) */}
+        <div 
+          className={`animate-ticker-marquee relative z-10 flex items-center gap-8 sm:gap-12 ${isPaused ? 'pause-animation' : 'pause-on-hover'}`}
+          style={{ 
+            '--ticker-duration': `${Math.max(160, LIVE_EVENTS_DATA.length * 24)}s`,
+            willChange: 'transform',
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden'
+          } as React.CSSProperties}
         >
           {/* Run 1 */}
           <div className="flex items-center gap-8 sm:gap-12 pr-8 sm:pr-12">
@@ -228,7 +274,7 @@ interface TickerItemProps {
 const TickerItem: React.FC<TickerItemProps> = ({ event, onInspect, isAriaHidden = false }) => {
   return (
     <div
-      className="flex items-center gap-4 sm:gap-6 whitespace-nowrap cursor-pointer group/item py-2 shrink-0 select-none transition-opacity hover:opacity-90 transform-gpu"
+      className="flex items-center gap-4 sm:gap-6 whitespace-nowrap cursor-pointer group/item py-2 shrink-0 select-none transition-opacity hover:opacity-90"
       onClick={onInspect}
       role="button"
       tabIndex={isAriaHidden ? -1 : 0}
@@ -289,12 +335,12 @@ const TickerItem: React.FC<TickerItemProps> = ({ event, onInspect, isAriaHidden 
         </div>
       </div>
 
-      {/* BNG Logo Watermark (200% enlarged neon emblem) */}
-      <div className="shrink-0 flex items-center px-3 sm:px-6 pointer-events-none">
+      {/* Black Logo Watermark (dezentes, stylishes Branding zwischen den Event-Blöcken) */}
+      <div className="shrink-0 flex items-center px-2 sm:px-4 pointer-events-none">
         <img 
-          src="/assets/bng-logo.svg" 
-          alt="BNG Logo" 
-          className="h-14 sm:h-16 md:h-20 w-auto object-contain opacity-95 drop-shadow-sm select-none"
+          src="/assets/kontrolle-logo-black.svg" 
+          alt="Radio Kontrolle Emblem" 
+          className="h-6 sm:h-7 w-auto object-contain opacity-85 select-none"
         />
       </div>
     </div>
