@@ -104,7 +104,7 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
     >
       {/* WHITE EVENT BROADCAST — RAF-DRIVEN MARQUEE STREAM */}
       <div 
-        className="banner-container relative overflow-hidden h-28 sm:h-32 md:h-36 min-h-[112px] sm:min-h-[128px] md:min-h-[140px] flex items-center bg-gradient-to-r from-[#f0f0f4] via-[#ffffff] to-[#f0f0f4] group"
+        className="banner-container relative overflow-hidden h-[74px] sm:h-[82px] md:h-[88px] min-h-[74px] sm:min-h-[82px] md:min-h-[88px] flex items-center bg-gradient-to-r from-[#f0f0f4] via-[#ffffff] to-[#f0f0f4] group"
         onMouseEnter={() => {
           if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
             isHoveredRef.current = true;
@@ -123,7 +123,7 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
             src="/assets/bng-logo-watermark.svg"
             alt=""
             decoding="async"
-            className="h-[clamp(72px,12vw,140px)] w-auto max-w-full object-contain select-none pointer-events-none"
+            className="h-[clamp(48px,7.5vw,76px)] w-auto max-w-full object-contain select-none pointer-events-none"
           />
         </div>
 
@@ -318,7 +318,7 @@ interface TickerItemProps {
 const TickerItem: React.FC<TickerItemProps> = ({ event, onInspect, isAriaHidden = false }) => {
   return (
     <div
-      className="flex items-center gap-4 sm:gap-6 whitespace-nowrap cursor-pointer group/item py-2 pr-8 sm:pr-14 shrink-0 select-none transition-opacity hover:opacity-90"
+      className="flex items-center whitespace-nowrap cursor-pointer group/item py-1 pr-8 sm:pr-14 shrink-0 select-none transition-opacity hover:opacity-90"
       onClick={onInspect}
       role="button"
       tabIndex={isAriaHidden ? -1 : 0}
@@ -329,40 +329,35 @@ const TickerItem: React.FC<TickerItemProps> = ({ event, onInspect, isAriaHidden 
         }
       }}
     >
-      {/* 1. Official Club / Festival Logo Emblem */}
-      <div className="shrink-0 flex items-center">
-        <OfficialEventLogo badge={event.clubBadge} size="md" />
-      </div>
-
-      {/* 2. Structured White Broadcast Poster Layout */}
-      <div className="flex flex-col justify-center gap-1 sm:gap-1.5 leading-tight">
+      {/* Pure Typography Broadcast Layout — High Density & Sleek */}
+      <div className="flex flex-col justify-center gap-0.5 sm:gap-1 leading-tight">
         {/* Top: Status Label (LIVE in Magenta + ONLINE BROADCAST in black box) */}
         <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1.5 font-mono font-black text-[10px] sm:text-[11px] text-[#db2777] uppercase tracking-wider">
-            <span className="w-2 h-2 rounded-full bg-[#db2777] inline-block shrink-0" />
+          <span className="flex items-center gap-1.5 font-mono font-black text-[9px] sm:text-[10px] text-[#db2777] uppercase tracking-wider">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#db2777] inline-block shrink-0" />
             LIVE
           </span>
-          <span className="text-neutral-400 text-[10px] font-bold">&</span>
-          <span className="bg-black text-white px-1.5 py-0.5 text-[8.5px] sm:text-[9.5px] font-mono font-bold tracking-widest uppercase shrink-0">
+          <span className="text-neutral-400 text-[9px] font-bold">&</span>
+          <span className="bg-black text-white px-1.5 py-0.5 text-[8px] sm:text-[9px] font-mono font-bold tracking-widest uppercase shrink-0">
             ONLINE BROADCAST
           </span>
-          <span className="text-neutral-500 text-[9px] sm:text-[10px] font-mono uppercase tracking-wide">
+          <span className="text-neutral-500 text-[8.5px] sm:text-[9.5px] font-mono uppercase tracking-wide">
             · {event.status}
           </span>
         </div>
 
         {/* Middle: Big Black Bold Display Typography + Solid Black Destination Box */}
-        <div className="flex items-center gap-2.5 sm:gap-3">
-          <h4 className="font-display font-black text-black text-xl sm:text-2xl md:text-3xl tracking-tight uppercase leading-none group-hover/item:text-neutral-800 transition-colors">
+        <div className="flex items-center gap-2 sm:gap-2.5">
+          <h4 className="font-display font-black text-black text-lg sm:text-xl md:text-2xl tracking-tight uppercase leading-none group-hover/item:text-neutral-800 transition-colors">
             {event.eventName}
           </h4>
-          <span className="bg-black text-white px-2 sm:px-2.5 py-1 text-xs sm:text-sm font-mono font-black tracking-wider uppercase shrink-0">
+          <span className="bg-black text-white px-1.5 sm:px-2 py-0.5 text-[11px] sm:text-xs font-mono font-black tracking-wider uppercase shrink-0">
             {event.destination.split(',')[0].toUpperCase()}
           </span>
         </div>
 
         {/* Bottom: Date & Venue Badges in compact solid black surfaces with white text */}
-        <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] font-mono font-bold uppercase">
+        <div className="flex items-center gap-1.5 sm:gap-2 text-[9.5px] sm:text-[10.5px] font-mono font-bold uppercase">
           <span className="bg-black text-white px-2 py-0.5 shrink-0">
             {event.venue}
           </span>
