@@ -145,6 +145,8 @@ body {
   display: flex;
   width: max-content;
   will-change: transform;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   animation: ticker-marquee var(--ticker-duration, 160s) linear infinite;
@@ -154,9 +156,11 @@ body {
   display: flex;
   width: max-content;
   will-change: transform;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  animation: ticker-marquee var(--watermark-duration, 280s) linear infinite;
+  animation: ticker-marquee var(--watermark-duration, 180s) linear infinite;
 }
 
 .group:hover .pause-on-hover {

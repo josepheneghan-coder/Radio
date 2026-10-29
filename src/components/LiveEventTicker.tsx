@@ -39,15 +39,15 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
         onTouchEnd={() => setIsPaused(false)}
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
-        {/* 1. Large, Responsive Background Watermark Layer (Ultra-Slow Parallax Glide Behind Content) */}
+        {/* 1. Large, Responsive Background Watermark Layer (Ultra-Smooth Parallax Glide, Zero Shader Overhead) */}
         <div 
-          className="absolute inset-0 z-0 pointer-events-none select-none overflow-hidden flex items-center opacity-[0.06] grayscale brightness-0"
+          className="absolute inset-0 z-0 pointer-events-none select-none overflow-hidden flex items-center opacity-[0.05]"
           aria-hidden="true"
         >
           <div 
             className={`animate-watermark-slow flex items-center gap-24 sm:gap-40 ${isPaused ? 'pause-animation' : 'pause-on-hover'}`}
             style={{ 
-              '--watermark-duration': '280s',
+              '--watermark-duration': '180s',
               willChange: 'transform',
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden'
@@ -58,7 +58,7 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
               {Array.from({ length: 6 }).map((_, idx) => (
                 <img
                   key={`wm-1-${idx}`}
-                  src="/assets/bng-logo.svg"
+                  src="/assets/bng-logo-watermark.svg"
                   alt=""
                   className="h-[clamp(72px,10vw,150px)] w-auto max-w-full object-contain shrink-0 select-none"
                 />
@@ -69,7 +69,7 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
               {Array.from({ length: 6 }).map((_, idx) => (
                 <img
                   key={`wm-2-${idx}`}
-                  src="/assets/bng-logo.svg"
+                  src="/assets/bng-logo-watermark.svg"
                   alt=""
                   className="h-[clamp(72px,10vw,150px)] w-auto max-w-full object-contain shrink-0 select-none"
                 />
@@ -274,7 +274,7 @@ interface TickerItemProps {
 const TickerItem: React.FC<TickerItemProps> = ({ event, onInspect, isAriaHidden = false }) => {
   return (
     <div
-      className="flex items-center gap-4 sm:gap-6 whitespace-nowrap cursor-pointer group/item py-2 shrink-0 select-none transition-opacity hover:opacity-90"
+      className="flex items-center gap-4 sm:gap-6 whitespace-nowrap cursor-pointer group/item py-2 pr-8 sm:pr-14 shrink-0 select-none transition-opacity hover:opacity-90"
       onClick={onInspect}
       role="button"
       tabIndex={isAriaHidden ? -1 : 0}
@@ -333,15 +333,6 @@ const TickerItem: React.FC<TickerItemProps> = ({ event, onInspect, isAriaHidden 
             <ExternalLink size={11} />
           </span>
         </div>
-      </div>
-
-      {/* Black Logo Watermark (dezentes, stylishes Branding zwischen den Event-Blöcken) */}
-      <div className="shrink-0 flex items-center px-2 sm:px-4 pointer-events-none">
-        <img 
-          src="/assets/kontrolle-logo-black.svg" 
-          alt="Radio Kontrolle Emblem" 
-          className="h-6 sm:h-7 w-auto object-contain opacity-85 select-none"
-        />
       </div>
     </div>
   );
