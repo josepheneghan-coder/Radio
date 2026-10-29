@@ -44,8 +44,8 @@ export const HeroRadioPlayer: React.FC<HeroRadioPlayerProps> = ({
           aria-label={isPlaying ? 'Pause transmission' : 'Start transmission'}
           className={`min-h-[40px] px-4 sm:px-6 py-2 font-display font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer border shrink-0 ${
             isPlaying
-              ? 'bg-yellow-400 border-yellow-300 text-black hover:bg-yellow-300 shadow-[0_0_12px_rgba(250,204,21,0.4)]'
-              : 'bg-red-600 border-red-500 text-white hover:bg-red-500 shadow-[0_0_12px_rgba(220,38,38,0.4)]'
+              ? 'bg-white border-white text-black hover:bg-neutral-200 shadow-[0_0_14px_rgba(255,255,255,0.4)]'
+              : 'bg-yellow-400 border-yellow-300 text-black hover:bg-yellow-300 shadow-[0_0_12px_rgba(250,204,21,0.4)]'
           }`}
         >
           {isPlaying ? (
@@ -55,7 +55,7 @@ export const HeroRadioPlayer: React.FC<HeroRadioPlayerProps> = ({
             </>
           ) : isBuffering ? (
             <>
-              <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <span className="w-3 h-3 border-2 border-black border-t-transparent rounded-full animate-spin" />
               <span>TUNING</span>
             </>
           ) : (

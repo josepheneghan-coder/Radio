@@ -107,7 +107,11 @@ export const ScheduleTimetable: React.FC<ScheduleTimetableProps> = ({
                   {slot.isLiveNow ? (
                     <button
                       onClick={onTuneInLive}
-                      className="min-h-[40px] px-4 py-2 bg-yellow-400 text-black hover:bg-yellow-300 font-ui font-bold text-xs uppercase tracking-wider transition-colors flex items-center gap-2 cursor-pointer"
+                      className={`min-h-[40px] px-4 py-2 font-ui font-bold text-xs uppercase tracking-wider transition-colors flex items-center gap-2 cursor-pointer ${
+                        isPlaying
+                          ? 'bg-white text-black hover:bg-neutral-200 shadow-[0_0_12px_rgba(255,255,255,0.3)]'
+                          : 'bg-yellow-400 text-black hover:bg-yellow-300 shadow-[0_0_12px_rgba(250,204,21,0.3)]'
+                      }`}
                     >
                       <Radio size={14} />
                       <span>{isPlaying ? 'LISTENING NOW' : 'LISTEN LIVE'}</span>

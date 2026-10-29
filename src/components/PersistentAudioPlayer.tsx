@@ -113,8 +113,8 @@ export const PersistentAudioPlayer: React.FC<PersistentAudioPlayerProps> = ({
                 aria-label={isPlaying ? 'Pause stream' : 'Play stream'}
                 className={`w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center shrink-0 border font-ui font-black transition-all cursor-pointer ${
                   isPlaying
-                    ? 'bg-yellow-400 border-yellow-300 text-black hover:bg-yellow-300'
-                    : 'bg-white border-white text-black hover:bg-neutral-200'
+                    ? 'bg-white border-white text-black hover:bg-neutral-200 shadow-[0_0_14px_rgba(255,255,255,0.4)]'
+                    : 'bg-yellow-400 border-yellow-300 text-black hover:bg-yellow-300 shadow-[0_0_12px_rgba(250,204,21,0.4)]'
                 }`}
               >
                 {isPlaying ? (

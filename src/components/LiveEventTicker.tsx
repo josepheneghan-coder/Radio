@@ -329,9 +329,6 @@ const TickerItem: React.FC<TickerItemProps> = ({ event, onInspect, isAriaHidden 
             <span className="text-yellow-400">SELECTORS:</span>
             <span>{event.headliners.slice(0, 2).join(' · ')}</span>
           </span>
-          <span className="text-neutral-400 group-hover/item:text-black transition-colors pl-0.5 inline-flex items-center">
-            <ExternalLink size={11} />
-          </span>
         </div>
       </div>
     </div>
