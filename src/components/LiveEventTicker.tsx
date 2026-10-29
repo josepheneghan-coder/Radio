@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { 
   LIVE_EVENTS_DATA, 
   LiveEventEntry 
@@ -9,6 +9,55 @@ interface LiveEventTickerProps {
 }
 
 export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
+  const trackRef = useRef<HTMLDivElement>(null);
+
+  // Active fail-safe watchdog: Verifies that the CSS hardware marquee is running.
+  // If an aggressive OS battery saver or browser setting halts CSS keyframes,
+  // this automatically engages an unkillable linear motion loop so it never hangs.
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+
+    let fallbackRafId: number | null = null;
+    const initialX = track.getBoundingClientRect().left;
+
+    const timer = setTimeout(() => {
+      if (!track) return;
+      const currentX = track.getBoundingClientRect().left;
+      const computed = window.getComputedStyle(track);
+      
+      // If after 350ms the position has not moved, or animation is suppressed by OS:
+      const isMotionHalted = Math.abs(currentX - initialX) < 1 || 
+                             computed.animationPlayState !== 'running' ||
+                             computed.animationDuration === '0s' ||
+                             computed.animationDuration === '0.01ms';
+
+      if (isMotionHalted) {
+        track.style.setProperty('animation', 'none', 'important');
+        let x = 0;
+        let lastTime = performance.now();
+        const halfWidth = track.scrollWidth / 2 || 1500;
+
+        const loop = (now: number) => {
+          const dt = Math.min((now - lastTime) / 1000, 0.1);
+          lastTime = now;
+          x -= 34 * dt;
+          if (x <= -halfWidth) {
+            x += halfWidth;
+          }
+          track.style.transform = `translate3d(${x.toFixed(1)}px, 0, 0)`;
+          fallbackRafId = requestAnimationFrame(loop);
+        };
+        fallbackRafId = requestAnimationFrame(loop);
+      }
+    }, 350);
+
+    return () => {
+      clearTimeout(timer);
+      if (fallbackRafId) cancelAnimationFrame(fallbackRafId);
+    };
+  }, []);
+
   return (
     <div 
       className="w-full bg-[#f8f8fa] border-y border-neutral-300 text-black select-none relative z-30 transition-colors pointer-events-none"
@@ -19,8 +68,9 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
       <div 
         className="banner-container relative overflow-hidden h-[48px] sm:h-[52px] md:h-[56px] min-h-[48px] sm:min-h-[52px] md:min-h-[56px] flex items-center bg-gradient-to-r from-[#f0f0f4] via-[#ffffff] to-[#f0f0f4] cursor-default pointer-events-none"
       >
-        {/* Foreground Scrolling Content Layer (Off-Main-Thread GPU Compositor Animation) */}
+        {/* Foreground Scrolling Content Layer (Off-Main-Thread GPU Compositor Animation with Fail-Safe) */}
         <div 
+          ref={trackRef}
           className="ticker-track-css relative z-10 flex items-center shrink-0 pointer-events-none"
         >
           {/* Segment 1 */}

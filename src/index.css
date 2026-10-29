@@ -100,9 +100,11 @@ body {
   padding-bottom: env(safe-area-inset-bottom, 1rem);
 }
 
-/* Motion accessibility */
+/* Motion accessibility — exempt live broadcast ticker stream */
 @media (prefers-reduced-motion: reduce) {
-  *, ::before, ::after {
+  *:not(.ticker-track-css):not(.ticker-track-css *):not(.banner-container):not(.banner-container *),
+  ::before,
+  ::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -125,13 +127,11 @@ body {
   background: #ffffff;
 }
 
-/* Clean Mobile-Optimized Marquee Banner — Isolated Stacking Context */
+/* Clean Mobile-Optimized Marquee Banner */
 .banner-container {
   overflow: hidden;
-  contain: layout paint;
-  isolation: isolate;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+  position: relative;
+  width: 100%;
   pointer-events: none;
 }
 
@@ -151,16 +151,8 @@ body {
   will-change: transform;
   transform: translate3d(0, 0, 0);
   -webkit-transform: translate3d(0, 0, 0);
-  animation: ticker-marquee 70s linear infinite;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+  animation: ticker-marquee 65s linear infinite !important;
   pointer-events: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ticker-track-css {
-    animation: none;
-  }
 }
 
 /* RAF-Driven Hardware-Accelerated Ticker Track (Kept for instant revertability) */
