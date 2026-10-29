@@ -21,7 +21,6 @@ interface LiveEventTickerProps {
 }
 
 export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
-  const [isPaused, setIsPaused] = useState<boolean>(false);
   const [inspectEvent, setInspectEvent] = useState<LiveEventEntry | null>(null);
 
   return (
@@ -32,64 +31,30 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
     >
       {/* WHITE EVENT BROADCAST — MOBILE-OPTIMIZED CONTINUOUS MARQUEE STREAM */}
       <div 
-        className="relative overflow-hidden h-28 sm:h-32 md:h-36 min-h-[112px] sm:min-h-[128px] md:min-h-[140px] flex items-center bg-gradient-to-r from-[#f0f0f4] via-[#ffffff] to-[#f0f0f4] group cursor-pointer"
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-        onTouchStart={() => setIsPaused(true)}
-        onTouchEnd={() => setIsPaused(false)}
-        style={{ WebkitOverflowScrolling: 'touch' }}
+        className="banner-container relative overflow-hidden h-28 sm:h-32 md:h-36 min-h-[112px] sm:min-h-[128px] md:min-h-[140px] flex items-center bg-gradient-to-r from-[#f0f0f4] via-[#ffffff] to-[#f0f0f4] group"
       >
-        {/* 1. Large, Responsive Background Watermark Layer (Ultra-Smooth Parallax Glide, Zero Shader Overhead) */}
+        {/* 1. Static BNG Logo Watermark (Rendered exactly once, decorative background layer, z-0) */}
         <div 
-          className="absolute inset-0 z-0 pointer-events-none select-none overflow-hidden flex items-center opacity-[0.05]"
+          className="absolute inset-0 z-0 pointer-events-none select-none flex items-center justify-center overflow-hidden"
           aria-hidden="true"
         >
-          <div 
-            className={`animate-watermark-slow flex items-center gap-24 sm:gap-40 ${isPaused ? 'pause-animation' : 'pause-on-hover'}`}
-            style={{ 
-              '--watermark-duration': '180s',
-              willChange: 'transform',
-              backfaceVisibility: 'hidden',
-              WebkitBackfaceVisibility: 'hidden'
-            } as React.CSSProperties}
-          >
-            {/* Run 1 */}
-            <div className="flex items-center gap-24 sm:gap-40 pr-24 sm:pr-40 shrink-0">
-              {Array.from({ length: 6 }).map((_, idx) => (
-                <img
-                  key={`wm-1-${idx}`}
-                  src="/assets/bng-logo-watermark.svg"
-                  alt=""
-                  className="h-[clamp(72px,10vw,150px)] w-auto max-w-full object-contain shrink-0 select-none"
-                />
-              ))}
-            </div>
-            {/* Run 2 for seamless infinite loop */}
-            <div className="flex items-center gap-24 sm:gap-40 pr-24 sm:pr-40 shrink-0" aria-hidden="true">
-              {Array.from({ length: 6 }).map((_, idx) => (
-                <img
-                  key={`wm-2-${idx}`}
-                  src="/assets/bng-logo-watermark.svg"
-                  alt=""
-                  className="h-[clamp(72px,10vw,150px)] w-auto max-w-full object-contain shrink-0 select-none"
-                />
-              ))}
-            </div>
-          </div>
+          <img
+            src="/assets/bng-logo-watermark.svg"
+            alt=""
+            decoding="async"
+            className="h-[clamp(72px,12vw,140px)] w-auto max-w-full object-contain select-none pointer-events-none"
+          />
         </div>
 
         {/* 2. Foreground Scrolling Content Layer (z-index: 10) */}
         <div 
-          className={`animate-ticker-marquee relative z-10 flex items-center gap-8 sm:gap-12 ${isPaused ? 'pause-animation' : 'pause-on-hover'}`}
+          className={`animate-ticker-marquee relative z-10 flex items-center shrink-0 ${inspectEvent ? 'pause-animation' : 'pause-on-hover'}`}
           style={{ 
             '--ticker-duration': `${Math.max(160, LIVE_EVENTS_DATA.length * 24)}s`,
-            willChange: 'transform',
-            backfaceVisibility: 'hidden',
-            WebkitBackfaceVisibility: 'hidden'
           } as React.CSSProperties}
         >
           {/* Run 1 */}
-          <div className="flex items-center gap-8 sm:gap-12 pr-8 sm:pr-12">
+          <div className="flex items-center shrink-0">
             {LIVE_EVENTS_DATA.map((event) => (
               <TickerItem 
                 key={event.id} 
@@ -99,7 +64,7 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
             ))}
           </div>
           {/* Run 2 for seamless infinite marquee loop */}
-          <div className="flex items-center gap-8 sm:gap-12 pr-8 sm:pr-12" aria-hidden="true">
+          <div className="flex items-center shrink-0" aria-hidden="true">
             {LIVE_EVENTS_DATA.map((event) => (
               <TickerItem 
                 key={`${event.id}-dup`} 
