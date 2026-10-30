@@ -13,14 +13,8 @@ export const DispatchLog: React.FC<DispatchLogProps> = ({ className = '' }) => {
   const [customMsg, setCustomMsg] = useState<string>('');
   const [latestIncomingId, setLatestIncomingId] = useState<string | null>(null);
 
-  // Mobile 2-slot auto-roll state
-  const [mobileSlots, setMobileSlots] = useState<{
-    current: DispatchMessage | null;
-    previous: DispatchMessage | null;
-  }>({
-    current: null,
-    previous: null,
-  });
+  // Mobile 6-item live feed state
+  const [mobileItems, setMobileItems] = useState<DispatchMessage[]>([]);
 
   // Desktop scrolling state
   const [isScrolledUp, setIsScrolledUp] = useState<boolean>(false);
@@ -36,10 +30,7 @@ export const DispatchLog: React.FC<DispatchLogProps> = ({ className = '' }) => {
         setMessages(history);
         if (history.length > 0) {
           const rev = [...history].reverse();
-          setMobileSlots({
-            current: rev[0] || null,
-            previous: rev[1] || null,
-          });
+          setMobileItems(rev.slice(0, 6));
         }
       },
       onListenersCount: (count) => {
@@ -51,16 +42,16 @@ export const DispatchLog: React.FC<DispatchLogProps> = ({ className = '' }) => {
       onMessage: (newMsg) => {
         setLatestIncomingId(newMsg.id);
         
-        // Update Mobile 2-slot Auto-Roll ("Abmelden & Eintragen")
-        setMobileSlots((prev) => ({
-          current: newMsg,
-          previous: prev.current,
-        }));
+        // Update Mobile 6-item feed (newest at top, keep 6 items)
+        setMobileItems((prev) => {
+          if (prev.some((m) => m.id === newMsg.id)) return prev;
+          return [newMsg, ...prev].slice(0, 6);
+        });
 
-        // Clear highlight flash after 2.8s
+        // Clear highlight tag after 3s
         setTimeout(() => {
           setLatestIncomingId((curr) => (curr === newMsg.id ? null : curr));
-        }, 2800);
+        }, 3000);
 
         startTransition(() => {
           setMessages((prev) => {
@@ -123,11 +114,8 @@ export const DispatchLog: React.FC<DispatchLogProps> = ({ className = '' }) => {
     const newMsg = realtimeDispatchClient.sendUserMessage(customMsg);
     setCustomMsg('');
 
-    // Instant update for mobile slots
-    setMobileSlots((prev) => ({
-      current: newMsg,
-      previous: prev.current,
-    }));
+    // Instant update for mobile feed
+    setMobileItems((prev) => [newMsg, ...prev.filter((m) => m.id !== newMsg.id)].slice(0, 6));
 
     if (desktopChatScrollRef.current) {
       requestAnimationFrame(() => {
@@ -139,8 +127,6 @@ export const DispatchLog: React.FC<DispatchLogProps> = ({ className = '' }) => {
       });
     }
   };
-
-  const { current, previous } = mobileSlots;
 
   return (
     <section 
@@ -261,11 +247,11 @@ export const DispatchLog: React.FC<DispatchLogProps> = ({ className = '' }) => {
       </div>
 
       {/* ============================================================== */}
-      {/* 2. MOBILE VIEW: COMPACT 2-SLOT AUTO-ROLL TICKER (flex lg:hidden) */}
+      {/* 2. MOBILE VIEW: EXTENDED 6-COMMENT LIVE FEED (flex lg:hidden) */}
       {/* ============================================================== */}
       <div className="flex lg:hidden flex-col w-full">
         {/* Mobile Header Bar: DISPATCH TICKER • LIVE */}
-        <div className="border-b border-[#1c1c26] px-3 py-2 bg-[#0e0e12] flex items-center justify-between shrink-0">
+        <div className="border-b border-[#1c1c26] px-3.5 py-2.5 bg-[#0e0e12] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2 font-mono text-[11px] min-w-0">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
@@ -277,7 +263,7 @@ export const DispatchLog: React.FC<DispatchLogProps> = ({ className = '' }) => {
           </div>
 
           <div 
-            className="flex items-center gap-1.5 font-mono text-[10px] text-neutral-300 tabular-nums bg-[#121217] px-2 py-0.5 border border-[#22222e] shrink-0"
+            className="flex items-center gap-1.5 font-mono text-[10px] text-neutral-300 tabular-nums bg-[#121217] px-2.5 py-0.5 border border-[#22222e] shrink-0"
             title="Current live viewers tuned in"
           >
             <Users size={11} className="text-red-500 shrink-0" />
@@ -285,81 +271,65 @@ export const DispatchLog: React.FC<DispatchLogProps> = ({ className = '' }) => {
           </div>
         </div>
 
-        {/* Compact Ticker Slot: Strictly max 2 stacked message slots (no manual vertical scrollbar) */}
-        {/* touch-action: pan-y and pointer-events-none allow smooth scrolling past this section without trapping touch */}
+        {/* Extended Mobile Comments Feed: At least 6 complete visible comments stacked vertically */}
         <div 
-          className="p-2 space-y-1.5 font-mono text-xs overflow-hidden pointer-events-none select-none"
-          style={{ touchAction: 'pan-y' }}
+          className="p-2 sm:p-2.5 space-y-2 font-mono text-xs select-none min-h-[420px]"
+          style={{ overflowAnchor: 'none' }}
         >
-          {/* Top Slot: Highlighted Active Message (NEW badge, bold user, city, red border) */}
-          {current ? (
-            <div 
-              key={current.id} 
-              className="animate-slide-in-top p-2 border border-red-600/90 bg-red-950/25 shadow-[0_0_10px_rgba(220,38,38,0.2)] transition-all duration-300"
-            >
-              <div className="flex items-baseline justify-between text-[10px] mb-0.5 gap-2">
-                <div className="flex items-center gap-1.5 min-w-0 truncate">
-                  {current.isOwn ? (
-                    <span className="px-1.5 py-0.2 bg-white text-black font-mono font-bold text-[8px] uppercase shrink-0">
-                      YOU
+          {mobileItems.slice(0, 6).map((item, index) => {
+            const isNewest = index === 0 && latestIncomingId === item.id;
+            return (
+              <div 
+                key={item.id} 
+                className={`p-2.5 border transition-all duration-300 min-h-[58px] ${
+                  item.isOwn 
+                    ? 'bg-[#181826] border-neutral-500' 
+                    : isNewest
+                      ? 'bg-red-950/25 border-red-600/90 shadow-[0_0_10px_rgba(220,38,38,0.2)] animate-dispatch-gentle'
+                      : index === 0
+                        ? 'bg-red-950/20 border-red-700/60'
+                        : 'bg-[#0d0d12] border-[#1c1c26]'
+                }`}
+              >
+                <div className="flex items-baseline justify-between text-[10px] mb-1 gap-2">
+                  <div className="flex items-center gap-1.5 min-w-0 truncate">
+                    {item.isOwn ? (
+                      <span className="px-1.5 py-0.2 bg-white text-black font-mono font-bold text-[8px] uppercase shrink-0">
+                        YOU
+                      </span>
+                    ) : isNewest ? (
+                      <span className="px-1.5 py-0.2 bg-red-600 text-white font-mono font-bold text-[8px] uppercase tracking-wider shrink-0">
+                        NEW
+                      </span>
+                    ) : null}
+                    
+                    <span className={`font-mono font-bold text-xs uppercase tracking-wide truncate ${
+                      item.isOwn ? 'text-white' : index === 0 ? 'text-white' : 'text-neutral-200'
+                    }`}>
+                      {item.user}
                     </span>
-                  ) : (
-                    <span className="px-1.5 py-0.2 bg-red-600 text-white font-mono font-bold text-[8px] uppercase tracking-wider shrink-0 animate-pulse">
-                      NEW
-                    </span>
-                  )}
-                  
-                  <span className="font-mono font-black text-white text-xs uppercase tracking-wide truncate">
-                    {current.user}
-                  </span>
-                  {current.city && !current.isOwn && (
-                    <span className="text-neutral-400 font-mono text-[9px] shrink-0">({current.city})</span>
-                  )}
+                    {item.city && !item.isOwn && (
+                      <span className="text-neutral-400 font-mono text-[9px] shrink-0">({item.city})</span>
+                    )}
+                  </div>
+                  <span className="tabular-nums font-mono text-[9px] text-neutral-400 shrink-0">{item.timestamp}</span>
                 </div>
-                <span className="tabular-nums font-mono text-[9px] text-neutral-400 shrink-0">{current.timestamp}</span>
+                
+                <p className={`font-ui text-[12px] sm:text-xs leading-snug break-words ${
+                  item.isOwn ? 'text-white font-medium' : index === 0 ? 'text-neutral-100' : 'text-neutral-300'
+                }`}>
+                  <span>{item.text}</span>
+                  {item.emoji && <span className="ml-1.5 inline-block text-xs">{item.emoji}</span>}
+                </p>
               </div>
-              
-              <p className="text-white font-ui text-[12px] sm:text-xs leading-snug break-words">
-                {current.text}
-                {current.emoji && <span className="ml-1.5 inline-block text-xs">{current.emoji}</span>}
-              </p>
-            </div>
-          ) : (
-            <div className="p-2 border border-[#1f1f2a] bg-[#0c0c10] text-zinc-500 text-[11px]">
-              Waiting for next dispatch...
-            </div>
-          )}
-
-          {/* Bottom Slot: Previous message fading out with reduced opacity (text-zinc-600) */}
-          {previous ? (
-            <div 
-              key={previous.id} 
-              className="p-1.5 border border-[#1c1c24] bg-[#09090d]/80 text-zinc-600 opacity-60 transition-all duration-500"
-            >
-              <div className="flex items-baseline justify-between text-[9px] mb-0.5 gap-2 text-zinc-600">
-                <div className="flex items-center gap-1 min-w-0 truncate">
-                  <span className="font-mono font-bold text-zinc-500 uppercase truncate">
-                    {previous.user}
-                  </span>
-                  {previous.city && (
-                    <span className="text-zinc-600 text-[8px] shrink-0">({previous.city})</span>
-                  )}
-                </div>
-                <span className="tabular-nums font-mono text-[8px] text-zinc-600 shrink-0">{previous.timestamp}</span>
-              </div>
-              
-              <p className="font-ui text-[11px] leading-tight text-zinc-500 truncate">
-                {previous.text}
-                {previous.emoji && <span className="ml-1 inline-block opacity-75">{previous.emoji}</span>}
-              </p>
-            </div>
-          ) : null}
+            );
+          })}
         </div>
 
-        {/* Direct Input Bar: Placed immediately beneath the ticker box with no margin spacing gap */}
+        {/* Mobile Input Form directly below the 6 visible comments */}
         <form 
           onSubmit={handleSendMessage} 
-          className="p-2 border-t border-[#1c1c26] bg-[#0c0c10] flex gap-2 shrink-0 pointer-events-auto"
+          className="p-2 sm:p-2.5 border-t border-[#1c1c26] bg-[#0c0c10] flex gap-2 shrink-0 pointer-events-auto"
         >
           <input
             type="text"
@@ -367,14 +337,14 @@ export const DispatchLog: React.FC<DispatchLogProps> = ({ className = '' }) => {
             onChange={(e) => setCustomMsg(e.target.value)}
             maxLength={180}
             placeholder="Send dispatch to the booth..."
-            className="flex-1 bg-[#121218] border border-[#262635] px-2.5 py-1.5 text-xs font-mono text-white placeholder-neutral-500 focus:outline-none focus:border-red-500 transition-colors"
+            className="flex-1 bg-[#121218] border border-[#262635] px-3 py-2 text-xs font-mono text-white placeholder-neutral-400 focus:outline-none focus:border-red-500 transition-colors"
           />
           <button
             type="submit"
             aria-label="Send dispatch"
-            className="px-3.5 py-1.5 bg-red-600 hover:bg-red-500 text-white font-mono text-xs font-bold transition-colors flex items-center justify-center cursor-pointer shrink-0 shadow-[0_0_8px_rgba(220,38,38,0.4)]"
+            className="px-4 py-2 bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-mono text-xs font-bold transition-colors flex items-center justify-center cursor-pointer shrink-0 shadow-[0_0_8px_rgba(220,38,38,0.4)]"
           >
-            <Send size={12} />
+            <Send size={13} />
           </button>
         </form>
       </div>
