@@ -171,17 +171,16 @@ class AudioEngine {
 
     try {
       const origin = window.location.origin;
-      const logoPath = `${origin}/assets/aistudio/images_lllogo-removebg-preview_46d3cb66.png`;
+      const icon192 = `${origin}/assets/kontrolle-app-icon-192.png`;
+      const icon512 = `${origin}/assets/kontrolle-app-icon-512.png`;
 
       navigator.mediaSession.metadata = new MediaMetadata({
-        title: 'RADIO KONTROLLE TRANSMISSIONS',
-        artist: 'RESIDENT SELECTORS',
-        album: 'ON AIR • 104.5 FM',
+        title: 'RADIO KONTROLLE',
+        artist: 'LIVE BROADCAST',
+        album: 'RADIO KONTROLLE',
         artwork: [
-          { src: logoPath, sizes: '96x96', type: 'image/png' },
-          { src: logoPath, sizes: '128x128', type: 'image/png' },
-          { src: logoPath, sizes: '192x192', type: 'image/png' },
-          { src: logoPath, sizes: '512x512', type: 'image/png' },
+          { src: icon192, sizes: '192x192', type: 'image/png' },
+          { src: icon512, sizes: '512x512', type: 'image/png' },
         ],
       });
     } catch (err) {
