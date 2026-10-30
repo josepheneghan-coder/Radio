@@ -1,28 +1,44 @@
 {
+  "id": "/",
   "name": "RADIO KONTROLLE",
   "short_name": "RADIO KONTROLLE",
   "description": "RADIO KONTROLLE – Independent Electronic Underground Radio for Techno, House, Deep House and African House. Discover underground sounds, exclusive DJ sets, live broadcasts and resident selectors.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
   "background_color": "#0c0c0c",
   "theme_color": "#0c0c0c",
+  "lang": "de-DE",
+  "categories": ["music", "entertainment"],
   "icons": [
     {
       "src": "/assets/kontrolle-app-icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/kontrolle-app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/assets/kontrolle-app-icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "/app-icon.svg",
-      "sizes": "any",
+      "src": "/assets/kontrolle-app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/assets/kontrolle-color-icon.svg",
+      "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any"
     }

@@ -22,9 +22,27 @@
     <link rel="icon" type="image/png" sizes="512x512" href="/assets/kontrolle-app-icon-512.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="RADIO KONTROLLE" />
+
+    <!-- Early PWA Prompt Capture & Service Worker Registration -->
+    <script>
+      window.__deferredPWAInstallPrompt = null;
+      window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        window.__deferredPWAInstallPrompt = e;
+        window.dispatchEvent(new CustomEvent('pwa-prompt-ready'));
+      });
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js').catch(function(err) {
+            console.debug('SW reg info:', err);
+          });
+        });
+      }
+    </script>
 
     <!-- OpenGraph Metadata -->
     <meta property="og:site_name" content="RADIO KONTROLLE" />

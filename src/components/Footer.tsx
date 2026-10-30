@@ -1,16 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Mail, 
   Check, 
   ExternalLink, 
   ArrowRight, 
-  Download, 
-  Smartphone, 
-  Share2, 
-  PlusSquare, 
-  Laptop, 
-  X,
-  Radio
+  Download
 } from 'lucide-react';
 import { audioEngine } from '../utils/audioEngine';
 
@@ -19,70 +12,118 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
 }
 
+declare global {
+  interface Window {
+    __deferredPWAInstallPrompt?: BeforeInstallPromptEvent | null;
+  }
+}
+
 export const Footer: React.FC = () => {
   const [email, setEmail] = useState<string>('');
   const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
   const [showImpressum, setShowImpressum] = useState<boolean>(false);
 
-  // PWA Install / App Download State
+  // 1-Click PWA Install State
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState<boolean>(false);
-  const [showInstallModal, setShowInstallModal] = useState<boolean>(false);
   const [isIOS, setIsIOS] = useState<boolean>(false);
+  const [installHint, setInstallHint] = useState<string | null>(null);
 
   useEffect(() => {
-    // Detect if already installed or running as standalone PWA
+    // 1. Detect if running in standalone mode (already installed)
     const checkStandalone = () => {
       const isStandaloneMode = 
         window.matchMedia('(display-mode: standalone)').matches || 
-        (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+        (window.navigator as unknown as { standalone?: boolean }).standalone === true ||
+        document.referrer.includes('android-app://');
       setIsInstalled(Boolean(isStandaloneMode));
     };
 
     checkStandalone();
 
-    // Detect iOS device
+    // 2. Detect iOS / iPadOS device
     const userAgent = window.navigator.userAgent.toLowerCase();
-    const isAppleDevice = /iphone|ipad|ipod/.test(userAgent);
-    setIsIOS(isAppleDevice);
+    const isApple = /iphone|ipad|ipod/.test(userAgent) || 
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    setIsIOS(isApple);
 
-    // Listen for Chrome/Edge/Android PWA install prompt
+    // 3. Check for early captured beforeinstallprompt
+    if (typeof window !== 'undefined' && window.__deferredPWAInstallPrompt) {
+      setDeferredPrompt(window.__deferredPWAInstallPrompt);
+    }
+
+    const handlePromptReady = () => {
+      if (typeof window !== 'undefined' && window.__deferredPWAInstallPrompt) {
+        setDeferredPrompt(window.__deferredPWAInstallPrompt);
+      }
+    };
+    window.addEventListener('pwa-prompt-ready', handlePromptReady);
+
+    // 4. Listen for Chrome/Edge/Android PWA install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      const promptEvent = e as BeforeInstallPromptEvent;
+      window.__deferredPWAInstallPrompt = promptEvent;
+      setDeferredPrompt(promptEvent);
     };
-
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    window.addEventListener('appinstalled', () => {
+
+    // 5. App installed listener
+    const handleAppInstalled = () => {
       setIsInstalled(true);
       setDeferredPrompt(null);
-    });
+      window.__deferredPWAInstallPrompt = null;
+      setInstallHint('RADIO KONTROLLE wurde erfolgreich installiert.');
+    };
+    window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
+      window.removeEventListener('pwa-prompt-ready', handlePromptReady);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
 
   const handleDownloadApp = async () => {
-    audioEngine.playFX('sub_drop');
+    try {
+      audioEngine.playFX('sub_drop');
+    } catch {
+      // safe fallback
+    }
 
-    // 1. If native beforeinstallprompt is ready (Chrome, Edge, Android)
-    if (deferredPrompt) {
+    if (isInstalled) {
+      setInstallHint('Die App ist bereits auf deinem Gerät installiert.');
+      return;
+    }
+
+    // 1. Android, Windows, macOS (Chrome / Edge): Immediate native prompt
+    const promptEvent = deferredPrompt || (typeof window !== 'undefined' ? window.__deferredPWAInstallPrompt : null);
+    if (promptEvent && typeof promptEvent.prompt === 'function') {
       try {
-        await deferredPrompt.prompt();
-        const choice = await deferredPrompt.userChoice;
-        if (choice.outcome === 'accepted') {
+        await promptEvent.prompt();
+        const choice = await promptEvent.userChoice;
+        if (choice && choice.outcome === 'accepted') {
           setIsInstalled(true);
+          setDeferredPrompt(null);
+          if (typeof window !== 'undefined') {
+            window.__deferredPWAInstallPrompt = null;
+          }
+          setInstallHint(null);
         }
-        setDeferredPrompt(null);
         return;
-      } catch {
-        // Fallback to instruction modal on error
+      } catch (err) {
+        console.warn('Native prompt error:', err);
       }
     }
 
-    // 2. Otherwise open universal guided install modal (iOS Safari, Desktop, etc.)
-    setShowInstallModal(true);
+    // 2. iPhone / iPad (Safari)
+    if (isIOS) {
+      setInstallHint('Safari: Tippe unten auf „Teilen“ und danach auf „Zum Home-Bildschirm“.');
+      return;
+    }
+
+    // 3. Desktop browser without beforeinstallprompt
+    setInstallHint('Klicke oben in der Adressleiste auf das Installations-Symbol.');
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -282,14 +323,38 @@ export const Footer: React.FC = () => {
               </span>
             </div>
 
-            <button
-              onClick={handleDownloadApp}
-              className="w-full sm:w-auto bg-[#facc15] hover:bg-[#eab308] text-black font-mono font-black text-xs sm:text-sm px-5 py-2.5 flex items-center justify-center gap-2 uppercase tracking-wide transition-all shadow-[0_0_15px_rgba(250,204,21,0.25)] hover:shadow-[0_0_20px_rgba(250,204,21,0.45)] cursor-pointer active:scale-95 shrink-0"
-              aria-label="RADIO KONTROLLE App downloaden oder installieren"
-            >
-              <Download size={16} className="stroke-[2.5]" />
-              <span>{isInstalled ? 'APP BEREITS INSTALLIERT' : 'APP DOWNLOADEN'}</span>
-            </button>
+            <div className="flex flex-col sm:items-end w-full sm:w-auto">
+              <button
+                onClick={handleDownloadApp}
+                className="w-full sm:w-auto bg-[#facc15] hover:bg-[#eab308] text-black font-mono font-black text-xs sm:text-sm px-5 py-2.5 flex items-center justify-center gap-2 uppercase tracking-wide transition-all shadow-[0_0_15px_rgba(250,204,21,0.25)] hover:shadow-[0_0_20px_rgba(250,204,21,0.45)] cursor-pointer active:scale-95 shrink-0"
+                aria-label="RADIO KONTROLLE App downloaden oder installieren"
+              >
+                {isInstalled ? (
+                  <>
+                    <Check size={16} className="stroke-[3]" />
+                    <span>APP BEREITS INSTALLIERT</span>
+                  </>
+                ) : (
+                  <>
+                    <Download size={16} className="stroke-[2.5]" />
+                    <span>APP DOWNLOADEN</span>
+                  </>
+                )}
+              </button>
+
+              {installHint && (
+                <div className="mt-2 text-[11px] font-mono text-yellow-300 bg-[#141418] border border-neutral-700 px-3 py-1.5 flex items-center justify-between gap-2 rounded max-w-sm">
+                  <span>{installHint}</span>
+                  <button
+                    onClick={() => setInstallHint(null)}
+                    className="text-neutral-400 hover:text-white text-xs ml-1 font-bold cursor-pointer"
+                    aria-label="Hinweis schließen"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -328,127 +393,6 @@ export const Footer: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* ============================================================== */}
-      {/* PWA / APP INSTALL INSTRUCTIONS MODAL                           */}
-      {/* ============================================================== */}
-      {showInstallModal && (
-        <div 
-          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 select-none"
-          onClick={() => setShowInstallModal(false)}
-        >
-          <div 
-            className="w-full max-w-lg bg-[#0c0c10] border-2 border-[#facc15] shadow-[0_0_40px_rgba(250,204,21,0.25)] text-white font-mono p-5 sm:p-6 relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header: Farb-Icon Plastikmann ganz oben drauf */}
-            <div className="flex items-start justify-between gap-4 border-b border-[#242432] pb-4 mb-4">
-              <div className="flex items-center gap-3.5">
-                {/* Offizielles Farb-Icon des Plastikmanns als App-Tile */}
-                <div className="relative shrink-0">
-                  <img
-                    src="/assets/kontrolle-color-icon.svg"
-                    alt="RADIO KONTROLLE Plastikmann Farb-Icon"
-                    className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl border-2 border-yellow-400/80 shadow-[0_0_20px_rgba(231,251,4,0.35)] object-contain bg-[#09090d]"
-                  />
-                  <div className="absolute -bottom-1 -right-1 bg-yellow-400 text-black p-0.5 rounded-full border border-black shadow">
-                    <Download size={12} className="stroke-[3]" />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="bg-yellow-400 text-black px-1.5 py-0.2 text-[9px] font-mono font-black uppercase tracking-wider">
-                      OFFIZIELLE APP
-                    </span>
-                    <span className="text-[10px] text-neutral-400 font-mono">
-                      HOME-SCREEN ICON
-                    </span>
-                  </div>
-                  <h3 className="text-base sm:text-lg font-orbitron font-black text-white uppercase tracking-wider leading-tight">
-                    RADIO KONTROLLE
-                  </h3>
-                  <p className="text-[11px] text-neutral-400 font-mono mt-0.5">
-                    Mit dem originalen Plastikmann Farb-Icon auf deinem Gerät
-                  </p>
-                </div>
-              </div>
-
-              <button
-                onClick={() => setShowInstallModal(false)}
-                className="w-8 h-8 flex items-center justify-center bg-[#181824] hover:bg-neutral-800 text-neutral-300 hover:text-white border border-[#2b2b3d] transition-colors cursor-pointer shrink-0"
-                aria-label="Modal schließen"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            {/* Platform Guides */}
-            <div className="space-y-4 text-xs">
-              {/* iOS Safari Guide */}
-              <div className={`p-3.5 border ${isIOS ? 'border-yellow-400/80 bg-neutral-900/90' : 'border-[#222230] bg-[#121216]'}`}>
-                <div className="flex items-center gap-2 font-bold text-white mb-2">
-                  <Smartphone size={16} className="text-yellow-400" />
-                  <span>AUF IPHONE & IPAD (SAFARI):</span>
-                  {isIOS && <span className="text-[10px] bg-yellow-400 text-black px-1.5 py-0.2 font-black">DEIN GERÄT</span>}
-                </div>
-                <ol className="list-decimal list-inside space-y-1.5 text-neutral-300 text-[11px]">
-                  <li>
-                    Tippe unten in Safari auf das <strong className="text-white inline-flex items-center gap-1 mx-1"><Share2 size={12} /> Teilen-Symbol</strong> (Viereck mit Pfeil).
-                  </li>
-                  <li>
-                    Scrolle in den Optionen nach unten und wähle <strong className="text-white inline-flex items-center gap-1 mx-1"><PlusSquare size={12} /> Zum Home-Bildschirm</strong>.
-                  </li>
-                  <li>
-                    Tippe oben rechts auf <strong>„Hinzufügen“</strong>. Die App startet nun wie eine native App ohne Adressleiste!
-                  </li>
-                </ol>
-              </div>
-
-              {/* Android & Chrome Guide */}
-              <div className={`p-3.5 border ${!isIOS ? 'border-yellow-400/80 bg-neutral-900/90' : 'border-[#222230] bg-[#121216]'}`}>
-                <div className="flex items-center gap-2 font-bold text-white mb-2">
-                  <Smartphone size={16} className="text-yellow-400" />
-                  <span>AUF ANDROID & CHROME:</span>
-                  {!isIOS && <span className="text-[10px] bg-yellow-400 text-black px-1.5 py-0.2 font-black">EMPFOHLEN</span>}
-                </div>
-                <ol className="list-decimal list-inside space-y-1.5 text-neutral-300 text-[11px]">
-                  <li>
-                    Tippe oben rechts auf das <strong className="text-white">Dreipunkte-Menü (⋮)</strong>.
-                  </li>
-                  <li>
-                    Wähle <strong className="text-white">„App installieren“</strong> oder <strong className="text-white">„Zum Startbildschirm hinzufügen“</strong>.
-                  </li>
-                  <li>
-                    Bestätige die Installation.
-                  </li>
-                </ol>
-              </div>
-
-              {/* Desktop Browser Guide */}
-              <div className="p-3 border border-[#222230] bg-[#121216]">
-                <div className="flex items-center gap-2 font-bold text-neutral-300 mb-1.5 text-[11px]">
-                  <Laptop size={14} className="text-neutral-400" />
-                  <span>DESKTOP (CHROME / EDGE):</span>
-                </div>
-                <p className="text-neutral-400 text-[10.5px]">
-                  Klicke in der Adressleiste oben rechts auf das kleine <strong>Installieren-Icon</strong> (Monitor mit Pfeil nach unten).
-                </p>
-              </div>
-            </div>
-
-            {/* Footer Button */}
-            <div className="mt-5 pt-3 border-t border-[#20202a] flex justify-end">
-              <button
-                onClick={() => setShowInstallModal(false)}
-                className="w-full sm:w-auto px-5 py-2 bg-yellow-400 hover:bg-yellow-300 text-black font-bold uppercase text-xs cursor-pointer transition-colors"
-              >
-                VERSTANDEN
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </footer>
   );
 };
