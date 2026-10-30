@@ -157,11 +157,25 @@ body {
 .animate-ticker-marquee {
   animation: ticker-marquee var(--ticker-duration, 160s) linear infinite;
   will-change: transform;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .animate-watermark-slow {
   animation: watermark-slow var(--watermark-duration, 190s) linear infinite;
   will-change: transform;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Pure CSS GPU compositor pause-on-hover: 0 React re-renders, 0 frame drops */
+.group:hover .animate-ticker-marquee,
+.group:hover .animate-watermark-slow {
+  animation-play-state: paused;
 }
 
 .pause-on-hover:hover {
@@ -169,7 +183,7 @@ body {
 }
 
 .pause-animation {
-  animation-play-state: paused;
+  animation-play-state: paused !important;
 }
 
 .ticker-track-css {

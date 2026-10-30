@@ -21,12 +21,16 @@ interface LiveEventTickerProps {
 }
 
 export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
-  const [isPaused, setIsPaused] = useState<boolean>(false);
   const [mobileEventIndex, setMobileEventIndex] = useState<number>(0);
   const [inspectEvent, setInspectEvent] = useState<LiveEventEntry | null>(null);
 
   const totalEvents = LIVE_EVENTS_DATA.length;
   const currentMobileEvent = LIVE_EVENTS_DATA[mobileEventIndex] || LIVE_EVENTS_DATA[0];
+
+  // Stabile Referenz für Event-Details-Inspektion (verhindert Re-Renders)
+  const handleInspectEvent = React.useCallback((event: LiveEventEntry) => {
+    setInspectEvent(event);
+  }, []);
 
   // Wechsel ausschließlich durch Klicken / Tippen auf die Tickerfläche für Mobile
   const handleNextEvent = () => {
@@ -46,8 +50,6 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
       {/* ============================================================== */}
       <div 
         className="hidden md:flex banner-container relative overflow-hidden h-28 sm:h-32 md:h-36 min-h-[112px] sm:min-h-[128px] md:min-h-[140px] items-center bg-gradient-to-r from-[#f0f0f4] via-[#ffffff] to-[#f0f0f4] group"
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
       >
         {/* Sich langsam von rechts nach links bewegende Wasserzeichen-Ebene */}
         <div 
@@ -55,10 +57,9 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
           aria-hidden="true"
         >
           <div 
-            className="animate-watermark-slow flex items-center shrink-0"
+            className={`animate-watermark-slow flex items-center shrink-0 ${inspectEvent ? 'pause-animation' : ''}`}
             style={{ 
               '--watermark-duration': '180s',
-              animationPlayState: isPaused ? 'paused' : 'running',
             } as React.CSSProperties}
           >
             {/* Run 1 */}
@@ -70,7 +71,7 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
                     alt=""
                     decoding="async"
                     loading="eager"
-                    className="h-[clamp(85px,11vw,145px)] w-auto max-w-none object-contain select-none pointer-events-none opacity-15"
+                    className="h-[clamp(85px,11vw,145px)] w-auto max-w-none object-contain select-none pointer-events-none opacity-10"
                     aria-hidden="true"
                   />
                 </div>
@@ -85,7 +86,7 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
                     alt=""
                     decoding="async"
                     loading="eager"
-                    className="h-[clamp(85px,11vw,145px)] w-auto max-w-none object-contain select-none pointer-events-none opacity-15"
+                    className="h-[clamp(85px,11vw,145px)] w-auto max-w-none object-contain select-none pointer-events-none opacity-10"
                     aria-hidden="true"
                   />
                 </div>
@@ -96,10 +97,9 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
 
         {/* Im Vordergrund flüssig von rechts nach links laufender Marquee */}
         <div 
-          className="animate-ticker-marquee relative z-10 flex items-center shrink-0"
+          className={`animate-ticker-marquee relative z-10 flex items-center shrink-0 ${inspectEvent ? 'pause-animation' : ''}`}
           style={{ 
             '--ticker-duration': `${Math.max(140, LIVE_EVENTS_DATA.length * 20)}s`,
-            animationPlayState: isPaused ? 'paused' : 'running',
           } as React.CSSProperties}
         >
           {/* Run 1 */}
@@ -108,7 +108,7 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
               <DesktopTickerItem 
                 key={event.id} 
                 event={event} 
-                onInspect={() => setInspectEvent(event)} 
+                onInspect={() => handleInspectEvent(event)} 
               />
             ))}
           </div>
@@ -118,7 +118,7 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
               <DesktopTickerItem 
                 key={`${event.id}-dup`} 
                 event={event} 
-                onInspect={() => setInspectEvent(event)} 
+                onInspect={() => handleInspectEvent(event)} 
                 isAriaHidden 
               />
             ))}
@@ -340,7 +340,7 @@ interface TickerItemProps {
   isAriaHidden?: boolean;
 }
 
-const DesktopTickerItem: React.FC<TickerItemProps> = ({ event, onInspect, isAriaHidden = false }) => {
+const DesktopTickerItem: React.FC<TickerItemProps> = React.memo(({ event, onInspect, isAriaHidden = false }) => {
   return (
     <div
       className="flex items-center gap-4 sm:gap-6 whitespace-nowrap cursor-pointer group/item py-2 pr-10 sm:pr-14 shrink-0 select-none transition-opacity hover:opacity-90"
@@ -397,4 +397,6 @@ const DesktopTickerItem: React.FC<TickerItemProps> = ({ event, onInspect, isAria
       </div>
     </div>
   );
-};
+});
+
+DesktopTickerItem.displayName = 'DesktopTickerItem';
