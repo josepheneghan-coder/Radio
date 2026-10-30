@@ -42,22 +42,23 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
     >
       {/* ============================================================== */}
       {/* 1. DESKTOP VERSION (hidden md:flex)                            */}
-      {/* Laufender Marquee & sich bewegendes SVG-Wasserzeichen          */}
+      {/* Laufender Marquee & sich langsam bewegendes SVG-Wasserzeichen  */}
       {/* ============================================================== */}
       <div 
         className="hidden md:flex banner-container relative overflow-hidden h-28 sm:h-32 md:h-36 min-h-[112px] sm:min-h-[128px] md:min-h-[140px] items-center bg-gradient-to-r from-[#f0f0f4] via-[#ffffff] to-[#f0f0f4] group"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
-        {/* Sich bewegende Wasserzeichen-Ebene im Hintergrund */}
+        {/* Sich langsam von rechts nach links bewegende Wasserzeichen-Ebene */}
         <div 
           className="absolute inset-0 z-0 pointer-events-none select-none overflow-hidden flex items-center"
           aria-hidden="true"
         >
           <div 
-            className={`flex items-center shrink-0 ${isPaused ? '[animation-play-state:paused]' : 'animate-watermark-slow'}`}
+            className="animate-watermark-slow flex items-center shrink-0"
             style={{ 
-              animation: 'watermarkSlow 190s linear infinite',
+              '--watermark-duration': '180s',
+              animationPlayState: isPaused ? 'paused' : 'running',
             } as React.CSSProperties}
           >
             {/* Run 1 */}
@@ -69,7 +70,7 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
                     alt=""
                     decoding="async"
                     loading="eager"
-                    className="h-[clamp(80px,11vw,140px)] w-auto max-w-none object-contain select-none pointer-events-none opacity-20"
+                    className="h-[clamp(85px,11vw,145px)] w-auto max-w-none object-contain select-none pointer-events-none opacity-15"
                     aria-hidden="true"
                   />
                 </div>
@@ -84,7 +85,7 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
                     alt=""
                     decoding="async"
                     loading="eager"
-                    className="h-[clamp(80px,11vw,140px)] w-auto max-w-none object-contain select-none pointer-events-none opacity-20"
+                    className="h-[clamp(85px,11vw,145px)] w-auto max-w-none object-contain select-none pointer-events-none opacity-15"
                     aria-hidden="true"
                   />
                 </div>
@@ -93,11 +94,12 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
           </div>
         </div>
 
-        {/* Foreground Continuous Scrolling Marquee (z-index: 10) */}
+        {/* Im Vordergrund flüssig von rechts nach links laufender Marquee */}
         <div 
-          className={`relative z-10 flex items-center shrink-0 ${isPaused ? '[animation-play-state:paused]' : 'animate-ticker-marquee'}`}
+          className="animate-ticker-marquee relative z-10 flex items-center shrink-0"
           style={{ 
-            animation: `tickerMarquee ${Math.max(160, LIVE_EVENTS_DATA.length * 24)}s linear infinite`,
+            '--ticker-duration': `${Math.max(140, LIVE_EVENTS_DATA.length * 20)}s`,
+            animationPlayState: isPaused ? 'paused' : 'running',
           } as React.CSSProperties}
         >
           {/* Run 1 */}
@@ -362,11 +364,11 @@ const DesktopTickerItem: React.FC<TickerItemProps> = ({ event, onInspect, isAria
             <span className="w-2 h-2 rounded-full bg-[#e11d48] inline-block shrink-0 animate-pulse" />
             LIVE
           </span>
-          <span className="text-neutral-400 text-[10px] font-bold">&</span>
+          <span className="text-black text-[10px] font-bold">&</span>
           <span className="bg-black text-white px-1.5 py-0.5 text-[9px] sm:text-[10px] font-mono font-bold tracking-widest uppercase shrink-0">
             ONLINE BROADCAST
           </span>
-          <span className="text-neutral-500 text-[9px] sm:text-[10px] font-mono uppercase tracking-wide">
+          <span className="text-black font-mono font-bold text-[9px] sm:text-[10px] uppercase tracking-wide">
             · {event.status}
           </span>
         </div>

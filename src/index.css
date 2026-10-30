@@ -127,15 +127,14 @@ body {
   background: #ffffff;
 }
 
-/* Clean Mobile-Optimized Marquee Banner */
+/* Clean Marquee Banner Container */
 .banner-container {
   overflow: hidden;
   position: relative;
   width: 100%;
-  pointer-events: none;
 }
 
-/* Hardware Compositor Marquee (Off-Main-Thread Animation on GPU for 120Hz/60Hz VRR displays) */
+/* Hardware Compositor Marquee (Runs smoothly right-to-left on GPU) */
 @keyframes ticker-marquee {
   0% {
     transform: translate3d(0, 0, 0);
@@ -145,6 +144,34 @@ body {
   }
 }
 
+/* Background Watermark Marquee (Gentle gliding right-to-left) */
+@keyframes watermark-slow {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-ticker-marquee {
+  animation: ticker-marquee var(--ticker-duration, 160s) linear infinite;
+  will-change: transform;
+}
+
+.animate-watermark-slow {
+  animation: watermark-slow var(--watermark-duration, 190s) linear infinite;
+  will-change: transform;
+}
+
+.pause-on-hover:hover {
+  animation-play-state: paused;
+}
+
+.pause-animation {
+  animation-play-state: paused;
+}
+
 .ticker-track-css {
   display: flex;
   width: max-content;
@@ -152,7 +179,6 @@ body {
   transform: translate3d(0, 0, 0);
   -webkit-transform: translate3d(0, 0, 0);
   animation: ticker-marquee 65s linear infinite !important;
-  pointer-events: none;
 }
 
 /* RAF-Driven Hardware-Accelerated Ticker Track (Kept for instant revertability) */
