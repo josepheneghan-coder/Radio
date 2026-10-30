@@ -9,31 +9,19 @@
   "theme_color": "#0c0c0c",
   "icons": [
     {
-      "src": "/assets/aistudio/images_lllogo-removebg-preview_46d3cb66.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/assets/aistudio/images_lllogo-removebg-preview_46d3cb66.png",
-      "sizes": "128x128",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/assets/aistudio/images_lllogo-removebg-preview_46d3cb66.png",
+      "src": "/assets/kontrolle-app-icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/assets/aistudio/images_lllogo-removebg-preview_46d3cb66.png",
+      "src": "/assets/kontrolle-app-icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/favicon.svg",
+      "src": "/app-icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
