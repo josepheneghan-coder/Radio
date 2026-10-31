@@ -56,6 +56,19 @@ class AudioEngine {
   private reactorPeaks: Float32Array = new Float32Array(64);
   private peakHoldExpiry: Float64Array = new Float64Array(64);
   private clipFlags: boolean[] = new Array(64).fill(false);
+  private targetBands: Float32Array = new Float32Array(64);
+  private analyser24Buffer: Uint8Array = new Uint8Array(24);
+  private cachedMetrics: ReactorMetrics = {
+    bpm: 138.0,
+    subDb: -42,
+    midDb: -45,
+    highDb: -48,
+    peakDb: -40,
+    ravePressure: true,
+    analysisMode: 'standby',
+    clipDetected: false,
+    preset: 'peak_techno',
+  };
   private bpm: number = 138.0; // Peak Techno default: 138 BPM
   private phrasePhase: number = 0; // 0 to 1 for long phrase filter sweeps
   // Screen Wake Lock API (Keep mobile display and audio stream session active)
@@ -123,6 +136,15 @@ class AudioEngine {
     }
   }
 
+  private safeSetActionHandler(action: MediaSessionAction, handler: MediaSessionActionHandler | null) {
+    if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;
+    try {
+      navigator.mediaSession.setActionHandler(action, handler);
+    } catch {
+      // Gracefully ignore unsupported actions on this browser engine
+    }
+  }
+
   // --- Native Media Session API (Lockscreen Controls & Background Playback) ---
   private setupMediaSession() {
     if (typeof window === 'undefined' || !('mediaSession' in navigator)) {
@@ -130,35 +152,32 @@ class AudioEngine {
     }
 
     try {
-      navigator.mediaSession.setActionHandler('play', () => {
-        if (!this.isRunning) {
-          if (this.streamAudio && this.streamAudio.src && !this.streamAudio.src.endsWith('/')) {
-            const playPromise = this.streamAudio.play();
-            if (playPromise !== undefined) {
-              playPromise.then(() => {
-                this.isRunning = true;
-                this.streamStatus = 'live';
-                this.statusMessage = 'LIVE ON AIR · 104.5 FM';
-                this.updateMediaSessionMetadata();
-                this.updateMediaSessionState('playing');
-                this.notify();
-              }).catch(() => {
-                this.startStream(this.currentStreamUrl);
-              });
-              return;
-            }
-          }
-          this.startStream(this.currentStreamUrl);
-        }
+      // Initialize clean metadata and initial playback state immediately
+      this.updateMediaSessionMetadata();
+      this.updateMediaSessionState('none');
+
+      // 1. PLAY: Resume or connect to live broadcast stream
+      this.safeSetActionHandler('play', () => {
+        this.isUserInitiatedStop = false;
+        this.startStream(this.currentStreamUrl);
       });
 
-      navigator.mediaSession.setActionHandler('pause', () => {
+      // 2. PAUSE: Pause current playback without clearing stream audio instance
+      this.safeSetActionHandler('pause', () => {
         this.pause();
       });
 
-      navigator.mediaSession.setActionHandler('stop', () => {
+      // 3. STOP: Stop playback cleanly
+      this.safeSetActionHandler('stop', () => {
         this.stop();
       });
+
+      // Disable unneeded track/seek actions for uninterrupted live stream display
+      this.safeSetActionHandler('seekto', null);
+      this.safeSetActionHandler('seekbackward', null);
+      this.safeSetActionHandler('seekforward', null);
+      this.safeSetActionHandler('previoustrack', null);
+      this.safeSetActionHandler('nexttrack', null);
     } catch (err) {
       console.warn('MediaSession handler registration notice:', err);
     }
@@ -173,14 +192,17 @@ class AudioEngine {
       const origin = window.location.origin;
       const icon192 = `${origin}/assets/kontrolle-app-icon-192.png`;
       const icon512 = `${origin}/assets/kontrolle-app-icon-512.png`;
+      const iconApple = `${origin}/apple-touch-icon.png`;
 
+      // Set clean title and artist; album is empty to eliminate any unwanted trailing/duplicate text
       navigator.mediaSession.metadata = new MediaMetadata({
         title: 'RADIO KONTROLLE',
         artist: 'LIVE BROADCAST',
-        album: 'RADIO KONTROLLE',
+        album: '',
         artwork: [
           { src: icon192, sizes: '192x192', type: 'image/png' },
           { src: icon512, sizes: '512x512', type: 'image/png' },
+          { src: iconApple, sizes: '180x180', type: 'image/png' },
         ],
       });
     } catch (err) {
@@ -203,6 +225,8 @@ class AudioEngine {
     if (this.streamAudio) return;
 
     this.streamAudio = new Audio();
+    // Setting title on HTMLAudioElement prevents Chrome/Android from falling back to raw stream URL
+    this.streamAudio.title = 'RADIO KONTROLLE';
     this.streamAudio.preload = 'none';
     this.streamAudio.volume = this.isMuted ? 0 : this.volume;
 
@@ -220,6 +244,14 @@ class AudioEngine {
         this.statusMessage = 'BUFFERING FEED...';
         this.notify();
       }
+    });
+
+    this.streamAudio.addEventListener('play', () => {
+      this.isRunning = true;
+      this.updateMediaSessionMetadata();
+      this.updateMediaSessionState('playing');
+      this.requestWakeLock();
+      this.notify();
     });
 
     this.streamAudio.addEventListener('canplay', () => {
@@ -247,13 +279,12 @@ class AudioEngine {
     });
 
     this.streamAudio.addEventListener('pause', () => {
+      this.isRunning = false;
+      this.streamStatus = 'standby';
+      this.statusMessage = 'SIGNAL PAUSED';
       this.updateMediaSessionState('paused');
-      // Only transition to standby if user explicitly stopped
-      if (this.isUserInitiatedStop && !this.isRunning) {
-        this.streamStatus = 'standby';
-        this.statusMessage = 'STANDBY · SIGNAL READY';
-        this.notify();
-      }
+      this.releaseWakeLock();
+      this.notify();
     });
 
     this.streamAudio.addEventListener('error', (e) => {
@@ -448,6 +479,9 @@ class AudioEngine {
       this.statusMessage = 'RESUMING TRANSMISSION...';
       this.notify();
 
+      this.streamAudio.title = 'RADIO KONTROLLE';
+      this.updateMediaSessionMetadata();
+      this.updateMediaSessionState('playing');
       const playPromise = this.streamAudio.play();
       if (playPromise !== undefined) {
         playPromise
@@ -485,6 +519,9 @@ class AudioEngine {
     this.notify();
 
     try {
+      this.streamAudio.title = 'RADIO KONTROLLE';
+      this.updateMediaSessionMetadata();
+      this.updateMediaSessionState('playing');
       this.streamAudio.src = cleanUrl;
       this.streamAudio.volume = this.isMuted ? 0 : this.volume;
       this.streamAudio.load();
@@ -645,6 +682,9 @@ class AudioEngine {
       this.reactorPeaks = new Float32Array(numBands);
       this.peakHoldExpiry = new Float64Array(numBands);
       this.clipFlags = new Array(numBands).fill(false);
+      this.targetBands = new Float32Array(numBands);
+    } else if (this.targetBands.length !== numBands) {
+      this.targetBands = new Float32Array(numBands);
     }
 
     const isLive = this.isRunning && this.streamStatus === 'live';
@@ -660,28 +700,28 @@ class AudioEngine {
         this.reactorPeaks[i] = Math.max(this.reactorBands[i], this.reactorPeaks[i] - dt * 0.5);
         this.clipFlags[i] = false;
       }
+      this.cachedMetrics.bpm = this.bpm;
+      this.cachedMetrics.subDb = -42;
+      this.cachedMetrics.midDb = -45;
+      this.cachedMetrics.highDb = -48;
+      this.cachedMetrics.peakDb = -40;
+      this.cachedMetrics.ravePressure = this.ravePressureActive;
+      this.cachedMetrics.analysisMode = 'standby';
+      this.cachedMetrics.clipDetected = false;
+      this.cachedMetrics.preset = this.currentPreset;
+
       return {
         bands: this.reactorBands,
         peaks: this.reactorPeaks,
         clipFlags: this.clipFlags,
-        metrics: {
-          bpm: this.bpm,
-          subDb: -42,
-          midDb: -45,
-          highDb: -48,
-          peakDb: -40,
-          ravePressure: this.ravePressureActive,
-          analysisMode: 'standby',
-          clipDetected: false,
-          preset: this.currentPreset,
-        },
+        metrics: this.cachedMetrics,
       };
     }
 
     this.analysisMode = 'modeled';
 
     // Compute target spectrum targets according to active Preset & RAVE mode
-    const targetBands = new Float32Array(numBands);
+    const targetBands = this.targetBands;
     const raveMult = this.ravePressureActive ? 1.28 : 1.0;
     const beatInterval = 60 / this.bpm; // Beat period in seconds
     const timeSec = now / 1000;
@@ -864,21 +904,21 @@ class AudioEngine {
     const highDb = normToDb(highSum / (numBands * 0.35));
     const peakDb = normToDb(maxVal);
 
+    this.cachedMetrics.bpm = this.bpm;
+    this.cachedMetrics.subDb = subDb;
+    this.cachedMetrics.midDb = midDb;
+    this.cachedMetrics.highDb = highDb;
+    this.cachedMetrics.peakDb = peakDb;
+    this.cachedMetrics.ravePressure = this.ravePressureActive;
+    this.cachedMetrics.analysisMode = this.analysisMode;
+    this.cachedMetrics.clipDetected = clipOccurred;
+    this.cachedMetrics.preset = this.currentPreset;
+
     return {
       bands: this.reactorBands,
       peaks: this.reactorPeaks,
       clipFlags: this.clipFlags,
-      metrics: {
-        bpm: this.bpm,
-        subDb,
-        midDb,
-        highDb,
-        peakDb,
-        ravePressure: this.ravePressureActive,
-        analysisMode: this.analysisMode,
-        clipDetected: clipOccurred,
-        preset: this.currentPreset,
-      },
+      metrics: this.cachedMetrics,
     };
   }
 
@@ -886,16 +926,16 @@ class AudioEngine {
    * Backward-compatible 24-band frequency provider for legacy visualizer components.
    */
   public getAnalyserData(): Uint8Array {
-    const data = new Uint8Array(24);
     if (!this.isRunning || this.streamStatus !== 'live') {
-      return data;
+      this.analyser24Buffer.fill(0);
+      return this.analyser24Buffer;
     }
 
     const reactor = this.getReactorData(24);
     for (let i = 0; i < 24; i++) {
-      data[i] = Math.floor(reactor.bands[i] * 255);
+      this.analyser24Buffer[i] = Math.floor(reactor.bands[i] * 255);
     }
-    return data;
+    return this.analyser24Buffer;
   }
 
   // --- DJ Soundboard FX (Tactile booth triggers) ---

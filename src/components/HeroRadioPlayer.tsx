@@ -72,7 +72,7 @@ export const HeroRadioPlayer: React.FC<HeroRadioPlayerProps> = ({
             <span className={`inline-flex items-center gap-1 font-bold uppercase tracking-wider ${
               isLive ? 'text-emerald-400' : isBuffering ? 'text-amber-400' : 'text-neutral-400'
             }`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-emerald-500' : isBuffering ? 'bg-amber-400 animate-ping' : 'bg-neutral-600'}`} />
+              <span className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-emerald-500' : isBuffering ? 'bg-amber-400' : 'bg-neutral-600'}`} />
               {isLive ? 'ON AIR' : isBuffering ? 'BUFFERING' : 'STANDBY'}
             </span>
             <span>·</span>

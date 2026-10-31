@@ -141,10 +141,7 @@ export const DispatchLog: React.FC<DispatchLogProps> = ({ className = '' }) => {
         {/* Desktop Header */}
         <div className="border-b border-[#1c1c26] px-4 py-2.5 bg-[#0e0e12] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2 font-mono text-xs">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600" />
-            </span>
+            <span className="inline-flex rounded-full h-2 w-2 bg-red-600 shrink-0" />
             <span className="font-bold uppercase tracking-wider text-white">
               DISPATCH LOG · BOOTH
             </span>
@@ -175,12 +172,10 @@ export const DispatchLog: React.FC<DispatchLogProps> = ({ className = '' }) => {
             return (
               <div 
                 key={r.id} 
-                className={`p-2 border transition-all duration-300 ${
+                className={`p-2 border ${
                   r.isOwn 
                     ? 'bg-[#181826] border-neutral-500' 
-                    : isHighlight
-                      ? 'bg-red-950/30 border-red-500 shadow-[inset_0_0_10px_rgba(239,68,68,0.25)]'
-                      : 'bg-[#0d0d12]/95 border-[#1a1a24] hover:border-[#2a2a38]'
+                    : 'bg-[#0d0d12]/95 border-[#1a1a24] hover:border-[#2a2a38]'
                 }`}
               >
                 <div className="flex items-baseline justify-between text-[10px] text-neutral-400 mb-0.5 gap-2">
@@ -190,7 +185,7 @@ export const DispatchLog: React.FC<DispatchLogProps> = ({ className = '' }) => {
                         YOU
                       </span>
                     ) : isHighlight ? (
-                      <span className="px-1 py-0.2 bg-red-600 text-white font-mono font-bold text-[8px] uppercase shrink-0 animate-pulse">
+                      <span className="px-1 py-0.2 bg-neutral-800 text-neutral-300 font-mono font-bold text-[8px] uppercase shrink-0">
                         NEW
                       </span>
                     ) : null}
@@ -219,7 +214,7 @@ export const DispatchLog: React.FC<DispatchLogProps> = ({ className = '' }) => {
           <button
             type="button"
             onClick={scrollToBottomDesktop}
-            className="absolute bottom-16 left-1/2 -translate-x-1/2 z-20 bg-red-600 hover:bg-red-500 text-white border border-white/30 px-3.5 py-1 font-mono text-[10px] font-bold tracking-wider uppercase flex items-center gap-1.5 shadow-[0_4px_16px_rgba(220,38,38,0.6)] cursor-pointer animate-bounce"
+            className="absolute bottom-16 left-1/2 -translate-x-1/2 z-20 bg-red-600 hover:bg-red-500 text-white border border-white/30 px-3.5 py-1 font-mono text-[10px] font-bold tracking-wider uppercase flex items-center gap-1.5 shadow-[0_4px_16px_rgba(220,38,38,0.6)] cursor-pointer"
           >
             <ArrowDown size={12} />
             <span>{unreadDesktopCount} NEW DISPATCHES</span>
@@ -253,10 +248,7 @@ export const DispatchLog: React.FC<DispatchLogProps> = ({ className = '' }) => {
         {/* Mobile Header Bar: DISPATCH TICKER • LIVE */}
         <div className="border-b border-[#1c1c26] px-3.5 py-2.5 bg-[#0e0e12] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2 font-mono text-[11px] min-w-0">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600" />
-            </span>
+            <span className="inline-flex rounded-full h-2 w-2 bg-red-600 shrink-0" />
             <span className="font-bold uppercase tracking-wider text-white truncate">
               DISPATCH TICKER • LIVE
             </span>
@@ -276,19 +268,15 @@ export const DispatchLog: React.FC<DispatchLogProps> = ({ className = '' }) => {
           className="p-2 sm:p-2.5 space-y-2 font-mono text-xs select-none min-h-[420px]"
           style={{ overflowAnchor: 'none' }}
         >
-          {mobileItems.slice(0, 6).map((item, index) => {
-            const isNewest = index === 0 && latestIncomingId === item.id;
+          {mobileItems.slice(0, 6).map((item) => {
+            const isNewest = latestIncomingId === item.id;
             return (
               <div 
                 key={item.id} 
-                className={`p-2.5 border transition-all duration-300 min-h-[58px] ${
+                className={`p-2.5 border min-h-[58px] ${
                   item.isOwn 
                     ? 'bg-[#181826] border-neutral-500' 
-                    : isNewest
-                      ? 'bg-red-950/25 border-red-600/90 shadow-[0_0_10px_rgba(220,38,38,0.2)] animate-dispatch-gentle'
-                      : index === 0
-                        ? 'bg-red-950/20 border-red-700/60'
-                        : 'bg-[#0d0d12] border-[#1c1c26]'
+                    : 'bg-[#0d0d12] border-[#1c1c26]'
                 }`}
               >
                 <div className="flex items-baseline justify-between text-[10px] mb-1 gap-2">
@@ -298,13 +286,13 @@ export const DispatchLog: React.FC<DispatchLogProps> = ({ className = '' }) => {
                         YOU
                       </span>
                     ) : isNewest ? (
-                      <span className="px-1.5 py-0.2 bg-red-600 text-white font-mono font-bold text-[8px] uppercase tracking-wider shrink-0">
+                      <span className="px-1.5 py-0.2 bg-neutral-800 text-neutral-300 font-mono font-bold text-[8px] uppercase tracking-wider shrink-0">
                         NEW
                       </span>
                     ) : null}
                     
                     <span className={`font-mono font-bold text-xs uppercase tracking-wide truncate ${
-                      item.isOwn ? 'text-white' : index === 0 ? 'text-white' : 'text-neutral-200'
+                      item.isOwn ? 'text-white' : 'text-neutral-200'
                     }`}>
                       {item.user}
                     </span>
@@ -316,7 +304,7 @@ export const DispatchLog: React.FC<DispatchLogProps> = ({ className = '' }) => {
                 </div>
                 
                 <p className={`font-ui text-[12px] sm:text-xs leading-snug break-words ${
-                  item.isOwn ? 'text-white font-medium' : index === 0 ? 'text-neutral-100' : 'text-neutral-300'
+                  item.isOwn ? 'text-white font-medium' : 'text-neutral-300'
                 }`}>
                   <span>{item.text}</span>
                   {item.emoji && <span className="ml-1.5 inline-block text-xs">{item.emoji}</span>}

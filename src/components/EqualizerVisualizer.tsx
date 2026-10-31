@@ -15,6 +15,7 @@ export const EqualizerVisualizer: React.FC<EqualizerVisualizerProps> = ({
   barCount = 24,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -22,9 +23,13 @@ export const EqualizerVisualizer: React.FC<EqualizerVisualizerProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let animId: number;
+    let animId: number = 0;
+    let isLoopRunning = false;
+    let isVisible = true;
+    let lastRenderTime = 0;
+    const targetInterval = 28; // ~35 FPS cap
 
-    const render = () => {
+    const drawFrame = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const totalBars = barCount;
@@ -88,27 +93,80 @@ export const EqualizerVisualizer: React.FC<EqualizerVisualizerProps> = ({
           ctx.fillRect(x, y, barWidth, restingHeight);
         }
       }
+    };
 
-      if (isPlaying && isLive) {
+    const stopLoop = () => {
+      if (isLoopRunning) {
+        cancelAnimationFrame(animId);
+        animId = 0;
+        isLoopRunning = false;
+      }
+    };
+
+    const startLoop = () => {
+      if (!isLoopRunning && isVisible && !document.hidden && isPlaying && isLive) {
+        isLoopRunning = true;
         animId = requestAnimationFrame(render);
       }
     };
 
-    render();
+    const render = (timestamp: number) => {
+      if (!isLoopRunning) return;
 
-    if (isPlaying && isLive) {
-      animId = requestAnimationFrame(render);
+      if (!isVisible || document.hidden || !isPlaying || !isLive) {
+        stopLoop();
+        return;
+      }
+
+      if (timestamp - lastRenderTime >= targetInterval) {
+        lastRenderTime = timestamp;
+        drawFrame();
+      }
+
+      if (isLoopRunning) {
+        animId = requestAnimationFrame(render);
+      }
+    };
+
+    // If not live, draw static standby frame once
+    if (!isPlaying || !isLive) {
+      drawFrame();
+    } else {
+      startLoop();
     }
 
-    return () => {
-      if (animId) {
-        cancelAnimationFrame(animId);
+    const observer = new IntersectionObserver(([entry]) => {
+      isVisible = entry.isIntersecting;
+      if (isVisible && !document.hidden && isPlaying && isLive) {
+        startLoop();
+      } else {
+        stopLoop();
       }
+    }, { threshold: 0.05 });
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        stopLoop();
+      } else if (isVisible && isPlaying && isLive) {
+        startLoop();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      stopLoop();
+      observer.disconnect();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [isPlaying, isLive, barCount]);
 
   return (
     <div
+      ref={containerRef}
       className={`relative flex items-center justify-center bg-[#070709] border border-neutral-800 rounded px-2 py-1 ${className}`}
       title={
         isPlaying && isLive
