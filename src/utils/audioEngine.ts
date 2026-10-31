@@ -73,12 +73,16 @@ class AudioEngine {
   private phrasePhase: number = 0; // 0 to 1 for long phrase filter sweeps
   // Screen Wake Lock API (Keep mobile display and audio stream session active)
   private wakeLock: any = null;
+  // Single-Instance cross-tab / cross-PWA coordination (avoids duplicate lockscreen cards)
+  private instanceId: string = typeof window !== 'undefined' ? Math.random().toString(36).slice(2) : 'srv';
+  private syncChannel: BroadcastChannel | null = null;
 
   constructor() {
     if (typeof window !== 'undefined') {
       this.initStreamAudio();
       this.setupMediaSession();
       this.setupWakeLock();
+      this.setupSyncChannel();
     }
   }
 
@@ -133,6 +137,24 @@ class AudioEngine {
       } finally {
         this.wakeLock = null;
       }
+    }
+  }
+
+  // --- Single-Instance Cross-Tab / Cross-PWA Coordination ---
+  private setupSyncChannel() {
+    if (typeof window === 'undefined' || !('BroadcastChannel' in window)) return;
+    try {
+      this.syncChannel = new BroadcastChannel('radiokontrolle_single_instance');
+      this.syncChannel.onmessage = (e) => {
+        if (e.data?.action === 'CLAIM_PLAYBACK' && e.data?.senderId !== this.instanceId) {
+          // Another tab or PWA window started playback; stop this instance cleanly to avoid duplicate lock screen cards
+          if (this.isRunning) {
+            this.stop();
+          }
+        }
+      };
+    } catch {
+      // Safe fallback
     }
   }
 
@@ -230,11 +252,24 @@ class AudioEngine {
       const icon192 = `${origin}/assets/kontrolle-app-icon-192.png`;
       const icon512 = `${origin}/assets/kontrolle-app-icon-512.png`;
 
-      // Set dynamic show title, DJ/host, station identity, and artwork
+      // Subtitle preserves existing show and selector details WITHOUT duplicating the station name
+      let subtitle = 'LIVE BROADCAST · 104.5 FM';
+      if (this.currentTrackInfo.title) {
+        const clean = this.currentTrackInfo.title
+          .replace(/RADIO\s+KONTROLLE\s*TRANSMISSIONS?/gi, '')
+          .replace(/RADIO\s+KONTROLLE/gi, '')
+          .replace(/^[\s·\-_:]+|[\s·\-_:]+$/g, '')
+          .trim();
+        if (clean) {
+          subtitle = `${clean} · 104.5 FM`;
+        }
+      }
+
+      // Clearly display RADIO KONTROLLE once as title, album empty to prevent Android duplicate text
       navigator.mediaSession.metadata = new MediaMetadata({
-        title: this.currentTrackInfo.title || 'RADIO KONTROLLE TRANSMISSIONS',
-        artist: this.currentTrackInfo.artist || 'RADIO KONTROLLE RESIDENTS',
-        album: this.currentTrackInfo.album || 'RADIO KONTROLLE',
+        title: 'RADIO KONTROLLE',
+        artist: subtitle,
+        album: '',
         artwork: [
           { src: icon192, sizes: '96x96', type: 'image/png' },
           { src: icon192, sizes: '128x128', type: 'image/png' },
@@ -264,8 +299,8 @@ class AudioEngine {
     if (this.streamAudio) return;
 
     this.streamAudio = new Audio();
-    // Setting dynamic title on HTMLAudioElement prevents Chrome/Android from falling back to raw stream URL
-    this.streamAudio.title = `${this.currentTrackInfo.title} · ${this.currentTrackInfo.artist}`;
+    // Setting title on HTMLAudioElement prevents Chrome/Android from falling back to raw stream URL
+    this.streamAudio.title = 'RADIO KONTROLLE';
     this.streamAudio.preload = 'none';
     this.streamAudio.volume = this.isMuted ? 0 : this.volume;
 
@@ -521,7 +556,15 @@ class AudioEngine {
     this.notify();
 
     try {
-      this.streamAudio.title = `${this.currentTrackInfo.title} · ${this.currentTrackInfo.artist}`;
+      if (this.syncChannel) {
+        this.syncChannel.postMessage({ action: 'CLAIM_PLAYBACK', senderId: this.instanceId });
+      }
+    } catch {
+      // Safe broadcast
+    }
+
+    try {
+      this.streamAudio.title = 'RADIO KONTROLLE';
       this.updateMediaSessionMetadata();
       this.updateMediaSessionState('playing');
 

@@ -46,7 +46,7 @@ export default function App() {
     audioEngine.setTrackInfo({
       title: activeChannel.currentShow,
       artist: activeChannel.dj,
-      album: 'RADIO KONTROLLE',
+      album: '',
     });
   }, [activeChannel]);
 
