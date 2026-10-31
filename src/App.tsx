@@ -41,6 +41,15 @@ export default function App() {
     };
   }, []);
 
+  // Dynamically synchronize MediaSession metadata with active channel show & selector
+  useEffect(() => {
+    audioEngine.setTrackInfo({
+      title: activeChannel.currentShow,
+      artist: activeChannel.dj,
+      album: 'RADIO KONTROLLE',
+    });
+  }, [activeChannel]);
+
   // Keyboard controls: Space to play/pause, M to mute
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

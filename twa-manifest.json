@@ -1,0 +1,34 @@
+{
+  "packageId": "cyou.eyeqstudio2.radiokontrolle",
+  "host": "radio.eyeqstudio2.cyou",
+  "name": "RADIO KONTROLLE",
+  "launcherName": "RADIO",
+  "themeColor": "#0c0c0c",
+  "navigationColor": "#0c0c0c",
+  "backgroundColor": "#0c0c0c",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "https://radio.eyeqstudio2.cyou/assets/kontrolle-app-icon-512.png",
+  "maskableIconUrl": "https://radio.eyeqstudio2.cyou/assets/kontrolle-app-icon-512.png",
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "signing": {
+    "file": "./radiokontrolle-release.keystore",
+    "alias": "radiokontrolle"
+  },
+  "splashScreenFadeOutDuration": 300,
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://radio.eyeqstudio2.cyou/site.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {
+    "locationDelegation": {
+      "enabled": false
+    },
+    "playBilling": {
+      "enabled": false
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  }
+}

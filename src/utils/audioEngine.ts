@@ -183,6 +183,43 @@ class AudioEngine {
     }
   }
 
+  private currentTrackInfo: {
+    title: string;
+    artist: string;
+    album: string;
+  } = {
+    title: 'RADIO KONTROLLE TRANSMISSIONS',
+    artist: 'RADIO KONTROLLE RESIDENTS',
+    album: 'RADIO KONTROLLE',
+  };
+
+  public setTrackInfo(info: { title?: string; artist?: string; album?: string }) {
+    let changed = false;
+    if (info.title && info.title !== this.currentTrackInfo.title) {
+      this.currentTrackInfo.title = info.title;
+      changed = true;
+    }
+    if (info.artist && info.artist !== this.currentTrackInfo.artist) {
+      this.currentTrackInfo.artist = info.artist;
+      changed = true;
+    }
+    if (info.album && info.album !== this.currentTrackInfo.album) {
+      this.currentTrackInfo.album = info.album;
+      changed = true;
+    }
+
+    if (changed) {
+      if (this.streamAudio) {
+        this.streamAudio.title = `${this.currentTrackInfo.title} · ${this.currentTrackInfo.artist}`;
+      }
+      this.updateMediaSessionMetadata();
+    }
+  }
+
+  public getTrackInfo() {
+    return { ...this.currentTrackInfo };
+  }
+
   public updateMediaSessionMetadata() {
     if (typeof window === 'undefined' || !('mediaSession' in navigator)) {
       return;
@@ -193,11 +230,11 @@ class AudioEngine {
       const icon192 = `${origin}/assets/kontrolle-app-icon-192.png`;
       const icon512 = `${origin}/assets/kontrolle-app-icon-512.png`;
 
-      // Set clean title and artist; album is empty to eliminate any unwanted trailing/duplicate text
+      // Set dynamic show title, DJ/host, station identity, and artwork
       navigator.mediaSession.metadata = new MediaMetadata({
-        title: 'RADIO KONTROLLE',
-        artist: 'LIVE BROADCAST',
-        album: '',
+        title: this.currentTrackInfo.title || 'RADIO KONTROLLE TRANSMISSIONS',
+        artist: this.currentTrackInfo.artist || 'RADIO KONTROLLE RESIDENTS',
+        album: this.currentTrackInfo.album || 'RADIO KONTROLLE',
         artwork: [
           { src: icon192, sizes: '96x96', type: 'image/png' },
           { src: icon192, sizes: '128x128', type: 'image/png' },
@@ -227,8 +264,8 @@ class AudioEngine {
     if (this.streamAudio) return;
 
     this.streamAudio = new Audio();
-    // Setting title on HTMLAudioElement prevents Chrome/Android from falling back to raw stream URL
-    this.streamAudio.title = 'RADIO KONTROLLE';
+    // Setting dynamic title on HTMLAudioElement prevents Chrome/Android from falling back to raw stream URL
+    this.streamAudio.title = `${this.currentTrackInfo.title} · ${this.currentTrackInfo.artist}`;
     this.streamAudio.preload = 'none';
     this.streamAudio.volume = this.isMuted ? 0 : this.volume;
 
@@ -484,7 +521,7 @@ class AudioEngine {
     this.notify();
 
     try {
-      this.streamAudio.title = 'RADIO KONTROLLE';
+      this.streamAudio.title = `${this.currentTrackInfo.title} · ${this.currentTrackInfo.artist}`;
       this.updateMediaSessionMetadata();
       this.updateMediaSessionState('playing');
 

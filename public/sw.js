@@ -38,13 +38,14 @@ self.addEventListener('fetch', (event) => {
   const request = event.request;
   const url = request.url;
 
-  // IMPORTANT: Never intercept or cache audio streams, live broadcasts, or range requests
+  // IMPORTANT: Never intercept or cache audio streams, live broadcasts, range requests, or Digital Asset Links
   if (
     request.destination === 'audio' ||
     request.destination === 'video' ||
     url.includes('stream') ||
     url.includes('icecast') ||
     url.includes('live') ||
+    url.includes('.well-known') ||
     request.headers.get('range') ||
     request.method !== 'GET'
   ) {
