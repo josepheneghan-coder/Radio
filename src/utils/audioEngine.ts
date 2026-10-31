@@ -156,10 +156,10 @@ class AudioEngine {
       this.updateMediaSessionMetadata();
       this.updateMediaSessionState('none');
 
-      // 1. PLAY: Resume or connect to live broadcast stream
+      // 1. PLAY: Resume or connect to live broadcast stream synchronously with user gesture
       this.safeSetActionHandler('play', () => {
         this.isUserInitiatedStop = false;
-        this.startStream(this.currentStreamUrl);
+        this.startStream(this.currentStreamUrl, true);
       });
 
       // 2. PAUSE: Pause current playback without clearing stream audio instance
@@ -192,7 +192,6 @@ class AudioEngine {
       const origin = window.location.origin;
       const icon192 = `${origin}/assets/kontrolle-app-icon-192.png`;
       const icon512 = `${origin}/assets/kontrolle-app-icon-512.png`;
-      const iconApple = `${origin}/apple-touch-icon.png`;
 
       // Set clean title and artist; album is empty to eliminate any unwanted trailing/duplicate text
       navigator.mediaSession.metadata = new MediaMetadata({
@@ -200,9 +199,12 @@ class AudioEngine {
         artist: 'LIVE BROADCAST',
         album: '',
         artwork: [
+          { src: icon192, sizes: '96x96', type: 'image/png' },
+          { src: icon192, sizes: '128x128', type: 'image/png' },
           { src: icon192, sizes: '192x192', type: 'image/png' },
+          { src: icon512, sizes: '256x256', type: 'image/png' },
+          { src: icon512, sizes: '384x384', type: 'image/png' },
           { src: icon512, sizes: '512x512', type: 'image/png' },
-          { src: iconApple, sizes: '180x180', type: 'image/png' },
         ],
       });
     } catch (err) {
@@ -465,43 +467,6 @@ class AudioEngine {
       return;
     }
 
-    // Quick resume if same URL is already loaded and paused
-    if (
-      !forceReconnect &&
-      this.currentStreamUrl === cleanUrl &&
-      this.streamAudio &&
-      this.streamAudio.src &&
-      this.streamAudio.paused
-    ) {
-      this.isUserInitiatedStop = false;
-      this.isRunning = true;
-      this.streamStatus = 'buffering';
-      this.statusMessage = 'RESUMING TRANSMISSION...';
-      this.notify();
-
-      this.streamAudio.title = 'RADIO KONTROLLE';
-      this.updateMediaSessionMetadata();
-      this.updateMediaSessionState('playing');
-      const playPromise = this.streamAudio.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            this.streamStatus = 'live';
-            this.statusMessage = 'LIVE ON AIR · 104.5 FM';
-            this.retryCount = 0;
-            this.updateMediaSessionMetadata();
-            this.updateMediaSessionState('playing');
-            this.requestWakeLock();
-            this.notify();
-          })
-          .catch(() => {
-            // fallback to fresh load
-            this.startStream(cleanUrl, true);
-          });
-        return;
-      }
-    }
-
     this.currentStreamUrl = cleanUrl;
     this.isUserInitiatedStop = false;
     this.initStreamAudio();
@@ -522,9 +487,13 @@ class AudioEngine {
       this.streamAudio.title = 'RADIO KONTROLLE';
       this.updateMediaSessionMetadata();
       this.updateMediaSessionState('playing');
+
+      // Refresh stream source synchronously for live broadcast connection.
+      // We do NOT call streamAudio.load() here because calling .load() immediately before .play()
+      // resets the media element and destroys user-activation tokens on Chrome Android,
+      // which causes Android to prompt for a PIN unlock on the lock screen!
       this.streamAudio.src = cleanUrl;
       this.streamAudio.volume = this.isMuted ? 0 : this.volume;
-      this.streamAudio.load();
 
       const playPromise = this.streamAudio.play();
       if (playPromise !== undefined) {

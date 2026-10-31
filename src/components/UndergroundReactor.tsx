@@ -167,8 +167,8 @@ export const UndergroundReactor: React.FC<UndergroundReactorProps> = ({
               }
             }
 
-            // Peak Hold Marker
-            if (peakVal > 0.04) {
+            // Peak Hold Marker (Desktop only — completely disabled on mobile to eliminate falling dots/retro effects)
+            if (!isMobile && peakVal > 0.04) {
               const peakSegmentIndex = Math.min(totalSegments - 1, Math.round(peakVal * totalSegments));
               const peakY = Math.floor(topGutter + plotHeight - (peakSegmentIndex + 1) * (segHeight + segGap));
 

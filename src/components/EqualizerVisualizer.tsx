@@ -77,8 +77,9 @@ export const EqualizerVisualizer: React.FC<EqualizerVisualizerProps> = ({
             }
           }
 
-          // Peak marker
-          if (peak > 0.06) {
+          // Peak marker (Desktop only — disabled on mobile)
+          const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+          if (!isMobile && peak > 0.06) {
             const peakSeg = Math.min(totalSegments - 1, Math.round(peak * totalSegments));
             const peakY = canvas.height - 2 - (peakSeg + 1) * (segHeight + segGap);
             ctx.fillStyle = peakSeg >= 9 ? '#ff2a5f' : peakSeg >= 7 ? '#dc2626' : '#ffffff';
