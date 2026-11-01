@@ -211,7 +211,7 @@ body {
 }
 
 .animate-watermark-slow {
-  animation: watermark-slow var(--watermark-duration, 280s) linear infinite;
+  animation: watermark-slow var(--watermark-duration, 180s) linear infinite;
   will-change: transform;
   transform: translate3d(0, 0, 0);
   -webkit-transform: translate3d(0, 0, 0);
@@ -261,14 +261,11 @@ body {
   background-repeat: repeat-x;
   background-position: left center;
   background-size: auto clamp(85px, 11vw, 140px);
-  will-change: transform;
 }
 
-/* Isolated Ticker Item Cards (Prevents GPU Texture Thrashing & Off-screen Layout/Paint) */
+/* Isolated Ticker Item Cards (Prevents GPU Texture Thrashing; stable flex layout without track jumping) */
 .ticker-item-card {
-  contain: layout style;
-  content-visibility: auto;
-  contain-intrinsic-size: auto 580px 108px;
+  contain: style;
 }
 
 /* Reduced Motion User Preference */

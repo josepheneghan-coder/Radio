@@ -89,7 +89,7 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
           <div 
             className={`animate-watermark-slow flex h-full w-[200%] shrink-0 opacity-10 ${inspectEvent ? 'pause-animation' : ''}`}
             style={{ 
-              '--watermark-duration': '280s',
+              '--watermark-duration': '180s',
             } as React.CSSProperties}
           >
             <div className="w-1/2 h-full ticker-watermark-tile shrink-0" />
