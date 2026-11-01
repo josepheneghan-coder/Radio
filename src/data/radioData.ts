@@ -102,7 +102,7 @@ export const SHOWS_DATA: Show[] = [
     date: 'Oct 23, 2026',
     duration: '01:45:00',
     genres: ['Acid 303', 'Deconstructed Club', 'Breaks'],
-    coverUrl: '/images/show_cover_deconstructed_club_1792936493225.jpg',
+    coverUrl: 'https://i.ibb.co/Kcnc20wR/show-cover-deconstructed-club-1792936493225.jpg',
     description: 'Overdriven silver box resonance, broken club syncopations, and crystalline digital shards pushing sound system limits.',
     bpm: 144,
     isArchivedTape: true,
