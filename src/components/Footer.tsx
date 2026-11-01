@@ -73,7 +73,7 @@ export const Footer: React.FC = () => {
       setIsInstalled(true);
       setDeferredPrompt(null);
       window.__deferredPWAInstallPrompt = null;
-      setInstallHint('RADIO KONTROLLE wurde erfolgreich installiert.');
+      setInstallHint('GLOBAL RADIO wurde erfolgreich installiert.');
     };
     window.addEventListener('appinstalled', handleAppInstalled);
 
@@ -295,13 +295,13 @@ export const Footer: React.FC = () => {
             <div className="relative shrink-0 flex items-center justify-center p-1 bg-neutral-950 border border-neutral-800 rounded-lg shadow-[0_0_12px_rgba(231,251,4,0.2)]">
               <img
                 src="/assets/bng-logo.svg"
-                alt="RADIO KONTROLLE Farb-Icon Plastikmann"
+                alt="GLOBAL RADIO Farb-Icon Plastikmann"
                 className="h-8 sm:h-9 w-auto object-contain select-none shrink-0 drop-shadow-[0_0_8px_rgba(231,251,4,0.35)]"
               />
             </div>
             <div className="flex flex-col justify-center">
               <span className="font-orbitron font-black text-white text-base sm:text-lg tracking-wider leading-none">
-                RADIO KONTROLLE
+                GLOBAL RADIO
               </span>
               <span className="font-mono text-[9px] sm:text-[10px] tracking-[0.22em] text-neutral-400 uppercase font-semibold mt-1">
                 INDIE / UNDERGROUND / LIVE
@@ -327,7 +327,7 @@ export const Footer: React.FC = () => {
               <button
                 onClick={handleDownloadApp}
                 className="w-full sm:w-auto bg-[#facc15] hover:bg-[#eab308] text-black font-mono font-black text-xs sm:text-sm px-5 py-2.5 flex items-center justify-center gap-2 uppercase tracking-wide transition-all shadow-[0_0_15px_rgba(250,204,21,0.25)] hover:shadow-[0_0_20px_rgba(250,204,21,0.45)] cursor-pointer active:scale-95 shrink-0"
-                aria-label="RADIO KONTROLLE App downloaden oder installieren"
+                aria-label="GLOBAL RADIO App downloaden oder installieren"
               >
                 {isInstalled ? (
                   <>
@@ -363,10 +363,10 @@ export const Footer: React.FC = () => {
           <div className="flex items-center gap-3">
             <img
               src="/assets/bng-logo.svg"
-              alt="RADIO KONTROLLE Logo"
+              alt="GLOBAL RADIO Logo"
               className="h-5 w-auto object-contain opacity-80"
             />
-            <span>© 2026 RADIO KONTROLLE · SUB-FREQUENCY INDEPENDENT BROADCAST.</span>
+            <span>© 2026 GLOBAL RADIO · SUB-FREQUENCY INDEPENDENT BROADCAST.</span>
           </div>
 
           <div className="flex items-center gap-4">
@@ -386,9 +386,9 @@ export const Footer: React.FC = () => {
           <div className="mt-6 p-4 bg-neutral-950 border border-neutral-800 font-mono text-[11px] text-neutral-400">
             <div className="font-bold text-white mb-1">ANGABEN GEMÄSS § 5 TMG / IMPRESSUM:</div>
             <p>
-              RADIO KONTROLLE gGmbH i.G. · Holzmarktstraße 25, 10243 Berlin · Vertreten durch: Redaktion & Studio Kollektiv.
+              GLOBAL RADIO gGmbH i.G. · Holzmarktstraße 25, 10243 Berlin · Vertreten durch: Redaktion & Studio Kollektiv.
               <br />
-              Kontakt: studio@radiokontrolle.fm · Lizenzierung: GEMA/GVL gemeldeter Webradio-Sender. Keine kommerzielle Datenweitergabe.
+              Kontakt: studio@globalradio.fm · Lizenzierung: GEMA/GVL gemeldeter Webradio-Sender. Keine kommerzielle Datenweitergabe.
             </p>
           </div>
         )}

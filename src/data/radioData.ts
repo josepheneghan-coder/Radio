@@ -4,10 +4,10 @@ import { STREAM_CONFIG } from '../config/streamConfig';
 export const CHANNELS: Channel[] = [
   {
     id: 'main',
-    name: 'MAIN TRANSMISSION · RADIO KONTROLLE PRIMARY',
+    name: 'MAIN TRANSMISSION · GLOBAL RADIO PRIMARY',
     frequency: '104.5 FM',
-    currentShow: 'RADIO KONTROLLE TRANSMISSIONS · RESIDENT SELECTORS',
-    dj: 'RADIO KONTROLLE RESIDENTS',
+    currentShow: 'GLOBAL RADIO TRANSMISSIONS · RESIDENT SELECTORS',
+    dj: 'GLOBAL RADIO RESIDENTS',
     genre: 'Underground Electronic · Deep Techno · Minimal',
     location: 'Berlin (Kreuzberg)',
     bitrate: '320 kbps Stream',
@@ -221,7 +221,7 @@ export const INITIAL_STICKERS: StickerItem[] = [
   },
   {
     id: 'st-5',
-    text: 'RADIO KONTROLLE',
+    text: 'GLOBAL RADIO',
     subtext: 'BROADCAST SYSTEM · BERLIN',
     type: 'graffiti',
     bgColor: '#E60000',
@@ -246,7 +246,7 @@ export const INITIAL_STICKERS: StickerItem[] = [
 export const MERCH_ITEMS: MerchItem[] = [
   {
     id: 'm-1',
-    title: 'RADIO KONTROLLE BOX-CUT HEAVYWEIGHT HOODIE',
+    title: 'GLOBAL RADIO BOX-CUT HEAVYWEIGHT HOODIE',
     price: '€ 75.00',
     category: 'Apparel',
     imageUrl: '/images/radio_merch_hoodie_1792936493446.jpg',

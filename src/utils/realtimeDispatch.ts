@@ -2,7 +2,7 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
  * 
- * RADIO KONTROLLE — Realtime Dispatch Engine & Scalable Client Architecture
+ * GLOBAL RADIO — Realtime Dispatch Engine & Scalable Client Architecture
  * 
  * Features:
  * 1. Time-Based Viewer Logic (Europe/Berlin Time):

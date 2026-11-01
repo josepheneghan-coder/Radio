@@ -1,5 +1,5 @@
-// Service Worker for RADIO KONTROLLE PWA
-const CACHE_NAME = 'radiokontrolle-v1';
+// Service Worker for GLOBAL RADIO PWA
+const CACHE_NAME = 'globalradio-v2';
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',

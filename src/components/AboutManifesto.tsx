@@ -9,7 +9,7 @@ export const AboutManifesto: React.FC = () => {
           <div className="flex items-center gap-4">
             <img
               src="/assets/aistudio/images_lllogo-removebg-preview_46d3cb66.png"
-              alt="RADIO KONTROLLE Emblem"
+              alt="GLOBAL RADIO Emblem"
               className="h-10 sm:h-12 w-auto object-contain shrink-0 filter brightness-100 drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]"
             />
             <div>

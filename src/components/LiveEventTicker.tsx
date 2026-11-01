@@ -72,7 +72,7 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
     <div 
       className="w-full bg-[#f8f8fa] border-y border-neutral-300 text-black select-none relative z-30 transition-colors"
       role="region"
-      aria-label="RADIO KONTROLLE Live Global Event Ticker"
+      aria-label="GLOBAL RADIO Live Global Event Ticker"
     >
       {/* ============================================================== */}
       {/* 1. DESKTOP VERSION (hidden md:flex)                            */}

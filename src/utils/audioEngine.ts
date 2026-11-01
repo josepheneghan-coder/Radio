@@ -210,9 +210,9 @@ class AudioEngine {
     artist: string;
     album: string;
   } = {
-    title: 'RADIO KONTROLLE TRANSMISSIONS',
-    artist: 'RADIO KONTROLLE RESIDENTS',
-    album: 'RADIO KONTROLLE',
+    title: 'GLOBAL RADIO TRANSMISSION',
+    artist: 'GLOBAL RADIO RESIDENTS',
+    album: 'GLOBAL RADIO',
   };
 
   public setTrackInfo(info: { title?: string; artist?: string; album?: string }) {
@@ -253,23 +253,25 @@ class AudioEngine {
       const icon512 = `${origin}/assets/kontrolle-app-icon-512.png`;
 
       // Subtitle preserves existing show and selector details WITHOUT duplicating the station name
-      let subtitle = 'LIVE BROADCAST · 104.5 FM';
+      let subtitle = 'GLOBAL RADIO TRANSMISSION';
       if (this.currentTrackInfo.title) {
         const clean = this.currentTrackInfo.title
+          .replace(/GLOBAL\s+RADIO\s*TRANSMISSIONS?/gi, '')
+          .replace(/GLOBAL\s+RADIO/gi, '')
           .replace(/RADIO\s+KONTROLLE\s*TRANSMISSIONS?/gi, '')
           .replace(/RADIO\s+KONTROLLE/gi, '')
           .replace(/^[\s·\-_:]+|[\s·\-_:]+$/g, '')
           .trim();
-        if (clean) {
-          subtitle = `${clean} · 104.5 FM`;
+        if (clean && clean !== 'RESIDENT SELECTORS') {
+          subtitle = `${clean} · GLOBAL RADIO TRANSMISSION`;
         }
       }
 
-      // Clearly display RADIO KONTROLLE once as title, album empty to prevent Android duplicate text
+      // Display GLOBAL RADIO prominently as title and GLOBAL RADIO TRANSMISSION as artist/subtitle on mobile lock screens
       navigator.mediaSession.metadata = new MediaMetadata({
-        title: 'RADIO KONTROLLE',
+        title: 'GLOBAL RADIO',
         artist: subtitle,
-        album: '',
+        album: 'GLOBAL RADIO TRANSMISSION',
         artwork: [
           { src: icon192, sizes: '96x96', type: 'image/png' },
           { src: icon192, sizes: '128x128', type: 'image/png' },
@@ -300,7 +302,7 @@ class AudioEngine {
 
     this.streamAudio = new Audio();
     // Setting title on HTMLAudioElement prevents Chrome/Android from falling back to raw stream URL
-    this.streamAudio.title = 'RADIO KONTROLLE';
+    this.streamAudio.title = 'GLOBAL RADIO';
     this.streamAudio.preload = 'none';
     this.streamAudio.volume = this.isMuted ? 0 : this.volume;
 
@@ -564,7 +566,7 @@ class AudioEngine {
     }
 
     try {
-      this.streamAudio.title = 'RADIO KONTROLLE';
+      this.streamAudio.title = 'GLOBAL RADIO';
       this.updateMediaSessionMetadata();
       this.updateMediaSessionState('playing');
 

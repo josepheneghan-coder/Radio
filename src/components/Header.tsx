@@ -61,15 +61,15 @@ export const Header: React.FC<HeaderProps> = ({
         <button
           onClick={handleLogoClick}
           className="flex items-center gap-2.5 text-left group focus:outline-none cursor-pointer shrink-0"
-          aria-label="RADIO KONTROLLE Home"
+          aria-label="GLOBAL RADIO Home"
         >
           <img
             src="/assets/aistudio/images_lllogo-removebg-preview_46d3cb66.png"
-            alt="Radio Kontrolle Icon"
+            alt="GLOBAL RADIO Icon"
             className="w-6 h-6 sm:w-7 sm:h-7 object-contain shrink-0 filter brightness-100 group-hover:brightness-125 transition-all drop-shadow-[0_0_8px_rgba(255,255,255,0.25)]"
           />
           <span className="font-orbitron text-xs sm:text-sm md:text-[15px] font-semibold tracking-wider sm:tracking-widest text-white uppercase group-hover:text-neutral-200 transition-colors">
-            RADIO KONTROLLE
+            GLOBAL RADIO
           </span>
         </button>
 

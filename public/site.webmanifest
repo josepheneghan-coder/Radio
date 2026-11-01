@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "RADIO KONTROLLE",
-  "short_name": "RADIO",
-  "description": "RADIO KONTROLLE – Independent Electronic Underground Radio for Techno, House, Deep House and African House. Discover underground sounds, exclusive DJ sets, live broadcasts and resident selectors.",
+  "name": "GLOBAL RADIO",
+  "short_name": "GLOBAL RADIO",
+  "description": "GLOBAL RADIO – Independent Electronic Underground Radio for Techno, House, Deep House and African House. Discover underground sounds, exclusive DJ sets, live broadcasts and resident selectors.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

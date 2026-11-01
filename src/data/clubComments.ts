@@ -34,7 +34,7 @@ export const CLUB_DISPATCH_COMMENTS: PresetComment[] = [
   { user: 'KATJA_OSTGUT', city: 'Berlin', lang: 'de', text: 'Diese Bassline erinnert an beste Berghain-Nächte.', emoji: '🖤' },
   { user: 'FLORIAN_HB', city: 'Hamburg', lang: 'de', text: 'Pures Vinyl-Feeling. Knistert genau richtig.', emoji: '💿' },
   { user: 'JONAS_NURNBERG', city: 'Nürnberg', lang: 'de', text: 'Die Kick drum hat genau den richtigen Punch.', emoji: '🥁' },
-  { user: 'SOPHIE_DRESDEN', city: 'Dresden', lang: 'de', text: 'Sektor Evolution grüßt Radio Kontrolle!', emoji: '🚀' },
+  { user: 'SOPHIE_DRESDEN', city: 'Dresden', lang: 'de', text: 'Sektor Evolution grüßt Global Radio!', emoji: '🚀' },
   { user: 'SCHRANZ_KURT', city: 'Frankfurt', lang: 'de', text: 'Tempo unnachgiebig hoch. Keine Kompromisse.', emoji: '⚡' },
   { user: 'LEON_AACHEN', city: 'Aachen', lang: 'de', text: 'Analoger Filterverlauf auf den Mitten ist Zucker.', emoji: '🎚️' },
   { user: 'BERLIN_SELECTOR', city: 'Berlin', lang: 'de', text: 'Rotary Mixer Wärme schneidet durch die Kälte.', emoji: '🎛️' },
@@ -89,7 +89,7 @@ export const CLUB_DISPATCH_COMMENTS: PresetComment[] = [
 
   // --- POLISH (Warsaw, Wrocław, Kraków, Gdańsk, Poznań, Katowice) ---
   { user: 'PAWEL_WRO', city: 'Wrocław', lang: 'pl', text: 'Niesamowity klimat! Pozdro z Polski! 🇵🇱', emoji: '🔊' },
-  { user: 'JAN_WARSAW', city: 'Warsaw', lang: 'pl', text: 'Jasna 1 pozdrawia Radio Kontrolle. Potężny bas!', emoji: '⚡' },
+  { user: 'JAN_WARSAW', city: 'Warsaw', lang: 'pl', text: 'Jasna 1 pozdrawia Global Radio. Potężny bas!', emoji: '⚡' },
   { user: 'KASKA_KRK', city: 'Kraków', lang: 'pl', text: 'Ten kick miażdży klatę. Piękna selekcja!', emoji: '💣' },
   { user: 'MICHAL_GDANSK', city: 'Gdańsk', lang: 'pl', text: 'Stocznia vibe na pełnej mocy. Czyste techno.', emoji: '🏭' },
   { user: 'PIOTR_POZNAN', city: 'Poznań', lang: 'pl', text: 'Tama w Poznaniu by oszalała przy tym numerze.', emoji: '🔥' },
@@ -116,7 +116,7 @@ export const CLUB_DISPATCH_COMMENTS: PresetComment[] = [
   { user: 'TECHNO_PETE', city: 'Dublin', lang: 'en', text: 'No shouting over the mic, just seamless vinyl records.', emoji: '🎧' },
   { user: 'CHLOE_SHOREDITCH', city: 'London', lang: 'en', text: 'Unapologetic 4/4 rhythm. Love this station.', emoji: '👌' },
   { user: 'MARCUS_BIRMINGHAM', city: 'Birmingham', lang: 'en', text: 'Industrial kick drum with proper punch.', emoji: '💣' },
-  { user: 'ELLIE_BRIGHTON', city: 'Brighton', lang: 'en', text: 'Late night sessions never disappoint on Radio Kontrolle.', emoji: '🌙' },
+  { user: 'ELLIE_BRIGHTON', city: 'Brighton', lang: 'en', text: 'Late night sessions never disappoint on Global Radio.', emoji: '🌙' },
   { user: 'NATHAN_SHEFFIELD', city: 'Sheffield', lang: 'en', text: 'Heavy steel city baseline heritage in this track.', emoji: '⚡' },
   { user: 'AARON_NEWCASTLE', city: 'Newcastle', lang: 'en', text: 'Floor is vibrating through the monitors.', emoji: '🔊' },
   { user: 'SAM_BELFAST', city: 'Belfast', lang: 'en', text: 'Proper underground cadence. Keep this rolling.', emoji: '🦾' },
