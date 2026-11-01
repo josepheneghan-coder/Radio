@@ -99,7 +99,7 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
         <div 
           className={`animate-ticker-marquee relative z-10 flex items-center shrink-0 ${inspectEvent ? 'pause-animation' : ''}`}
           style={{ 
-            '--ticker-duration': `${Math.max(140, LIVE_EVENTS_DATA.length * 20)}s`,
+            '--ticker-duration': '280s',
           } as React.CSSProperties}
         >
           {/* Run 1 */}
@@ -343,7 +343,7 @@ interface TickerItemProps {
 const DesktopTickerItem: React.FC<TickerItemProps> = React.memo(({ event, onInspect, isAriaHidden = false }) => {
   return (
     <div
-      className="flex items-center gap-4 sm:gap-6 whitespace-nowrap cursor-pointer group/item py-2 pr-10 sm:pr-14 shrink-0 select-none transition-opacity hover:opacity-90"
+      className="flex items-center whitespace-nowrap cursor-pointer group/item py-2 pr-10 sm:pr-14 shrink-0 select-none transition-opacity hover:opacity-90"
       onClick={onInspect}
       role="button"
       tabIndex={isAriaHidden ? -1 : 0}
@@ -354,14 +354,10 @@ const DesktopTickerItem: React.FC<TickerItemProps> = React.memo(({ event, onInsp
         }
       }}
     >
-      <div className="shrink-0 flex items-center">
-        <OfficialEventLogo badge={event.clubBadge} size="md" />
-      </div>
-
       <div className="flex flex-col justify-center gap-1 sm:gap-1.5 leading-tight">
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1.5 font-mono font-black text-[10px] sm:text-[11px] text-[#e11d48] uppercase tracking-wider">
-            <span className="w-2 h-2 rounded-full bg-[#e11d48] inline-block shrink-0 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-[#e11d48] inline-block shrink-0" />
             LIVE
           </span>
           <span className="text-black text-[10px] font-bold">&</span>

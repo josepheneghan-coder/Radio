@@ -20,8 +20,56 @@ export const DispatchLog: React.FC<DispatchLogProps> = ({ className = '' }) => {
   const [isScrolledUp, setIsScrolledUp] = useState<boolean>(false);
   const [unreadDesktopCount, setUnreadDesktopCount] = useState<number>(0);
   const desktopChatScrollRef = useRef<HTMLDivElement | null>(null);
+  const sectionRef = useRef<HTMLElement | null>(null);
+
+  // Viewport optimization refs (pause state updates while off-screen, keep engine running)
+  const isVisibleRef = useRef<boolean>(true);
+  const hasPendingUpdatesRef = useRef<boolean>(false);
+  const isScrolledUpRef = useRef<boolean>(false);
+  const latestIncomingIdTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Keep isScrolledUpRef in sync
+  useEffect(() => {
+    isScrolledUpRef.current = isScrolledUp;
+  }, [isScrolledUp]);
 
   const [, startTransition] = useTransition();
+
+  // Viewport IntersectionObserver: pauses React state updates when out of viewport
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const visible = entry.isIntersecting;
+        isVisibleRef.current = visible;
+
+        // When entering viewport with pending dispatches, perform single atomic sync
+        if (visible && hasPendingUpdatesRef.current) {
+          hasPendingUpdatesRef.current = false;
+          const snapshot = realtimeDispatchClient.getSnapshot();
+          setMessages(snapshot.history);
+          setListeners(snapshot.listeners);
+          if (snapshot.history.length > 0) {
+            const rev = [...snapshot.history].reverse();
+            setMobileItems(rev.slice(0, 6));
+          }
+
+          if (!isScrolledUpRef.current && desktopChatScrollRef.current) {
+            desktopChatScrollRef.current.scrollTop = desktopChatScrollRef.current.scrollHeight;
+          }
+        }
+      },
+      { threshold: 0.05 }
+    );
+
+    observer.observe(section);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   // Subscribe to centralized Realtime Dispatch Engine
   useEffect(() => {
@@ -34,12 +82,22 @@ export const DispatchLog: React.FC<DispatchLogProps> = ({ className = '' }) => {
         }
       },
       onListenersCount: (count) => {
-        setListeners(count);
+        if (isVisibleRef.current) {
+          setListeners(count);
+        } else {
+          hasPendingUpdatesRef.current = true;
+        }
       },
       onStatusChange: (status) => {
         setConnectionStatus(status);
       },
       onMessage: (newMsg) => {
+        // If booth section is offscreen, buffer update without triggering React re-renders
+        if (!isVisibleRef.current) {
+          hasPendingUpdatesRef.current = true;
+          return;
+        }
+
         setLatestIncomingId(newMsg.id);
         
         // Update Mobile 6-item feed (newest at top, keep 6 items)
@@ -49,7 +107,8 @@ export const DispatchLog: React.FC<DispatchLogProps> = ({ className = '' }) => {
         });
 
         // Clear highlight tag after 3s
-        setTimeout(() => {
+        if (latestIncomingIdTimerRef.current) clearTimeout(latestIncomingIdTimerRef.current);
+        latestIncomingIdTimerRef.current = setTimeout(() => {
           setLatestIncomingId((curr) => (curr === newMsg.id ? null : curr));
         }, 3000);
 
@@ -63,16 +122,12 @@ export const DispatchLog: React.FC<DispatchLogProps> = ({ className = '' }) => {
           });
         });
 
-        // Desktop auto-scroll handling
+        // Desktop instant auto-scroll handling (avoids smooth-scroll layout recalculations)
         if (desktopChatScrollRef.current) {
-          if (isScrolledUp) {
+          if (isScrolledUpRef.current) {
             setUnreadDesktopCount((c) => c + 1);
           } else {
-            requestAnimationFrame(() => {
-              if (desktopChatScrollRef.current) {
-                desktopChatScrollRef.current.scrollTop = desktopChatScrollRef.current.scrollHeight;
-              }
-            });
+            desktopChatScrollRef.current.scrollTop = desktopChatScrollRef.current.scrollHeight;
           }
         }
       },
@@ -80,8 +135,9 @@ export const DispatchLog: React.FC<DispatchLogProps> = ({ className = '' }) => {
 
     return () => {
       unsubscribe();
+      if (latestIncomingIdTimerRef.current) clearTimeout(latestIncomingIdTimerRef.current);
     };
-  }, [isScrolledUp]);
+  }, []);
 
   // Initial scroll to bottom for desktop chat
   useEffect(() => {
@@ -118,18 +174,15 @@ export const DispatchLog: React.FC<DispatchLogProps> = ({ className = '' }) => {
     setMobileItems((prev) => [newMsg, ...prev.filter((m) => m.id !== newMsg.id)].slice(0, 6));
 
     if (desktopChatScrollRef.current) {
-      requestAnimationFrame(() => {
-        if (desktopChatScrollRef.current) {
-          desktopChatScrollRef.current.scrollTop = desktopChatScrollRef.current.scrollHeight;
-          setIsScrolledUp(false);
-          setUnreadDesktopCount(0);
-        }
-      });
+      desktopChatScrollRef.current.scrollTop = desktopChatScrollRef.current.scrollHeight;
+      setIsScrolledUp(false);
+      setUnreadDesktopCount(0);
     }
   };
 
   return (
     <section 
+      ref={sectionRef}
       id="booth"
       className={`w-full bg-[#0b0b0e] border border-[#1f1f2a] flex flex-col justify-between shadow-lg select-none relative ${className}`}
       aria-label="Dispatch Log & Community Feed"
@@ -165,7 +218,7 @@ export const DispatchLog: React.FC<DispatchLogProps> = ({ className = '' }) => {
         <div 
           ref={desktopChatScrollRef}
           onScroll={handleDesktopScroll}
-          className="flex-1 overflow-y-auto p-3 space-y-2 font-mono text-xs scroll-smooth max-h-[380px] xl:max-h-[420px]"
+          className="flex-1 overflow-y-auto p-3 space-y-2 font-mono text-xs scroll-auto max-h-[380px] xl:max-h-[420px]"
         >
           {messages.map((r) => {
             const isHighlight = latestIncomingId === r.id;
