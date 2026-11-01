@@ -119,8 +119,10 @@ export const StudioSurveillance: React.FC<StudioSurveillanceProps> = ({
             }`}
           >
             <img
-              src="/src/assets/images/techno_dj_booth_night_1793176235848.jpg"
+              src="https://i.ibb.co/0VmsDjKY/dj-booth-live-stream-1792936491764-1-1.jpg"
               alt="Underground Radio DJ Booth Studio Live Feed"
+              width={1376}
+              height={768}
               className="w-full h-full object-cover object-center"
               fetchPriority="low"
               onError={(e) => {

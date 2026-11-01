@@ -1,18 +1,61 @@
 @import "tailwindcss";
 
+/* ============================================================== */
+/* 1. LOCAL HIGH-PERFORMANCE WOFF2 FONTS (Underground Radio Triad)*/
+/* Archivo: Aggressive Brutalist Display Headings                */
+/* Space Grotesk: Clean Neo-Grotesque Interface & Body           */
+/* IBM Plex Mono: Precision Telemetry, Timestamps & HUD          */
+/* ============================================================== */
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 700 900;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url('/fonts/archivo-var.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/space-grotesk-var.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/ibm-plex-mono-400.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600 700;
+  font-display: swap;
+  src: url('/fonts/ibm-plex-mono-600.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 @theme {
   --font-display: 'Archivo', 'Space Grotesk', sans-serif;
   --font-ui: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'IBM Plex Mono', 'Space Mono', monospace;
   --font-sans: 'Space Grotesk', sans-serif;
-  --font-orbitron: 'Orbitron', 'Space Grotesk', sans-serif;
+  --font-orbitron: 'Archivo', 'Space Grotesk', sans-serif;
 }
 
 :root {
   --font-display: 'Archivo', 'Space Grotesk', sans-serif;
   --font-ui: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'IBM Plex Mono', monospace;
-  --font-orbitron: 'Orbitron', 'Space Grotesk', sans-serif;
+  --font-orbitron: 'Archivo', 'Space Grotesk', sans-serif;
 }
 
 body {
@@ -156,7 +199,7 @@ body {
 }
 
 .animate-ticker-marquee {
-  animation: ticker-marquee var(--ticker-duration, 160s) linear infinite;
+  animation: ticker-marquee var(--ticker-duration, 280s) linear infinite;
   will-change: transform;
   transform: translate3d(0, 0, 0);
   -webkit-transform: translate3d(0, 0, 0);
@@ -168,7 +211,7 @@ body {
 }
 
 .animate-watermark-slow {
-  animation: watermark-slow var(--watermark-duration, 190s) linear infinite;
+  animation: watermark-slow var(--watermark-duration, 280s) linear infinite;
   will-change: transform;
   transform: translate3d(0, 0, 0);
   -webkit-transform: translate3d(0, 0, 0);
@@ -197,7 +240,7 @@ body {
   will-change: transform;
   transform: translate3d(0, 0, 0);
   -webkit-transform: translate3d(0, 0, 0);
-  animation: ticker-marquee 65s linear infinite !important;
+  animation: ticker-marquee 280s linear infinite !important;
 }
 
 /* RAF-Driven Hardware-Accelerated Ticker Track (Kept for instant revertability) */
@@ -210,6 +253,31 @@ body {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   contain: layout paint;
+}
+
+/* Repeating SVG Background Watermark Tile (0 DOM overhead, Retina-sharp vector) */
+.ticker-watermark-tile {
+  background-image: url('/assets/kontrolle-watermark-tile.svg');
+  background-repeat: repeat-x;
+  background-position: left center;
+  background-size: auto clamp(85px, 11vw, 140px);
+  will-change: transform;
+}
+
+/* Isolated Ticker Item Cards (Prevents GPU Texture Thrashing & Off-screen Layout/Paint) */
+.ticker-item-card {
+  contain: layout style;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 580px 108px;
+}
+
+/* Reduced Motion User Preference */
+@media (prefers-reduced-motion: reduce) {
+  .animate-ticker-marquee,
+  .animate-watermark-slow,
+  .ticker-track-css {
+    animation-play-state: paused !important;
+  }
 }
 
 .no-scrollbar::-webkit-scrollbar {

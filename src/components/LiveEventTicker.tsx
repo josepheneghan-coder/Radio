@@ -20,6 +20,11 @@ interface LiveEventTickerProps {
   onNavigate?: (sectionId: string) => void;
 }
 
+// Static lookup map for instant O(1) lookup without searching array on every inspection
+const LIVE_EVENTS_MAP = new Map<string, LiveEventEntry>(
+  LIVE_EVENTS_DATA.map((event) => [event.id, event])
+);
+
 export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
   const [mobileEventIndex, setMobileEventIndex] = useState<number>(0);
   const [inspectEvent, setInspectEvent] = useState<LiveEventEntry | null>(null);
@@ -27,10 +32,35 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
   const totalEvents = LIVE_EVENTS_DATA.length;
   const currentMobileEvent = LIVE_EVENTS_DATA[mobileEventIndex] || LIVE_EVENTS_DATA[0];
 
-  // Stabile Referenz für Event-Details-Inspektion (verhindert Re-Renders)
-  const handleInspectEvent = React.useCallback((event: LiveEventEntry) => {
-    setInspectEvent(event);
+  // Stabile Referenz für Event-Details-Inspektion via ID (verhindert Re-Renders aller 42 Ticker-Items)
+  const handleInspectById = React.useCallback((eventId: string) => {
+    const target = LIVE_EVENTS_MAP.get(eventId);
+    if (target) {
+      setInspectEvent(target);
+    }
   }, []);
+
+  // Memoisierte Ticker-Runs: Erzeugen bei Modal-Öffnen/-Schließen 0 neue VDOM-Knoten
+  const desktopRun1 = React.useMemo(() => (
+    LIVE_EVENTS_DATA.map((event) => (
+      <DesktopTickerItem 
+        key={event.id} 
+        event={event} 
+        onInspect={handleInspectById} 
+      />
+    ))
+  ), [handleInspectById]);
+
+  const desktopRun2 = React.useMemo(() => (
+    LIVE_EVENTS_DATA.map((event) => (
+      <DesktopTickerItem 
+        key={`${event.id}-dup`} 
+        event={event} 
+        onInspect={handleInspectById} 
+        isAriaHidden 
+      />
+    ))
+  ), [handleInspectById]);
 
   // Wechsel ausschließlich durch Klicken / Tippen auf die Tickerfläche für Mobile
   const handleNextEvent = () => {
@@ -51,47 +81,19 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
       <div 
         className="hidden md:flex banner-container relative overflow-hidden h-28 sm:h-32 md:h-36 min-h-[112px] sm:min-h-[128px] md:min-h-[140px] items-center bg-gradient-to-r from-[#f0f0f4] via-[#ffffff] to-[#f0f0f4] group"
       >
-        {/* Sich langsam von rechts nach links bewegende Wasserzeichen-Ebene */}
+        {/* Sich langsam von rechts nach links bewegende Wasserzeichen-Ebene (Optimierte CSS-Tile-Ebene, 0 Layout/Paint) */}
         <div 
           className="absolute inset-0 z-0 pointer-events-none select-none overflow-hidden flex items-center"
           aria-hidden="true"
         >
           <div 
-            className={`animate-watermark-slow flex items-center shrink-0 ${inspectEvent ? 'pause-animation' : ''}`}
+            className={`animate-watermark-slow flex h-full w-[200%] shrink-0 opacity-10 ${inspectEvent ? 'pause-animation' : ''}`}
             style={{ 
-              '--watermark-duration': '180s',
+              '--watermark-duration': '280s',
             } as React.CSSProperties}
           >
-            {/* Run 1 */}
-            <div className="flex items-center shrink-0">
-              {Array.from({ length: 8 }).map((_, idx) => (
-                <div key={`wm-1-${idx}`} className="pr-20 sm:pr-32 shrink-0 flex items-center">
-                  <img
-                    src="/assets/lllogo-removebg-preview (1).svg"
-                    alt=""
-                    decoding="async"
-                    loading="eager"
-                    className="h-[clamp(85px,11vw,145px)] w-auto max-w-none object-contain select-none pointer-events-none opacity-10"
-                    aria-hidden="true"
-                  />
-                </div>
-              ))}
-            </div>
-            {/* Run 2 für nahtlosen Endlos-Loop */}
-            <div className="flex items-center shrink-0" aria-hidden="true">
-              {Array.from({ length: 8 }).map((_, idx) => (
-                <div key={`wm-2-${idx}`} className="pr-20 sm:pr-32 shrink-0 flex items-center">
-                  <img
-                    src="/assets/lllogo-removebg-preview (1).svg"
-                    alt=""
-                    decoding="async"
-                    loading="eager"
-                    className="h-[clamp(85px,11vw,145px)] w-auto max-w-none object-contain select-none pointer-events-none opacity-10"
-                    aria-hidden="true"
-                  />
-                </div>
-              ))}
-            </div>
+            <div className="w-1/2 h-full ticker-watermark-tile shrink-0" />
+            <div className="w-1/2 h-full ticker-watermark-tile shrink-0" aria-hidden="true" />
           </div>
         </div>
 
@@ -104,24 +106,11 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
         >
           {/* Run 1 */}
           <div className="flex items-center shrink-0">
-            {LIVE_EVENTS_DATA.map((event) => (
-              <DesktopTickerItem 
-                key={event.id} 
-                event={event} 
-                onInspect={() => handleInspectEvent(event)} 
-              />
-            ))}
+            {desktopRun1}
           </div>
           {/* Run 2 für nahtlosen Endlos-Loop */}
           <div className="flex items-center shrink-0" aria-hidden="true">
-            {LIVE_EVENTS_DATA.map((event) => (
-              <DesktopTickerItem 
-                key={`${event.id}-dup`} 
-                event={event} 
-                onInspect={() => handleInspectEvent(event)} 
-                isAriaHidden 
-              />
-            ))}
+            {desktopRun2}
           </div>
         </div>
       </div>
@@ -336,60 +325,63 @@ export const LiveEventTicker: React.FC<LiveEventTickerProps> = () => {
 // ==============================================================
 interface TickerItemProps {
   event: LiveEventEntry;
-  onInspect: () => void;
+  onInspect: (id: string) => void;
   isAriaHidden?: boolean;
 }
 
 const DesktopTickerItem: React.FC<TickerItemProps> = React.memo(({ event, onInspect, isAriaHidden = false }) => {
+  const handleClick = React.useCallback(() => {
+    onInspect(event.id);
+  }, [event.id, onInspect]);
+
+  const handleKeyDown = React.useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onInspect(event.id);
+    }
+  }, [event.id, onInspect]);
+
   return (
     <div
-      className="flex items-center whitespace-nowrap cursor-pointer group/item py-2 pr-10 sm:pr-14 shrink-0 select-none transition-opacity hover:opacity-90"
-      onClick={onInspect}
+      className="ticker-item-card flex flex-col justify-center gap-1 sm:gap-1.5 whitespace-nowrap cursor-pointer group/item py-2 pr-10 sm:pr-14 shrink-0 select-none leading-tight transition-opacity hover:opacity-90"
+      onClick={handleClick}
       role="button"
       tabIndex={isAriaHidden ? -1 : 0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onInspect();
-        }
-      }}
+      onKeyDown={handleKeyDown}
     >
-      <div className="flex flex-col justify-center gap-1 sm:gap-1.5 leading-tight">
-        <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1.5 font-mono font-black text-[10px] sm:text-[11px] text-[#e11d48] uppercase tracking-wider">
-            <span className="w-2 h-2 rounded-full bg-[#e11d48] inline-block shrink-0" />
-            LIVE
-          </span>
-          <span className="text-black text-[10px] font-bold">&</span>
-          <span className="bg-black text-white px-1.5 py-0.5 text-[9px] sm:text-[10px] font-mono font-bold tracking-widest uppercase shrink-0">
-            ONLINE BROADCAST
-          </span>
-          <span className="text-black font-mono font-bold text-[9px] sm:text-[10px] uppercase tracking-wide">
-            · {event.status}
-          </span>
-        </div>
+      {/* Row 1: Live indicator, online broadcast badge, and status */}
+      <div className="flex items-center gap-2 text-[9px] sm:text-[10px] font-mono font-bold text-black uppercase tracking-wide">
+        <span className="inline-flex items-center font-black text-[10px] sm:text-[11px] text-[#e11d48] tracking-wider before:inline-block before:w-2 before:h-2 before:rounded-full before:bg-[#e11d48] before:mr-1.5 before:shrink-0">
+          LIVE
+        </span>
+        <span className="text-black font-bold">&</span>
+        <span className="bg-black text-white px-1.5 py-0.5 text-[9px] sm:text-[10px] font-mono font-bold tracking-widest uppercase shrink-0">
+          ONLINE BROADCAST
+        </span>
+        <span className="text-black font-mono font-bold text-[9px] sm:text-[10px] uppercase tracking-wide">
+          · {event.status}
+        </span>
+      </div>
 
-        <div className="flex items-center gap-2.5 sm:gap-3">
-          <h4 className="font-display font-black text-black text-xl sm:text-2xl md:text-3xl tracking-tight uppercase leading-none group-hover/item:text-neutral-800 transition-colors">
-            {event.eventName}
-          </h4>
-          <span className="bg-black text-white px-2 sm:px-2.5 py-1 text-xs sm:text-sm font-mono font-black tracking-wider uppercase shrink-0">
-            {event.destination.split(',')[0].toUpperCase()}
-          </span>
-        </div>
+      {/* Row 2: Event Title and Destination City badge (streamlined without redundant container) */}
+      <h4 className="font-display font-black text-black text-xl sm:text-2xl md:text-3xl tracking-tight uppercase leading-none group-hover/item:text-neutral-800 transition-colors flex items-center gap-2.5 sm:gap-3">
+        {event.eventName}
+        <span className="bg-black text-white px-2 sm:px-2.5 py-1 text-xs sm:text-sm font-mono font-black tracking-wider uppercase shrink-0">
+          {event.destination.split(',')[0].toUpperCase()}
+        </span>
+      </h4>
 
-        <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] font-mono font-bold uppercase">
-          <span className="bg-black text-white px-2 py-0.5 shrink-0">
-            {event.venue}
-          </span>
-          <span className="bg-black text-white px-2 py-0.5 shrink-0">
-            {event.dateDisplay}
-          </span>
-          <span className="bg-black text-white px-2 py-0.5 inline-flex items-center gap-1.5 shrink-0">
-            <span className="text-[#eab308] font-black">SELECTORS:</span>
-            <span className="text-neutral-100">{event.headliners.join(', ') || event.artistsConfirmed.slice(0, 3).join(', ')}</span>
-          </span>
-        </div>
+      {/* Row 3: Venue, Date, and Curated Selectors badge */}
+      <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] font-mono font-bold uppercase">
+        <span className="bg-black text-white px-2 py-0.5 shrink-0">
+          {event.venue}
+        </span>
+        <span className="bg-black text-white px-2 py-0.5 shrink-0">
+          {event.dateDisplay}
+        </span>
+        <span className="bg-black text-neutral-100 px-2 py-0.5 shrink-0 inline-flex items-center before:content-['SELECTORS:'] before:text-[#eab308] before:font-black before:mr-1.5">
+          {event.headliners.join(', ') || event.artistsConfirmed.slice(0, 3).join(', ')}
+        </span>
       </div>
     </div>
   );
