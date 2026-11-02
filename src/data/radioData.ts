@@ -4,9 +4,9 @@ import { STREAM_CONFIG } from '../config/streamConfig';
 export const CHANNELS: Channel[] = [
   {
     id: 'main',
-    name: 'MAIN TRANSMISSION · GLOBAL RADIO PRIMARY',
+    name: 'GLOBAL RADIO PRIMARY',
     frequency: '104.5 FM',
-    currentShow: 'GLOBAL RADIO TRANSMISSIONS · RESIDENT SELECTORS',
+    currentShow: 'RESIDENT SELECTORS',
     dj: 'GLOBAL RADIO RESIDENTS',
     genre: 'Underground Electronic · Deep Techno · Minimal',
     location: 'Berlin (Kreuzberg)',

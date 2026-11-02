@@ -28,6 +28,33 @@ export default function App() {
   const [activeChannel, setActiveChannel] = useState<Channel>(CHANNELS[0]);
   const [selectedShowForModal, setSelectedShowForModal] = useState<Show | null>(null);
   const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [isHeroVisible, setIsHeroVisible] = useState<boolean>(true);
+  const heroZoneRef = React.useRef<HTMLDivElement>(null);
+
+  // Monitor Hero visibility via IntersectionObserver:
+  // Bottom player is hidden on Desktop while Hero START button is in view,
+  // and smoothly slides in when the visitor scrolls down past the hero zone.
+  useEffect(() => {
+    document.title = 'GLOBAL RADIO';
+
+    const target = heroZoneRef.current;
+    if (!target || typeof IntersectionObserver === 'undefined') return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsHeroVisible(entry.isIntersecting);
+      },
+      {
+        root: null,
+        threshold: 0,
+      }
+    );
+
+    observer.observe(target);
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   // Subscribe to audio engine state
   useEffect(() => {
@@ -41,11 +68,11 @@ export default function App() {
     };
   }, []);
 
-  // Dynamically synchronize MediaSession metadata with active channel show & selector
+  // MediaSession strictly displays exclusively GLOBAL RADIO on lock screens without subtitles
   useEffect(() => {
     audioEngine.setTrackInfo({
-      title: activeChannel.currentShow,
-      artist: activeChannel.dj,
+      title: 'GLOBAL RADIO',
+      artist: '',
       album: '',
     });
   }, [activeChannel]);
@@ -123,42 +150,45 @@ export default function App() {
 
       {/* Main Content Sections: Exact layout order */}
       <main className="flex-1 overflow-x-hidden">
-        {/* 1. Live Event Ticker & Banner */}
-        <LiveEventTicker onNavigate={handleNavigate} />
+        {/* Top Hero Zone: Ticker, Visualizer Reactor, CCTV Studio Feed & Primary START Player */}
+        <div ref={heroZoneRef}>
+          {/* 1. Live Event Ticker & Banner */}
+          <LiveEventTicker onNavigate={handleNavigate} />
 
-        {/* 2. Equalizer Visualizer (Pure Animation — No text, No dB scales, No controls) */}
-        <UndergroundReactor
-          isPlaying={isPlaying}
-          streamStatus={streamStatus}
-        />
+          {/* 2. Equalizer Visualizer (Pure Animation — No text, No dB scales, No controls) */}
+          <UndergroundReactor
+            isPlaying={isPlaying}
+            streamStatus={streamStatus}
+          />
 
-        {/* 3. High-Density 2-Column Broadcast Suite (Desktop lg:grid-cols-12, Mobile streamlined) */}
-        <section className="w-full bg-[#070709] border-b border-[#1c1c24] py-3 sm:py-4 px-2 sm:px-4 md:px-6 select-none">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 items-stretch">
-              {/* Left Column (ca. 7 cols): CCTV Feed + Compact Transmission Player */}
-              <div className="lg:col-span-7 flex flex-col gap-3">
-                <StudioSurveillance
-                  channel={activeChannel}
-                  isPlaying={isPlaying}
-                  streamStatus={streamStatus}
-                  onOpenTracklistModal={() => setSelectedShowForModal(SHOWS_DATA[0])}
-                />
-                <HeroRadioPlayer
-                  isPlaying={isPlaying}
-                  streamStatus={streamStatus}
-                  activeChannel={activeChannel}
-                  onTogglePlay={handleTogglePlay}
-                />
-              </div>
+          {/* 3. High-Density 2-Column Broadcast Suite (CCTV Studio-Bild & Dispatch Log) */}
+          <section className="w-full bg-[#070709] border-b border-[#1c1c24] py-3 sm:py-4 px-2 sm:px-4 md:px-6 select-none">
+            <div className="max-w-7xl mx-auto">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 items-stretch">
+                {/* Left Column (ca. 7 cols): Studio-Bild (CCTV) + Musik-Player mit START-Button direkt darunter */}
+                <div className="lg:col-span-7 flex flex-col gap-3">
+                  <StudioSurveillance
+                    channel={activeChannel}
+                    isPlaying={isPlaying}
+                    streamStatus={streamStatus}
+                    onOpenTracklistModal={() => setSelectedShowForModal(SHOWS_DATA[0])}
+                  />
+                  <HeroRadioPlayer
+                    isPlaying={isPlaying}
+                    streamStatus={streamStatus}
+                    activeChannel={activeChannel}
+                    onTogglePlay={handleTogglePlay}
+                  />
+                </div>
 
-              {/* Right Column (ca. 5 cols): Dispatch Log (Desktop full scrollable feed / Mobile compact vertical action ticker) */}
-              <div className="lg:col-span-5 flex flex-col">
-                <DispatchLog className="h-full" />
+                {/* Right Column (ca. 5 cols): Dispatch Log */}
+                <div className="lg:col-span-5 flex flex-col">
+                  <DispatchLog className="h-full" />
+                </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </div>
 
         {/* Shows & Radio Picks Archive Grid */}
         <ShowsArchiveGrid
@@ -178,7 +208,7 @@ export default function App() {
       {/* Footer */}
       <Footer />
 
-      {/* Persistent Floating Bottom Audio Player */}
+      {/* Persistent Floating Bottom Audio Player (Smoothly reveals on desktop once scrolled past the hero area) */}
       <PersistentAudioPlayer
         isPlaying={isPlaying}
         streamStatus={streamStatus}
@@ -186,6 +216,7 @@ export default function App() {
         onTogglePlay={handleTogglePlay}
         activeChannel={activeChannel}
         onChangeChannel={handleSelectChannel}
+        showOnDesktop={!isHeroVisible}
       />
 
       {/* Tracklist Details Modal */}

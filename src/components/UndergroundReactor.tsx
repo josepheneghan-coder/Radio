@@ -167,21 +167,6 @@ export const UndergroundReactor: React.FC<UndergroundReactorProps> = ({
               }
             }
 
-            // Peak Hold Marker (Desktop only — completely disabled on mobile to eliminate falling dots/retro effects)
-            if (!isMobile && peakVal > 0.04) {
-              const peakSegmentIndex = Math.min(totalSegments - 1, Math.round(peakVal * totalSegments));
-              const peakY = Math.floor(topGutter + plotHeight - (peakSegmentIndex + 1) * (segHeight + segGap));
-
-              ctx.fillStyle = peakSegmentIndex >= 22 
-                ? '#ff2a5f' 
-                : peakSegmentIndex >= 19 || isClipped 
-                ? '#dc2626' 
-                : peakSegmentIndex >= 16 
-                ? '#ef4444' 
-                : '#ffffff';
-              ctx.fillRect(x, peakY, barWidth, Math.max(2, segHeight * 0.95));
-            }
-
             // Sub-bass ground glow for kick transients
             if (isLive && i < 12 && val > 0.6) {
               ctx.fillStyle = 'rgba(220, 38, 38, 0.12)';

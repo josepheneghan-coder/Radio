@@ -17,6 +17,7 @@ interface PersistentAudioPlayerProps {
   onTogglePlay: () => void;
   activeChannel: Channel;
   onChangeChannel: (ch: Channel) => void;
+  showOnDesktop?: boolean;
 }
 
 export const PersistentAudioPlayer: React.FC<PersistentAudioPlayerProps> = ({
@@ -26,6 +27,7 @@ export const PersistentAudioPlayer: React.FC<PersistentAudioPlayerProps> = ({
   onTogglePlay,
   activeChannel,
   onChangeChannel,
+  showOnDesktop = true,
 }) => {
   const [volume, setVolume] = useState<number>(0.85);
   const [isMuted, setIsMuted] = useState<boolean>(false);
@@ -102,7 +104,14 @@ export const PersistentAudioPlayer: React.FC<PersistentAudioPlayerProps> = ({
       )}
 
       {/* Persistent Bottom Audio Player Dock with Safe Area for Mobile */}
-      <footer className="fixed bottom-0 left-0 right-0 z-50 bg-[#000000] text-white border-t border-neutral-800 shadow-[0_-8px_24px_rgba(0,0,0,0.85)] pb-[max(0.5rem,env(safe-area-inset-bottom,0px))]">
+      <footer
+        className={`fixed bottom-0 left-0 right-0 z-50 bg-[#000000] text-white border-t border-neutral-800 shadow-[0_-8px_24px_rgba(0,0,0,0.85)] pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] transition-all duration-300 ease-in-out ${
+          showOnDesktop
+            ? 'translate-y-0 opacity-100 pointer-events-auto'
+            : 'translate-y-0 opacity-100 pointer-events-auto md:translate-y-full md:opacity-0 md:pointer-events-none'
+        }`}
+        aria-label="Global Radio Bottom Player"
+      >
         <div className="max-w-7xl mx-auto px-3 md:px-8 py-2 sm:py-2.5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-4">
           {/* Top Row on Mobile: Master Play Button + Channel/Show Info + Mute */}
           <div className="flex items-center justify-between sm:justify-start gap-2.5 sm:gap-4 min-w-0 flex-1">

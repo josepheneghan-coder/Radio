@@ -210,32 +210,20 @@ class AudioEngine {
     artist: string;
     album: string;
   } = {
-    title: 'GLOBAL RADIO TRANSMISSION',
-    artist: 'GLOBAL RADIO RESIDENTS',
-    album: 'GLOBAL RADIO',
+    title: 'GLOBAL RADIO',
+    artist: '',
+    album: '',
   };
 
-  public setTrackInfo(info: { title?: string; artist?: string; album?: string }) {
-    let changed = false;
-    if (info.title && info.title !== this.currentTrackInfo.title) {
-      this.currentTrackInfo.title = info.title;
-      changed = true;
-    }
-    if (info.artist && info.artist !== this.currentTrackInfo.artist) {
-      this.currentTrackInfo.artist = info.artist;
-      changed = true;
-    }
-    if (info.album && info.album !== this.currentTrackInfo.album) {
-      this.currentTrackInfo.album = info.album;
-      changed = true;
-    }
+  public setTrackInfo(_info?: { title?: string; artist?: string; album?: string }) {
+    this.currentTrackInfo.title = 'GLOBAL RADIO';
+    this.currentTrackInfo.artist = '';
+    this.currentTrackInfo.album = '';
 
-    if (changed) {
-      if (this.streamAudio) {
-        this.streamAudio.title = `${this.currentTrackInfo.title} · ${this.currentTrackInfo.artist}`;
-      }
-      this.updateMediaSessionMetadata();
+    if (this.streamAudio) {
+      this.streamAudio.title = 'GLOBAL RADIO';
     }
+    this.updateMediaSessionMetadata();
   }
 
   public getTrackInfo() {
@@ -252,26 +240,11 @@ class AudioEngine {
       const icon192 = `${origin}/assets/kontrolle-app-icon-192.png`;
       const icon512 = `${origin}/assets/kontrolle-app-icon-512.png`;
 
-      // Subtitle preserves existing show and selector details WITHOUT duplicating the station name
-      let subtitle = 'GLOBAL RADIO TRANSMISSION';
-      if (this.currentTrackInfo.title) {
-        const clean = this.currentTrackInfo.title
-          .replace(/GLOBAL\s+RADIO\s*TRANSMISSIONS?/gi, '')
-          .replace(/GLOBAL\s+RADIO/gi, '')
-          .replace(/RADIO\s+KONTROLLE\s*TRANSMISSIONS?/gi, '')
-          .replace(/RADIO\s+KONTROLLE/gi, '')
-          .replace(/^[\s·\-_:]+|[\s·\-_:]+$/g, '')
-          .trim();
-        if (clean && clean !== 'RESIDENT SELECTORS') {
-          subtitle = `${clean} · GLOBAL RADIO TRANSMISSION`;
-        }
-      }
-
-      // Display GLOBAL RADIO prominently as title and GLOBAL RADIO TRANSMISSION as artist/subtitle on mobile lock screens
+      // Display EXCLUSIVELY "GLOBAL RADIO" on mobile lock screens and media notifications
       navigator.mediaSession.metadata = new MediaMetadata({
         title: 'GLOBAL RADIO',
-        artist: subtitle,
-        album: 'GLOBAL RADIO TRANSMISSION',
+        artist: '',
+        album: '',
         artwork: [
           { src: icon192, sizes: '96x96', type: 'image/png' },
           { src: icon192, sizes: '128x128', type: 'image/png' },

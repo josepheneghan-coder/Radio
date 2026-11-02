@@ -1,8 +1,8 @@
 {
   "packageId": "cyou.eyeqstudio2.radiokontrolle",
   "host": "radio.eyeqstudio2.cyou",
-  "name": "RADIO KONTROLLE",
-  "launcherName": "RADIO",
+  "name": "GLOBAL RADIO",
+  "launcherName": "GLOBAL RADIO",
   "themeColor": "#0c0c0c",
   "navigationColor": "#0c0c0c",
   "backgroundColor": "#0c0c0c",

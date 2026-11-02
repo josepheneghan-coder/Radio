@@ -214,20 +214,22 @@ export const DispatchLog: React.FC<DispatchLogProps> = ({ className = '' }) => {
           </div>
         </div>
 
-        {/* Desktop Scrollable Message Stream */}
+        {/* Desktop Scrollable Message Stream: Exactly 5 visible comments */}
         <div 
           ref={desktopChatScrollRef}
           onScroll={handleDesktopScroll}
-          className="flex-1 overflow-y-auto p-3 space-y-2 font-mono text-xs scroll-auto max-h-[380px] xl:max-h-[420px]"
+          className="flex-1 overflow-y-auto p-2.5 sm:p-3 space-y-2 font-mono text-xs scroll-auto max-h-[326px] lg:h-[326px]"
         >
           {messages.map((r) => {
             const isHighlight = latestIncomingId === r.id;
             return (
               <div 
                 key={r.id} 
-                className={`p-2 border ${
+                className={`p-2 border transition-colors ${
                   r.isOwn 
                     ? 'bg-[#181826] border-neutral-500' 
+                    : isHighlight
+                    ? 'bg-[#14141e] border-neutral-600'
                     : 'bg-[#0d0d12]/95 border-[#1a1a24] hover:border-[#2a2a38]'
                 }`}
               >
@@ -246,9 +248,6 @@ export const DispatchLog: React.FC<DispatchLogProps> = ({ className = '' }) => {
                     <span className={`font-mono font-bold tracking-wide uppercase truncate ${r.isOwn ? 'text-white' : 'text-neutral-200'}`}>
                       {r.user}
                     </span>
-                    {r.city && !r.isOwn && (
-                      <span className="text-neutral-400 text-[9px] font-mono shrink-0">({r.city})</span>
-                    )}
                   </div>
                   <span className="tabular-nums font-mono text-[9px] text-neutral-400 shrink-0">{r.timestamp}</span>
                 </div>

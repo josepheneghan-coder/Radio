@@ -292,11 +292,11 @@ export const Footer: React.FC = () => {
         <div className="my-8 p-4 sm:p-6 bg-[#0a0a0c] border border-neutral-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 sm:gap-6">
           {/* Left Block: Color Plastikmann Logo + Brand Identity */}
           <div className="flex items-center gap-3.5 sm:gap-4 shrink-0">
-            <div className="relative shrink-0 flex items-center justify-center p-1 bg-neutral-950 border border-neutral-800 rounded-lg shadow-[0_0_12px_rgba(231,251,4,0.2)]">
+            <div className="relative shrink-0 flex items-center justify-center p-1 bg-neutral-950 border border-neutral-800 rounded-lg shadow-[0_0_12px_rgba(255,255,255,0.15)]">
               <img
-                src="/assets/bng-logo.svg"
-                alt="GLOBAL RADIO Farb-Icon Plastikmann"
-                className="h-8 sm:h-9 w-auto object-contain select-none shrink-0 drop-shadow-[0_0_8px_rgba(231,251,4,0.35)]"
+                src="/assets/aistudio/images_lllogo-removebg-preview_46d3cb66.png"
+                alt="GLOBAL RADIO Logo"
+                className="h-8 sm:h-9 w-auto object-contain select-none shrink-0 drop-shadow-[0_0_8px_rgba(255,255,255,0.25)]"
               />
             </div>
             <div className="flex flex-col justify-center">
@@ -362,7 +362,7 @@ export const Footer: React.FC = () => {
         <div className="pt-8 border-t border-neutral-900 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[11px] text-neutral-500">
           <div className="flex items-center gap-3">
             <img
-              src="/assets/bng-logo.svg"
+              src="/assets/aistudio/images_lllogo-removebg-preview_46d3cb66.png"
               alt="GLOBAL RADIO Logo"
               className="h-5 w-auto object-contain opacity-80"
             />

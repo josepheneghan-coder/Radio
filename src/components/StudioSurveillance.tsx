@@ -73,8 +73,8 @@ export const StudioSurveillance: React.FC<StudioSurveillanceProps> = ({
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5 shrink-0">
-          {/* Cam switcher CAM1 / CAM2 / CAM3 */}
+        {/* Mobile-only Cam switcher CAM1 / CAM2 / CAM3 & Signal test button */}
+        <div className="flex lg:hidden items-center gap-1.5 shrink-0">
           <div className="flex items-center bg-[#101016] border border-[#222230] p-0.5 font-mono text-xs">
             {CAM_ANGLES.map((cam) => (
               <button
@@ -94,7 +94,6 @@ export const StudioSurveillance: React.FC<StudioSurveillanceProps> = ({
             ))}
           </div>
 
-          {/* Signal test button */}
           <button
             onClick={triggerTimeoutGlitch}
             title="Test video signal glitch"
@@ -103,6 +102,14 @@ export const StudioSurveillance: React.FC<StudioSurveillanceProps> = ({
             <RefreshCw size={10} className={isVideoGlitching ? 'animate-spin' : ''} />
             <span className="hidden xs:inline">TEST</span>
           </button>
+        </div>
+
+        {/* Desktop-only subtle broadcast badge */}
+        <div className="hidden lg:flex items-center gap-2 font-mono text-[10px] text-neutral-400">
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-[#121218] border border-[#222230] text-neutral-300">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            FEED 1080P
+          </span>
         </div>
       </div>
 
@@ -200,8 +207,8 @@ export const StudioSurveillance: React.FC<StudioSurveillanceProps> = ({
         )}
       </div>
 
-      {/* Filters Bar */}
-      <div className="border-t border-[#1c1c28] bg-[#0c0c10] px-3 py-1.5 flex items-center justify-between font-mono text-[9px] sm:text-[10px] text-neutral-400">
+      {/* Filters Bar (Mobile only, hidden on desktop to eliminate empty space below photo) */}
+      <div className="flex lg:hidden border-t border-[#1c1c28] bg-[#0c0c10] px-3 py-1.5 items-center justify-between font-mono text-[9px] sm:text-[10px] text-neutral-400">
         <div className="flex items-center gap-1.5">
           <span>FILTER:</span>
           <button

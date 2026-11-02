@@ -32,7 +32,7 @@ export const STREAM_CONFIG: StreamConfig = {
 
   // Visible Station Metadata (GLOBAL RADIO brand identity)
   STATION_NAME: 'GLOBAL RADIO · SUB-FREQ INDIE RADIO',
-  PRIMARY_FEED_NAME: 'GLOBAL RADIO TRANSMISSION',
+  PRIMARY_FEED_NAME: 'GLOBAL RADIO',
   FREQUENCY: '104.5 FM',
   LOCATION: 'Berlin Studio · Container #04',
   BITRATE: '320 kbps Icecast',
