@@ -151,7 +151,7 @@ export default function App() {
       {/* Main Content Sections: Exact layout order */}
       <main className="flex-1 overflow-x-hidden">
         {/* Top Hero Zone: Ticker, Visualizer Reactor, CCTV Studio Feed & Primary START Player */}
-        <div ref={heroZoneRef}>
+        <div ref={heroZoneRef} className="hero-zone-standalone">
           {/* 1. Live Event Ticker & Banner */}
           <LiveEventTicker onNavigate={handleNavigate} />
 
@@ -162,8 +162,8 @@ export default function App() {
           />
 
           {/* 3. High-Density 2-Column Broadcast Suite (CCTV Studio-Bild & Dispatch Log) */}
-          <section className="w-full bg-[#070709] border-b border-[#1c1c24] py-3 sm:py-4 px-2 sm:px-4 md:px-6 select-none">
-            <div className="max-w-7xl mx-auto">
+          <section className="w-full bg-[#070709] border-b border-[#1c1c24] py-3 sm:py-4 px-2 sm:px-4 md:px-6 select-none hero-broadcast-suite-standalone">
+            <div className="max-w-7xl mx-auto w-full">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 items-stretch">
                 {/* Left Column (ca. 7 cols): Studio-Bild (CCTV) + Musik-Player mit START-Button direkt darunter */}
                 <div className="lg:col-span-7 flex flex-col gap-3">
