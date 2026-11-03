@@ -68,11 +68,11 @@ export default function App() {
     };
   }, []);
 
-  // MediaSession strictly displays exclusively GLOBAL RADIO on lock screens without subtitles
+  // MediaSession displays Main title: "GLOBAL RADIO" and Subtitle: "JUST FREQUENCIES." on lock screens
   useEffect(() => {
     audioEngine.setTrackInfo({
       title: 'GLOBAL RADIO',
-      artist: '',
+      artist: 'JUST FREQUENCIES.',
       album: '',
     });
   }, [activeChannel]);

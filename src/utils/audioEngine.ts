@@ -211,13 +211,13 @@ class AudioEngine {
     album: string;
   } = {
     title: 'GLOBAL RADIO',
-    artist: '',
+    artist: 'JUST FREQUENCIES.',
     album: '',
   };
 
   public setTrackInfo(_info?: { title?: string; artist?: string; album?: string }) {
     this.currentTrackInfo.title = 'GLOBAL RADIO';
-    this.currentTrackInfo.artist = '';
+    this.currentTrackInfo.artist = 'JUST FREQUENCIES.';
     this.currentTrackInfo.album = '';
 
     if (this.streamAudio) {
@@ -240,10 +240,10 @@ class AudioEngine {
       const icon192 = `${origin}/assets/kontrolle-app-icon-192.png`;
       const icon512 = `${origin}/assets/kontrolle-app-icon-512.png`;
 
-      // Display EXCLUSIVELY "GLOBAL RADIO" on mobile lock screens and media notifications
+      // Display Main title: "GLOBAL RADIO" and Subtitle / artist line: "JUST FREQUENCIES." on mobile lock screens
       navigator.mediaSession.metadata = new MediaMetadata({
         title: 'GLOBAL RADIO',
-        artist: '',
+        artist: 'JUST FREQUENCIES.',
         album: '',
         artwork: [
           { src: icon192, sizes: '96x96', type: 'image/png' },
