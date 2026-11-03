@@ -290,13 +290,13 @@ export const Footer: React.FC = () => {
         {/* APPLICATION DOWNLOAD BANNER (Exakt wie im Referenzfoto)       */}
         {/* ============================================================== */}
         <div className="my-8 p-4 sm:p-6 bg-[#0a0a0c] border border-neutral-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 sm:gap-6">
-          {/* Left Block: Color Plastikmann Logo + Brand Identity */}
+          {/* Left Block: Yellow App Icon + Brand Identity */}
           <div className="flex items-center gap-3.5 sm:gap-4 shrink-0">
-            <div className="relative shrink-0 flex items-center justify-center p-1 bg-neutral-950 border border-neutral-800 rounded-lg shadow-[0_0_12px_rgba(255,255,255,0.15)]">
+            <div className="relative shrink-0 flex items-center justify-center rounded-lg border border-neutral-800 bg-neutral-950 shadow-[0_0_14px_rgba(231,251,4,0.22)] overflow-hidden">
               <img
-                src="/assets/aistudio/images_lllogo-removebg-preview_46d3cb66.png"
-                alt="GLOBAL RADIO Logo"
-                className="h-8 sm:h-9 w-auto object-contain select-none shrink-0 drop-shadow-[0_0_8px_rgba(255,255,255,0.25)]"
+                src="/assets/kontrolle-app-icon-192.png"
+                alt="GLOBAL RADIO App Icon"
+                className="h-9 w-9 sm:h-10 sm:w-10 object-contain select-none shrink-0"
               />
             </div>
             <div className="flex flex-col justify-center">
